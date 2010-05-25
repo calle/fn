@@ -21,4 +21,4 @@ instance Show Article where
 
 createArticle :: Title -> String -> Link -> Content -> Article
 createArticle title dateStr link content = Article title date link content
-  where date = fromJust (parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" dateStr)
+  where date = fromJust (parseTime defaultTimeLocale "%a, %d %b %Y %H:%M:%S %z" dateStr)

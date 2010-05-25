@@ -51,7 +51,7 @@ parseHtml html = render . content $ docContent noPos $ htmlParse "local.html" ht
 
 test url = do
 	html <- fetch url
-	print $ check html "/html/*/h2"
+	print $ check html "/html/*/h2/a/"
 
 testSafe url pattern = do
 	html <- fetch url
