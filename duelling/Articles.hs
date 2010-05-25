@@ -1,9 +1,10 @@
-module Article where
+module Articles where
 
 import Data.Time.LocalTime
 import Data.Time.Format
 import System.Locale
 import Data.Maybe
+
 
 type Title = String
 type Link = String
