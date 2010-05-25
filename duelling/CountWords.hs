@@ -1,6 +1,17 @@
 module CountWords where
 
 import Articles
+import Data.List
+
+count_words :: String -> [(String, Int)]
+count_words x = count_words' (group_words x)
+
+count_words' :: [[String]] -> [(String, Int)]
+count_words' [] = []
+count_words' (wl:wls) = (head wl, (length wl)) : (count_words' wls)
+
+group_words :: String -> [[String]]
+group_words x = group (sort ( split_words x))
 
 split_words :: String -> [String]
 split_words "" = []
