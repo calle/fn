@@ -1,10 +1,10 @@
 module Article where
 
-import Time
+import Data.Time.LocalTime
 
 data Article = Article {
   title :: String,
-  date  :: Time,
+  date  :: LocalTime,
   link  :: String,
   text  :: String
 }
