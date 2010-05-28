@@ -37,6 +37,7 @@ download url = do
   (uri, rsp) <- browse $ do
     setAllowRedirects True
     setProxy (Proxy "http://192.168.0.103:3128" Nothing)
+    setOutHandler (\s -> return ())
     request $ getRequest url
   fmap (decodeString UTF8) (getResponseBody $ Right rsp)
 
