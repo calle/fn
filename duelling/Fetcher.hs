@@ -10,6 +10,8 @@ import Text.XML.HaXml.Util (docContent, tagTextContent)
 import Text.PrettyPrint.HughesPJ (render)
 import Text.XML.HaXml.Xtract.Parse (xtract)
 import Text.XML.HaXml.Types (Content)
+import Data.Encoding
+import Data.Encoding.UTF8
 
 import Char
 
@@ -34,9 +36,9 @@ download :: String -> IO String
 download url = do
   (uri, rsp) <- browse $ do
     setAllowRedirects True
-    -- setProxy (Proxy "http://192.168.0.103:3128" Nothing)
+    setProxy (Proxy "http://192.168.0.103:3128" Nothing)
     request $ getRequest url
-  getResponseBody $ Right rsp
+  fmap (decodeString UTF8) (getResponseBody $ Right rsp)
 
 showDoc :: Content Posn -> String
 showDoc doc = render $ content $ doc
