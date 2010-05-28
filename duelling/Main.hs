@@ -1,9 +1,18 @@
 module Main where
 
-import Articles
 import Aftonbladet
+import Svd 
+import Articles
 import CountWords
 
 main = do
-  items <- sofies_mode
-  return [count_words (Articles.text item) | item <- items]
+  items <- aftonbladet 
+  -- items <- sofies_mode
+  -- items <- svd
+  putStrLn $ unlines $ take 5 (map showArticleWordCount items)
+
+showArticle :: Article -> String
+showArticle article = show article
+
+showArticleWordCount :: Article -> String
+showArticleWordCount article = unlines $ ("== " ++ (title article)) : [ (show count) ++ " " ++ word | (word, count) <- (count_words (Articles.text article)) ]
