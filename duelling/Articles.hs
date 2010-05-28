@@ -17,7 +17,7 @@ data Article = Article {
   text  :: Content
 }
 instance Show Article where
-  show (Article title date link text) = "Article(" ++ title ++ " @ " ++ (show date) ++ ")"
+  show (Article title date link text) = unlines ["== " ++ title ++ " ==", (show date), text]
 
 createArticle :: Title -> String -> Link -> Content -> Article
 createArticle title dateStr link content = Article title date link content
