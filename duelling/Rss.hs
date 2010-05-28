@@ -2,15 +2,21 @@ module Rss (fetch_articles) where
 
 import Articles
 import Fetcher
+import Text.Regex (mkRegex, subRegex)
+
 
 fetch_articles :: String -> IO [Article]
 fetch_articles url = do
   doc <- fetch url
   let items   = find doc "//channel/item"
-  let articles = [ article ["./title", "./pubDate", "./link", "./description"] item | item <- items]
+  let articles = [ createArticle
+                    (getText item "./title")
+                    (subRegex (mkRegex "GMT") (getText item "./pubDate") "+0000")
+                    (getText item "./link")
+                    (removeTags $ getText item "./description")
+                    | item <- items]
   return articles
-    where article (t:d:l:c:_) i = createArticle (getText i t) (getText i d) (getText i l) (removeTags (getText i c))
-          removeTags []    = ""
+    where removeTags []    = ""
           removeTags (c:str) | c == '<'  = removeTags' str
                              | otherwise = c : removeTags str
           removeTags' [] = ""
