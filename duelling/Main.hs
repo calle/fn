@@ -16,6 +16,7 @@ wordCount count = do
 
 fetch_items :: IO [Article]
 fetch_items = fetch_all [aftonbladet, sofies_mode, svd]
+-- fetch_items = fetch_all [sofies_mode]
 
 fetch_all :: [ IO [Article] ] -> IO [Article]
 fetch_all [] = return []
