@@ -9,8 +9,7 @@ object Main {
     val backend = new Backend()
 
     new DebugSprinkler(backend).start
-    new DebugSprinkler(backend).start
-    new DebugSprinkler(backend).start
+    new ExternalJsonSprinkler(backend, "url").start
 
     println("sending photo")
     backend.send(Photo("title", "desc", null))
