@@ -1,0 +1,10 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+
+#{form @Sprinkler.register() }
+  <input type="submit" value="register" />
+#{/form}
+<br />
+#{form @Sprinkler.unregister() }
+  <input type="submit" value="unregister" />
+#{/form}
