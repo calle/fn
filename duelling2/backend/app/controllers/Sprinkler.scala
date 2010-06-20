@@ -2,15 +2,41 @@ package controllers
 
 import play._
 import play.mvc._
+import java.io.File
+import java.util.UUID
+
+import imagesprinkler.{Backend, Photo, ImageFile}
+
 
 object Sprinkler extends Controller {
 
-    def send {
-      renderText("uuid")
-    }
+  var backend : Option[Backend] = None
 
-    def status(uuid: String) {
-      renderText("status for " + uuid)
-    }
+  def index = render()
+
+  def test() {
+    val id = UUID.randomUUID.toString
+    val photo = Photo(id, "title", "description", new ImageFile(new File("/Users/calle/Pictures/3311125638_d6eee2a5f1.jpg")))
+    println("sending photo: " + photo)
+    backend.map(_.send(photo))
+    renderText(id)
+  }
+
+  def send(title:String, description:String, file:File) {
+    val id = UUID.randomUUID.toString
+    val photo = Photo(id, title, description, new ImageFile(file))
+    println("sending photo: " + photo)
+    backend.map(_.send(photo))
+    renderText(id)
+  }
+
+  def status(uuid: String) {
+    renderText("status for " + uuid)
+  }
+
+  def shutdown() {
+    println("sending shutdown")
+    backend.map(_.shutdown)
+  }
 
 }

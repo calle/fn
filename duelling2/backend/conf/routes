@@ -2,11 +2,20 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-GET     /                                       Application.index
-
 # Map static resources from the /app/public folder to the /public path
 GET     /public/                                staticDir:public
+
+# Sprinkler
+GET     /                                       Sprinkler.index
+GET     /sprinkle                               Sprinkler.index
+GET     /sprinkle/test                          Sprinkler.test
+POST    /sprinkle                               Sprinkler.send
+POST    /sprinkle/shutdown                      Sprinkler.shutdown
+GET     /sprinkle/{uuid}                        Sprinkler.status
+
+GET     /sprinkle/ext/                          sprinkler.ExternalJson.index
+GET     /sprinkle/ext/register                  sprinkler.ExternalJson.register
+GET     /sprinkle/ext/{action}                  sprinkler.ExternalJson.{action}
 
 # Catch all
 *       /{controller}/{action}                  {controller}.{action}

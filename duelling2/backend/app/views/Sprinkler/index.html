@@ -1,0 +1,16 @@
+#{extends 'main.html' /}
+#{set title:'Sprinkle' /}
+
+#{form @Sprinkler.send() , id:'creationForm', enctype:'multipart/form-data' }
+  <input type="text" name="title" /><br />
+  <textarea name="description">
+  </textarea><br />
+  <input type="file" name="file" /><br />
+  <input type="submit" value="Send" /><br />
+#{/form}
+
+<hr />
+
+#{form @Sprinkler.shutdown() }
+  <input type="submit" value="Shutdown" />
+#{/form}

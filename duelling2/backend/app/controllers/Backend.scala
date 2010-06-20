@@ -1,21 +1,25 @@
-package se.netlight.fn.imagesprinkler
+package imagesprinkler
+
+import play.jobs._
 
 import scala.actors.Actor
 import scala.actors.Actor._
 
-object Main {
+import imagesprinkler.sprinkler._
+import controllers.sprinkler.ExternalJsonSprinkler
+
+@OnApplicationStart
+class Bootstrap extends Job {
   
-  def main(args:Array[String]) {
+  override def doJob() {
     val backend = new Backend()
 
     new DebugSprinkler(backend).start
-    new ExternalJsonSprinkler(backend, "url").start
+    new SlowSprinkler(backend).start
+    new ExternalJsonSprinkler(backend).start
 
-    println("sending photo")
-    backend.send(Photo("title", "desc", null))
-    println("sending shutdown")
-    backend.shutdown
-    println("completed")
+    controllers.Sprinkler.backend = Some(backend)
+    println("Bootstrap completed")
   }
 
 }
@@ -27,37 +31,41 @@ class Backend {
   val statusUpdater = actor {
     var running = true
     var inProgress = 0
+
     while (running || inProgress > 0) {
       receive {
-        case Started => 
-          inProgress += 1
-        case InProgress(percent) => 
-          println("Sprinkler at " + percent + "% done")
-        case Complete => 
-          println("Sprinkler completed")
-          inProgress -= 1
-        case Error(message) => 
-          println("Sprinkler failed with error " + message)
-          inProgress -= 1
+        case Send(photo) => 
+          println("Photo will be send to sprinklers")
         case Shutdown => 
+          println("Shutting down statusUpdater")
           running = false
-        case a =>
-          println("statusUpdater received unknown message: " + a)
+
+        case Started(sprinkler, photo) => 
+          inProgress += 1
+          println("Sprinkler \"" + sprinkler.name + "\" started")
+        case InProgress(sprinkler, photo, percent) => 
+          println("Sprinkler \"" + sprinkler.name + "\" is at " + percent + "% done")
+        case Complete(sprinkler, photo) => 
+          println("Sprinkler \"" + sprinkler.name + "\" completed")
+          inProgress -= 1
+        case Error(sprinkler, photo, message) => 
+          println("Sprinkler \"" + sprinkler.name + "\" failed with error " + message)
+          inProgress -= 1
       }
     }
   }
 
   def register(sprinkler:Actor)   = sprinklers ::= sprinkler
-  def unregister(sprinkler:Actor) = sprinklers -= sprinkler
+  def unregister(sprinkler:Actor) = sprinklers = sprinklers.filterNot(_ == sprinkler)
 
   def send(photo:Photo) {
-    println("sending photo to " + sprinklers.size + " sprinklers")
-    sprinklers.foreach { s => s.send(photo, statusUpdater) }
+    println("Sending photo to " + sprinklers.size + " sprinklers")
+    sprinklers.foreach { s => s.send(Send(photo), statusUpdater) }
   }
 
   def shutdown {
-    println("shuting down " + sprinklers.size + " sprinklers")
-    sprinklers.foreach { s => s ! Shutdown }
+    println("Shuting down " + sprinklers.size + " sprinklers")
+    sprinklers.foreach { s => s.send(Shutdown, statusUpdater) }
     sprinklers = List()
     statusUpdater ! Shutdown
   }
