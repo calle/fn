@@ -13,9 +13,11 @@ POST    /sprinkle                               Sprinkler.send
 POST    /sprinkle/shutdown                      Sprinkler.shutdown
 GET     /sprinkle/{uuid}                        Sprinkler.status
 
-GET     /sprinkle/ext/                          sprinkler.ExternalJson.index
-GET     /sprinkle/ext/register                  sprinkler.ExternalJson.register
-GET     /sprinkle/ext/{action}                  sprinkler.ExternalJson.{action}
+GET     /sprinkle/ext/                          ExternalJson.index
+GET     /sprinkle/ext/register                  ExternalJson.register
+POST    /sprinkle/ext/register                  ExternalJson.register
+GET     /sprinkle/ext/{action}                  ExternalJson.{action}
+POST    /sprinkle/ext/{action}                  ExternalJson.{action}
 
 # Catch all
 *       /{controller}/{action}                  {controller}.{action}
