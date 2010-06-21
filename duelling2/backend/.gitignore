@@ -3,3 +3,8 @@ project/boot/
 project/build/target/
 target/
 tmp/
+.classpath
+.project
+.scala_dependencies
+.settings/
+eclipse/
