@@ -16,7 +16,7 @@ object Sprinkler extends Controller {
 
   def test() {
     val id = UUID.randomUUID.toString
-    val photo = Photo(id, "title", "description", new ImageFile(new File("/Users/calle/Pictures/3311125638_d6eee2a5f1.jpg")))
+    val photo = Photo(id, "title", "description", new ImageFile(new File("public/images/fn.jpg")))
     println("sending photo: " + photo)
     backend.map(_.send(photo))
     renderText(id)
