@@ -1,28 +1,9 @@
 package imagesprinkler
 
-import play.jobs._
-
 import scala.actors.Actor
 import scala.actors.Actor._
 
 import imagesprinkler.sprinkler._
-import controllers.sprinkler.ExternalJsonSprinkler
-
-@OnApplicationStart
-class Bootstrap extends Job {
-  
-  override def doJob() {
-    val backend = new Backend()
-
-    new DebugSprinkler(backend).start
-    new SlowSprinkler(backend).start
-    new ExternalJsonSprinkler(backend).start
-
-    controllers.Sprinkler.backend = Some(backend)
-    println("Bootstrap completed")
-  }
-
-}
 
 class Backend {
 
@@ -43,13 +24,13 @@ class Backend {
         case Started(sprinkler, photo) => 
           inProgress += 1
           println("Sprinkler \"" + sprinkler.name + "\" started")
-        case InProgress(sprinkler, photo, percent) => 
-          println("Sprinkler \"" + sprinkler.name + "\" is at " + percent + "% done")
+        case InProgress(sprinkler, photo, message) => 
+          println("Sprinkler \"" + sprinkler.name + "\" status update: " + message)
         case Complete(sprinkler, photo) => 
           println("Sprinkler \"" + sprinkler.name + "\" completed")
           inProgress -= 1
         case Error(sprinkler, photo, message) => 
-          println("Sprinkler \"" + sprinkler.name + "\" failed with error " + message)
+          println("Sprinkler \"" + sprinkler.name + "\" failed with error: " + message)
           inProgress -= 1
       }
     }

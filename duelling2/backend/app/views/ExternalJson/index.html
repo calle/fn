@@ -1,8 +1,8 @@
 #{extends 'main.html' /}
 #{set title:'Sprinkle' /}
 
-#{form @sprinkler.ExternalJson.register() }
-  <input type="text" name="ffff" /><br />
+#{form @ExternalJson.register() }
+  <input type="text" name="name" /><br />
   <input type="text" name="url" /><br />
   <input type="submit" value="Register" /><br />
 #{/form}
