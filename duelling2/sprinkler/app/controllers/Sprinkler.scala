@@ -17,7 +17,7 @@ object Sprinkler extends Controller {
     val result = WS.url(root + "/register")
       .setParameter("name", "testing")
       .setParameter("url", Router.getFullUrl("Sprinkler.send"))
-      .post();
+      .post()
 
     renderText("ok: " + result + ", status: " + result.getStatus + "<br />" + result.getString)
   }
