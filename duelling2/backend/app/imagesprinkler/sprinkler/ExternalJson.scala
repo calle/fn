@@ -20,14 +20,12 @@ case class ExtError(name:String, id:String, message:String)
 case class ExtSprinkler(actor:Actor, var photos:Map[String, ExtPhotoInProgress]);
 case class ExtPhotoInProgress(photo:Photo, source:OutputChannel[Any]);
 
-class ExternalJsonSprinkler(backend:Backend) extends Sprinkler with Actor {
+class ExternalJsonSprinkler() extends Sprinkler {
 
   var name = "external json sprinkler"
   var sprinklers = Map[String, ExtSprinkler]()
 
   ExternalJson.sprinkler = Some(this)
-
-  backend.register(this);
 
   def act() {
     var running = true
@@ -68,7 +66,7 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler with Actor {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.Started(this, photo.photo)
+            photo.source ! imagesprinkler.sprinkler.Started(SendInstance(this, name, photo.photo))
           }
 
         case ExtStatus(name, id, message) => 
@@ -77,7 +75,7 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler with Actor {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.InProgress(this, photo.photo, message)
+            photo.source ! imagesprinkler.sprinkler.InProgress(SendInstance(this, name, photo.photo), message)
           }
 
         case ExtDone(name, id) => 
@@ -86,7 +84,7 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler with Actor {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.Complete(this, photo.photo)
+            photo.source ! imagesprinkler.sprinkler.Complete(SendInstance(this, name, photo.photo))
             sprinkler.photos -= id
           }
 
@@ -96,7 +94,7 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler with Actor {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.Error(this, photo.photo, message)
+            photo.source ! imagesprinkler.sprinkler.Error(SendInstance(this, name, photo.photo), message)
             sprinkler.photos -= id
           }
 

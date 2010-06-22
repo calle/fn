@@ -6,6 +6,7 @@ import java.io.File
 import java.util.UUID
 
 import imagesprinkler.{Backend, Photo, ImageFile}
+import imagesprinkler.sprinkler.{Send, Shutdown}
 
 
 object Sprinkler extends Controller {
@@ -18,7 +19,7 @@ object Sprinkler extends Controller {
     val id = UUID.randomUUID.toString
     val photo = Photo(id, "title", "description", new ImageFile(new File("public/images/fn.jpg")))
     println("sending photo: " + photo)
-    backend.map(_.send(photo))
+    backend.map( _ ! Send(photo) )
     renderText(id)
   }
 
@@ -26,7 +27,7 @@ object Sprinkler extends Controller {
     val id = UUID.randomUUID.toString
     val photo = Photo(id, title, description, new ImageFile(file))
     println("sending photo: " + photo)
-    backend.map(_.send(photo))
+    backend.map( _ ! Send(photo) )
     renderText(id)
   }
 
@@ -36,7 +37,7 @@ object Sprinkler extends Controller {
 
   def shutdown() {
     println("sending shutdown")
-    backend.map(_.shutdown)
+    backend.map( _ ! Shutdown )
   }
 
 }

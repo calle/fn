@@ -5,18 +5,17 @@ import scala.actors.Actor._
 
 import imagesprinkler.Backend
 
-class SlowSprinkler(backend:Backend) extends Sprinkler with Actor {
+class SlowSprinkler() extends Sprinkler {
 
   var name = "slow sprinkler"
-
-  backend.register(this)
 
   def act() {
     while (true) {
       receive {
         case Send(photo) => {
           println("Slow sprinkler send photo " + photo)
-          reply(Started(this, photo));
+          val instance = SendInstance(this, this.name, photo)
+          reply(Started(instance));
 
           val steps = 10
 
@@ -24,11 +23,11 @@ class SlowSprinkler(backend:Backend) extends Sprinkler with Actor {
           for (i <- range) {
             Thread.sleep(2000)
             val percent = (100*(i/steps.toDouble)).toInt
-            reply(InProgress(this, photo, "Done " + percent + "%"));
+            reply(InProgress(instance, "Done " + percent + "%"));
           }
 
           println("Slow sprinkler completed photo" + photo)
-          reply(Complete(this, photo));
+          reply(Complete(instance));
         }
         case Shutdown => {
           println("Slow sprinkler shutting down")

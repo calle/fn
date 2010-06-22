@@ -1,8 +1,9 @@
 package imagesprinkler.sprinkler
 
 import imagesprinkler.Photo
+import scala.actors.Actor
 
-abstract class Sprinkler {
+abstract class Sprinkler extends Actor {
   def name:String
 }
 
@@ -10,8 +11,10 @@ abstract class Request
 case class  Send(photo:Photo) extends Request
 case object Shutdown extends Request
 
+case class SendInstance(sprinkler:Sprinkler, key:String, photo:Photo)
+
 abstract class Response
-case class Started(sprinkler:Sprinkler, photo:Photo) extends Response
-case class InProgress(sprinkler:Sprinkler, photo:Photo, message:String) extends Response
-case class Error(sprinkler:Sprinkler, photo:Photo, message:String) extends Response
-case class Complete(sprinkler:Sprinkler, photo:Photo) extends Response
+case class Started(instance:SendInstance) extends Response
+case class InProgress(instance:SendInstance, message:String) extends Response
+case class Error(instance:SendInstance, message:String) extends Response
+case class Complete(instance:SendInstance) extends Response
