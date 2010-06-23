@@ -19,9 +19,9 @@ object Sprinkler extends Controller {
       .setParameter("url", Router.getFullUrl("Sprinkler.send"))
       .post()
 
-    renderText("ok: " + result + ", status: " + result.getStatus + "<br />" + result.getString)
+    renderText("registered, status: " + result.getStatus)
   }
-  
+
   def send(id:String, title:String, description:String, file:File) {
     println("Received sending of " + id)
 
@@ -39,7 +39,6 @@ object Sprinkler extends Controller {
       .setParameter("id", id)
       .setParameter("message", "after 2s")
       .post()
-
 
     Thread.sleep(3000)
 
