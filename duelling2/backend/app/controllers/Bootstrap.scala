@@ -5,7 +5,7 @@ import play.jobs._
 import scala.actors.Actor
 import scala.actors.Actor._
 
-import imagesprinkler.{Backend, Register}
+import imagesprinkler.Backend
 import imagesprinkler.sprinkler._
 
 
@@ -33,7 +33,7 @@ class Bootstrap extends Job {
   }
 
   private def register(backend:Backend, sprinkler:Sprinkler) {
-    backend ! Register(sprinkler)
+    backend ! Backend.Register(sprinkler)
     sprinkler.start
   }
 

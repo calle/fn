@@ -14,8 +14,8 @@ class SlowSprinkler() extends Sprinkler {
       receive {
         case Send(photo) => {
           println("Slow sprinkler send photo " + photo)
-          val instance = SendInstance(this, this.name, photo)
-          reply(Started(instance));
+          val instance = PhotoInstance(photo, this.name)
+          reply(Started(this, instance));
 
           val steps = 10
 
@@ -23,11 +23,11 @@ class SlowSprinkler() extends Sprinkler {
           for (i <- range) {
             Thread.sleep(2000)
             val percent = (100*(i/steps.toDouble)).toInt
-            reply(InProgress(instance, "Done " + percent + "%"));
+            reply(InProgress(this, instance, "Done " + percent + "%"));
           }
 
           println("Slow sprinkler completed photo" + photo)
-          reply(Complete(instance));
+          reply(Complete(this, instance));
         }
         case Shutdown => {
           println("Slow sprinkler shutting down")

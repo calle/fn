@@ -14,9 +14,9 @@ class DebugSprinkler() extends Sprinkler {
       receive {
         case Send(photo) => {
           println("Debug sprinkler sending photo with title " + photo.title)
-          reply(Started(SendInstance(this, this.name, photo)));
+          reply(Started(this, PhotoInstance(photo, this.name)));
           println("Debug sprinkler sending completed")
-          reply(Complete(SendInstance(this, this.name, photo)));
+          reply(Complete(this, PhotoInstance(photo, this.name)));
         }
         case Shutdown => {
           println("Debug sprinkler shutting down")

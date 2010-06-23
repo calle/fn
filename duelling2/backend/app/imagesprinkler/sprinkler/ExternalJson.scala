@@ -66,7 +66,7 @@ class ExternalJsonSprinkler() extends Sprinkler {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.Started(SendInstance(this, name, photo.photo))
+            photo.source ! imagesprinkler.sprinkler.Started(this, PhotoInstance(photo.photo, name))
           }
 
         case ExtStatus(name, id, message) => 
@@ -75,7 +75,7 @@ class ExternalJsonSprinkler() extends Sprinkler {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.InProgress(SendInstance(this, name, photo.photo), message)
+            photo.source ! imagesprinkler.sprinkler.InProgress(this, PhotoInstance(photo.photo, name), message)
           }
 
         case ExtDone(name, id) => 
@@ -84,7 +84,7 @@ class ExternalJsonSprinkler() extends Sprinkler {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.Complete(SendInstance(this, name, photo.photo))
+            photo.source ! imagesprinkler.sprinkler.Complete(this, PhotoInstance(photo.photo, name))
             sprinkler.photos -= id
           }
 
@@ -94,7 +94,7 @@ class ExternalJsonSprinkler() extends Sprinkler {
             sprinkler <- sprinklers.get(name)
             photo <- sprinkler.photos.get(id)
           } {
-            photo.source ! imagesprinkler.sprinkler.Error(SendInstance(this, name, photo.photo), message)
+            photo.source ! imagesprinkler.sprinkler.Error(this, PhotoInstance(photo.photo, name), message)
             sprinkler.photos -= id
           }
 

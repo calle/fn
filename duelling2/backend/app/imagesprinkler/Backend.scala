@@ -3,88 +3,102 @@ package imagesprinkler
 import scala.actors.Actor
 import scala.actors.Actor._
 import scala.actors.TIMEOUT
+import scala.collection.mutable.{ Map => MMap, Buffer => MBuffer }
 
 import imagesprinkler.sprinkler._
 
 
-case class Register(spinkler:Sprinkler)
-case class Unregister(spinkler:Sprinkler)
+object Backend {
+  val ShutdownTimeout = 10000
+
+  case class Register(spinkler:Sprinkler)
+  case class Unregister(spinkler:Sprinkler)
+  case class GetStatus(uuid:String)
+  case class GetStatusResponse(statuses:Map[String, List[String]])
+
+  private case class SprinklerInfo(var photos:MMap[PhotoInstance, StatusList]) {
+	def addPhoto(instance:PhotoInstance) {
+	  photos.update(instance, Backend.StatusList(MBuffer()))
+	}
+	def addStatus(instance:PhotoInstance, status:String) {
+	  photos.get(instance).foreach { _.statuses.append(status) }
+	}
+  }
+  private case class StatusList(statuses:MBuffer[String]) 
+}
 
 class Backend extends Actor {
 
-  val ShutdownTimeout = 10000
-
-  case class BackendSprinkler(var photos:Map[Photo, Map[String, BackendStatus]]);
-  case class BackendStatus(statuses:List[String]);
-
-  var sprinklers = Map[Sprinkler, BackendSprinkler]()
+  var sprinklers = MMap[Sprinkler, Backend.SprinklerInfo]()
 
   def act() {
     var running = true
+
     while (running || sprinklers.size > 0) {
-      receiveWithin(ShutdownTimeout) {
-        case Register(sprinkler) =>
-          sprinklers = sprinklers.updated(sprinkler, BackendSprinkler(Map()))
-        case Unregister(sprinkler) =>
-          sprinklers = sprinklers.filterNot(_ == sprinkler)
+
+      receiveWithin(Backend.ShutdownTimeout) {
+
+        case Backend.Register(sprinkler) =>
+          sprinklers.update(sprinkler, Backend.SprinklerInfo(MMap()))
+
+        case Backend.Unregister(sprinkler) =>
+          sprinklers.remove(sprinkler)
+
+        case Backend.GetStatus(uuid) =>
+          // Iterate over sprinklers to find all photo instances matching uuid
+          // TODO: Keep cache from uuid -> StatusList instances maybe
+          var response = Map[String, List[String]]()
+          sprinklers.foreach { 
+        	case (_, info) => {
+			  info.photos.foreach { 
+				case (instance, statusList) if instance.photo.id == uuid => 
+					// Append to response map
+					response += (instance.key -> List(statusList.statuses : _*))
+				case _ => 
+			  }
+        	}
+          }
+          reply(Backend.GetStatusResponse(response))
 
         case Send(photo) => 
           println("Sending photo to " + sprinklers.size + " sprinklers")
-          sprinklers.foreach { s => 
-            val (sprinkler, info) = s;
-            info.photos = info.photos.updated(photo, Map())
-            sprinkler ! Send(photo)
-          }
+          sprinklers.keys.foreach { sprinkler => sprinkler ! Send(photo) }
 
         case Shutdown => 
           println("Shuting down " + sprinklers.size + " sprinklers")
-          sprinklers.foreach { s => s._1 ! Shutdown }
+          sprinklers.keys.foreach { s => s ! Shutdown }
           running = false
 
         case TIMEOUT if !running =>
           println("Timed out waiting for Shutdown of sprinklers, exiting")
-          sprinklers = Map()
+          sprinklers.clear
           
-        case Started(SendInstance(sprinkler, key, photo)) => 
-          println("Received Start from " + sprinkler + "@" + key + " for photo: " + photo)
-          for {
-            s <- sprinklers.get(sprinkler)
-            p <- s.photos.get(photo)
-          } {
-            s.photos = s.photos.updated(photo, Map(key -> List("Started sprinkler " + sprinkler.name + "." + sprinkler.key)))
+        case Started(sprinkler, instance @ PhotoInstance(photo, key)) => 
+          println("Received Start from " + sprinkler + " for photo: " + photo + "@" + key)
+          sprinklers.get(sprinkler).foreach { s =>
+          	s.addPhoto(instance)
+            s.addStatus(instance, "Sprinkler " + sprinkler.name + " started " + photo.id + "." + key)
           }
+          // TODO: Remove photo after a longer while...
 
-        case InProgress(SendInstance(sprinkler, key, photo), message) => 
-          println("Received InProgress from " + sprinkler + "@" + key + " for photo: " + photo)
-          for {
-            sprinkler <- sprinklers.get(sprinkler)
-            photo <- sprinkler.photos.get(photo)
-            statuses <- photo.get(key)
-          } {
-            statuses ::= message
-          }
+        case InProgress(sprinkler, instance @ PhotoInstance(photo, key), message) => 
+          println("Received InProgress from " + sprinkler + " for photo: " + photo + "@" + key)
+          sprinklers.get(sprinkler).foreach { _.addStatus(instance, message) }
+          // TODO: Refresh removal time for photo...
 
-        case Complete(SendInstance(sprinkler, key, photo)) => 
-          println("Received Complete from " + sprinkler + "@" + key + " for photo: " + photo)
-          for {
-            sprinkler <- sprinklers.get(spinkler)
-            photo <- sprinkler.photos.get(photos)
-            statuses <- photo.get(key)
-          } {
-            statuses ::= "Completed"
-          }
+        case Complete(sprinkler, instance @ PhotoInstance(photo, key)) => 
+          println("Received Complete from " + sprinkler + " for photo: " + photo + "@" + key)
+          sprinklers.get(sprinkler).foreach { _.addStatus(instance, "Completed") }
+          // TODO: Remove photo after a while...
 
-        case Error(SendInstance(sprinkler, key, photo), message) => 
-          println("Received Error from " + sprinkler + "@" + key + " for photo: " + photo)
-          for {
-            sprinkler <- sprinklers.get(spinkler)
-            photo <- sprinkler.photos.get(photos)
-            statuses <- photo.get(key)
-          } {
-            statuses ::= "Error: " + message
-          }
+        case Error(sprinkler, instance @ PhotoInstance(photo, key), message) => 
+          println("Received Error from " + sprinkler + " for photo: " + photo + "@" + key)
+          sprinklers.get(sprinkler).foreach { _.addStatus(instance, "Failed: " + message) }
+          // TODO: Remove photo after a while...
+
       }
     }
   }
+  
 
 }
