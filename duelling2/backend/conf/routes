@@ -8,7 +8,7 @@ GET     /public/                                staticDir:public
 # Sprinkler
 GET     /                                       Sprinkler.index
 GET     /sprinkle                               Sprinkler.index
-GET     /sprinkle/test                          Sprinkler.test
+POST    /sprinkle/test                          Sprinkler.test
 POST    /sprinkle                               Sprinkler.send
 POST    /sprinkle/shutdown                      Sprinkler.shutdown
 GET     /sprinkle/{uuid}                        Sprinkler.status
