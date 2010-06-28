@@ -1,0 +1,40 @@
+#{extends 'main.html' /}
+#{set title:'Simple viewer' /}
+
+
+
+<div id="photo">
+	<img /><br />
+	<span></span>
+</div>
+
+<script type="text/javascript">
+	// Retrieve new messages
+	
+	var updatePhoto = function(photo) {
+		if (photo.id) {
+			$('#photo span').text(photo.id);
+			$('#photo img').attr("src", photo.data);
+		} else {
+			$('#photo span').text("no photo");
+		}
+	};
+	
+	var getCurrentPhoto = function() {
+		$.ajax({
+	    	url: '@{photo()}',
+			success: updatePhoto,
+            complete: getNextPhoto,
+			dataType: 'json'
+		});
+	}
+	var getNextPhoto = function() {
+		$.ajax({
+	    	url: '@{nextPhoto()}',
+			success: updatePhoto,
+            complete: getNextPhoto,
+			dataType: 'json'
+		});
+	}
+	getCurrentPhoto();
+</script>
