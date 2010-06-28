@@ -4,11 +4,10 @@ import java.io.File
 
 abstract class Image {
   def asBase64:String
-  def asFile:File
 }
 class ImageFile(image:File) extends Image {
-  def asBase64 = play.libs.Images.toBase64(image)
-  def asFile = image
+  private val data = play.libs.Images.toBase64(image)
+  def asBase64 = data
 }
 
 case class Photo(id:String, title:String, description:String, image:Image)
