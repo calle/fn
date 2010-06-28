@@ -7,7 +7,6 @@ import scala.actors.Actor._
 
 import imagesprinkler.Backend
 import imagesprinkler._
-import controllers.ExternalJson
 
 case class ExtRegister(name:String, url:String)
 case class ExtUnregister(name:String)
@@ -24,8 +23,6 @@ class ExternalJsonSprinkler() extends Sprinkler {
 
   var name = "external json sprinkler"
   var sprinklers = Map[String, ExtSprinkler]()
-
-  ExternalJson.sprinkler = Some(this)
 
   def act() {
     var running = true
@@ -130,7 +127,7 @@ class ExternalJsonActor(name: String, url: String) extends Actor {
 	            .setParameter("title", photo.title)
 	            .setParameter("description", photo.title)
 	            .setParameter("image", photo.image.asBase64)
-	            .files(photo.image.asFile)
+	            // .files(photo.image.asFile)
 	            .timeout(10000);
 	          
 	          sender ! ExtStatus(name, photo.id, "Sending photo " + photo.id + " to " + url)
