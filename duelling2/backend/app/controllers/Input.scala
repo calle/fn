@@ -9,7 +9,7 @@ import imagesprinkler.{Backend, Photo, ImageFile}
 import imagesprinkler.sprinkler.{Send, Shutdown}
 
 
-object Sprinkler extends Controller {
+object Input extends Controller {
 
   var backend : Option[Backend] = None
 
@@ -20,7 +20,7 @@ object Sprinkler extends Controller {
     val photo = Photo(uuid, "title", "description", new ImageFile(new File("public/images/fn.jpg")))
     println("sending photo: " + photo)
     backend.map( _ ! Send(photo) )
-    render(uuid)
+    completed(uuid)
   }
 
   def send(title:String, description:String, file:File) {
@@ -28,7 +28,11 @@ object Sprinkler extends Controller {
     val photo = Photo(uuid, title, description, new ImageFile(file))
     println("sending photo: " + photo)
     backend.map( _ ! Send(photo) )
-    render(uuid)
+    completed(uuid)
+  }
+
+  def completed(uuid:String) {
+	render(uuid)
   }
 
   def status(uuid: String) {

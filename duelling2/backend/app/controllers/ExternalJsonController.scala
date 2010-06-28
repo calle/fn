@@ -2,16 +2,11 @@ package controllers
 
 import play._
 import play.mvc._
-import play.jobs._
-import play.libs.WS
-import scala.actors.OutputChannel
-import scala.actors.Actor
-import scala.actors.Actor._
 
 import imagesprinkler.sprinkler._
 
 
-object ExternalJson extends Controller {
+object ExternalJsonController extends Controller {
 
   var sprinkler:Option[ExternalJsonSprinkler] = None
 
