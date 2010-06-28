@@ -1,7 +1,7 @@
 #{extends 'main.html' /}
 #{set title:'Sprinkle' /}
 
-#{form @Sprinkler.send() , id:'creationForm', enctype:'multipart/form-data' }
+#{form @send() , id:'creationForm', enctype:'multipart/form-data' }
   <input type="text" name="title" /><br />
   <textarea name="description">
   </textarea><br />
@@ -9,12 +9,12 @@
   <input type="submit" value="Send" /><br />
 #{/form}
 
-#{form @Sprinkler.test() }
+#{form @test() }
   <input type="submit" value="Send test image" />
 #{/form}
 
 <hr />
 
-#{form @Sprinkler.shutdown() }
+#{form @shutdown() }
   <input type="submit" value="Shutdown" />
 #{/form}
