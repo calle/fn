@@ -4,9 +4,10 @@ $(function(){
 		if (photo.description) {
 			$('#photo .description').text(photo.description);
 			$('#photo img').attr("src", photo.data);
+			$('#photo img').show();
 		} else {
 			$('#photo .description').text("no photo");
-			$('#photo img').attr("src", "");
+			$('#photo img').hide();
 		}
 	};
 	
