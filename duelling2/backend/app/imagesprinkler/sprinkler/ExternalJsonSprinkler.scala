@@ -127,8 +127,8 @@ class ExternalJsonActor(name: String, url: String) extends Actor {
 	            .setParameter("title", photo.title)
 	            .setParameter("description", photo.title)
 	            .setParameter("image", photo.image.asBase64)
-	            // .files(photo.image.asFile)
-	            .timeout(10000);
+	            // .files(photo.image.asFile);
+	          request.timeout = 10000;
 	          
 	          sender ! ExtStatus(name, photo.id, "Sending photo " + photo.id + " to " + url)
 	          println("Sending photo " + photo.id + " to " + url)
