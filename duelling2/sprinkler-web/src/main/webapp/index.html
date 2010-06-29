@@ -1,0 +1,21 @@
+<lift:surround with="default" at="content">
+  <h2>Ladda upp en bild</h2>
+  <div>
+		<lift:snippet type="uploadHandler:upload" form="post" multipart="true">
+		
+			<choose:get>
+			<div>
+				<ul:file_upload />
+			</div>
+			<div>
+				<input type="submit" value="Upload!" />
+			</div>
+			</choose:get>
+			
+			<choose:post>
+				Filename: <ul:file_name />
+			</choose:post>
+		</lift:snippet>
+	</div>
+</lift:surround>
+
