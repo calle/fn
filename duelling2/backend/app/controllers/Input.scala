@@ -32,21 +32,7 @@ object Input extends Controller {
   }
 
   def completed(uuid:String) {
-	render(uuid)
-  }
-
-  def status(uuid: String) {
-    backend match {
-    	case Some(b) => b !? Backend.GetStatus(uuid) match {
-    		case Backend.GetStatusResponse(statuses) => {
-    			renderText(statuses.map { 
-    				case (key, statuses) => "\"" + key + "\": " + statuses.map { "\"" + _ + "\"" }.mkString("[", ",", "]")
-    			}.mkString("{", ",", "}"))
-    		}
-    		case _ => renderText("{ error:\"Unknown uuid: " + uuid + "\"}");
-    	}
-    	case _ => renderText("{ error:\"Not started correctly\"}");
-    }
+    render(uuid)
   }
 
   def shutdown() {
