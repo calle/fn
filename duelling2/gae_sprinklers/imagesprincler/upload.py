@@ -25,6 +25,8 @@ class MainPage(webapp.RequestHandler):
         self.response.out.write('<html><body>')
         self.response.out.write("""
               <form action="/save" enctype="multipart/form-data" method="post">
+                <div><label>Title:</label></div>
+                <div><input type="text" name="title"/></div>
                 <div><label>Image:</label></div>
                 <div><input type="file" name="img"/></div>
                 <div><input type="submit" value="Submit image"></div>
@@ -47,16 +49,23 @@ class Image (webapp.RequestHandler):
 class SaveImage(webapp.RequestHandler):
     def post(self):
         animage = AnImage()
-        foo = images.resize(self.request.get("img"),100,100)
+        title = self.request.get("title")
+        if(title == None):
+            title = "Image Sprinkler"
+        foo = images.resize(self.request.get("img"),640,480)
         animage.image = db.Blob(foo)
         animage.put()
-        self.post_to_tumblr('imagesprincler.appspot.com/img?img_id=%s' % animage.key())
-        self.redirect('/img?img_id=%s' % animage.key())
+        url = 'http://imagesprincler.appspot.com/img?img_id=%s' % animage.key()
+#        url = 'http://localhost:8080/img?img_id=%s' % animage.key()
+        self.post_to_tumblr(title, url)
+        #self.redirect('/img?img_id=%s' % animage.key())
+        self.response.out.write(url)
 
-    def post_to_tumblr(self, url):
+    def post_to_tumblr(self, title, url):
         api = Api(BLOG, USER, PASSWORD)
         try:
-            newpost = api.write_link(url)
+            html = '<img src="%s" alt="%s" />' % (url, title)
+            api.write_regular(title, html)
         except TumblrError, e:
             logging.error(e)
 
