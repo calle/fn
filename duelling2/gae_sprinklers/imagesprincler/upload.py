@@ -8,6 +8,12 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import images
 
+from tumblr import Api, TumblrAuthError, TumblrRequestError, TumblrError
+
+BLOG = 'imagesprinkler.tumblr.com'
+USER = 'lennartsson+imagesprinkler@gmail.com'
+PASSWORD = 'func1234net'
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 class AnImage(db.Model):
@@ -44,7 +50,15 @@ class SaveImage(webapp.RequestHandler):
         foo = images.resize(self.request.get("img"),100,100)
         animage.image = db.Blob(foo)
         animage.put()
+        self.post_to_tumblr('imagesprincler.appspot.com/img?img_id=%s' % animage.key())
         self.redirect('/img?img_id=%s' % animage.key())
+
+    def post_to_tumblr(self, url):
+        api = Api(BLOG, USER, PASSWORD)
+        try:
+            newpost = api.write_link(url)
+        except TumblrError, e:
+            logging.error(e)
 
 
 application = webapp.WSGIApplication([
