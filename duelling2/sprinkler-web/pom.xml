@@ -17,6 +17,11 @@
       <name>Scala-Tools Maven2 Repository</name>
       <url>http://scala-tools.org/repo-releases</url>
     </repository>
+		<repository>
+			<id>jboss</id>
+			<name>JBoss Maven Repo</name>
+			<url>http://repository.jboss.org/maven2</url>
+		</repository>
   </repositories>
 
   <pluginRepositories>
@@ -43,6 +48,16 @@
       <artifactId>derby</artifactId>
       <version>10.4.2.0</version>
     </dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.1</version>
+		</dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
