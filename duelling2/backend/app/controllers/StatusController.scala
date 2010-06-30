@@ -3,8 +3,7 @@ package controllers
 import play._
 import play.mvc._
 
-import imagesprinkler._
-
+import imagesprinkler.listener.StatusListener
 
 object StatusController extends Controller {
 

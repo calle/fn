@@ -6,7 +6,7 @@ import scala.actors.TIMEOUT
 import scala.collection.mutable.{ Map => MMap, Buffer => MBuffer }
 
 import imagesprinkler.sprinkler._
-
+import imagesprinkler.listener._
 
 object Backend {
   val ShutdownTimeout = 10000
@@ -14,7 +14,6 @@ object Backend {
   case class RegisterSprinkler(spinkler:Sprinkler)
   case class UnregisterSprinkler(spinkler:Sprinkler)
 
-  trait Listener extends Actor
   case class RegisterListener(listener:Listener)
   case class UnregisterListener(listener:Listener)
 }
@@ -22,7 +21,7 @@ object Backend {
 class Backend extends Actor {
 
   val sprinklers = MBuffer[Sprinkler]()
-  val listeners = MBuffer[Backend.Listener]()
+  val listeners = MBuffer[Listener]()
 
   def act() {
     var running = true

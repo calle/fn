@@ -8,7 +8,7 @@ GET     /public/                                staticDir:public
 # Sprinkler
 GET     /                                       Input.index
 POST    /image                                  Input.send
-GET     /status/{uuid}                          Input.status
+GET     /status/{uuid}                          StatusController.status
 POST    /test                          	        Input.test
 POST    /shutdown                               Input.shutdown
 

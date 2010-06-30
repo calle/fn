@@ -1,9 +1,10 @@
-package imagesprinkler
+package imagesprinkler.listener
 
 import scala.actors.Actor
 import scala.actors.Actor._
 import scala.collection.mutable.{ Map => MMap, Buffer => MBuffer }
 
+import imagesprinkler._
 import imagesprinkler.sprinkler._
 
 object StatusListener {
@@ -11,7 +12,7 @@ object StatusListener {
   case class GetStatusResponse(statuses:Map[String, List[Response]])
 }
 
-class StatusListener extends Backend.Listener {
+class StatusListener extends Listener {
 
   val photos = MMap[PhotoInstance, MBuffer[Response]]()
 
@@ -43,19 +44,19 @@ class StatusListener extends Backend.Listener {
 
         case status @ Started(sprinkler, instance @ PhotoInstance(photo, key)) => 
           println("Received Start from " + sprinkler + " for photo: " + photo + "@" + key)
-          photos.get(instance).foreach { _ += status }
+          photos(instance) = MBuffer(status)
 
         case status @ InProgress(sprinkler, instance @ PhotoInstance(photo, key), message) => 
           println("Received InProgress from " + sprinkler + " for photo: " + photo + "@" + key)
-          photos.get(instance).foreach { _ += status }
+          photos.get(instance).get += status
 
         case status @ Complete(sprinkler, instance @ PhotoInstance(photo, key)) => 
           println("Received Complete from " + sprinkler + " for photo: " + photo + "@" + key)
-          photos.get(instance).foreach { _ += status }
+          photos.get(instance).get += status
 
         case status @ Error(sprinkler, instance @ PhotoInstance(photo, key), message) => 
           println("Received Error from " + sprinkler + " for photo: " + photo + "@" + key)
-          photos.get(instance).foreach { _ += status }
+          photos.get(instance).get += status
 
       }
     }
