@@ -34,7 +34,7 @@ post('/photo', function() {
     id: this.param('id'),
     title: this.param('title'),
     description: this.param('description'),
-    data: this.param('image')
+    data: this.param('imageBase64')
   }
 
   // Push photo to array

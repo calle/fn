@@ -8,6 +8,18 @@
   <input type="submit" value="Send" /><br />
 #{/form}
 
+<hr />
+
+#{form @sendWithCallback() , id:'creationForm', enctype:'multipart/form-data' }
+  <input type="text" name="title" /><br />
+  <textarea name="description"></textarea><br />
+  <input type="file" name="file" /><br />
+  callback: <input type="text" name="callback" style="width: 300px" /><br />
+  <input type="submit" value="Send" /><br />
+#{/form}
+
+<hr />
+
 #{form @test() }
   <input type="submit" value="Send test image" />
 #{/form}

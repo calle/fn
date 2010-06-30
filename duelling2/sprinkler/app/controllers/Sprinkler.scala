@@ -22,7 +22,7 @@ object Sprinkler extends Controller {
     renderText("registered, status: " + result.getStatus)
   }
 
-  def send(id:String, title:String, description:String, file:File) {
+  def send(id:String, title:String, description:String, imageBase64:String) {
     println("Received sending of " + id)
 
     // Make a slow handling with statuses

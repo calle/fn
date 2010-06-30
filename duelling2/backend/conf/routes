@@ -8,6 +8,7 @@ GET     /public/                                staticDir:public
 # Sprinkler
 GET     /                                       Input.index
 POST    /image                                  Input.send
+POST    /imageWithCallback                      Input.sendWithCallback
 GET     /status/{uuid}                          StatusController.status
 POST    /test                          	        Input.test
 POST    /shutdown                               Input.shutdown

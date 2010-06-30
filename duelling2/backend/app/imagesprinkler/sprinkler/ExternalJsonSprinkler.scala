@@ -101,7 +101,7 @@ class ExternalJsonSprinkler() extends Sprinkler {
       }
     }
     } catch {
-    	case e => println("Execption while receiving message: " + e)
+      case e => println("Execption while receiving message: " + e)
     }
     println("ExternalJsonSprinkler shutting down")
   }
@@ -112,7 +112,7 @@ class ExternalJsonSprinkler() extends Sprinkler {
 class ExternalJsonActor(name: String, url: String) extends Actor {
 
   def act() {
-	println("ExternalJsonActor started for " + name)
+  println("ExternalJsonActor started for " + name)
     var running = true
     while (running) {
       receive {
@@ -122,28 +122,35 @@ class ExternalJsonActor(name: String, url: String) extends Actor {
           sender ! ExtStart(name, photo.id)
 
           try {
-	          val request = WS.url(url)
-	            .setParameter("id", photo.id)
-	            .setParameter("title", photo.title)
-	            .setParameter("description", photo.title)
-	            .setParameter("image", photo.image.asBase64)
-	            // .files(photo.image.asFile);
-	          request.timeout = 10000;
-	          
-	          sender ! ExtStatus(name, photo.id, "Sending photo " + photo.id + " to " + url)
-	          println("Sending photo " + photo.id + " to " + url)
-	          val result = request.post();
-	          println("Sent photo " + photo.id + " to " + url)
-	          sender ! ExtStatus(name, photo.id, "Photo " + photo.id + " sent to " + url)
-	
-	          if (result.getStatus() != 200) {
-	            sender ! ExtError(name, photo.id, "Failed to send photo to " + url + ", status = " + result.getStatus())
-	          } else {
-	            sender ! ExtDone(name, photo.id)
-	          }
+
+            // Write data to file
+            val file = new java.io.File("/tmp/image_" + photo.id)
+            val base64 = photo.image.asBase64
+            val data = base64.substring(base64.indexOf(","))
+            play.libs.IO.write(play.libs.Codec.decodeBASE64(data), file)
+
+            val request = WS.url(url)
+              .setParameter("id", photo.id)
+              .setParameter("title", photo.title)
+              .setParameter("description", photo.title)
+              .setParameter("imageBase64", photo.image.asBase64)
+              .files(new WS.FileParam(file, "img"));
+            request.timeout = 10000;
+            
+            sender ! ExtStatus(name, photo.id, "Sending photo " + photo.id + " to " + url)
+            println("Sending photo " + photo.id + " to " + url)
+            val result = request.post();
+            println("Sent photo " + photo.id + " to " + url)
+            sender ! ExtStatus(name, photo.id, "Photo " + photo.id + " sent to " + url)
+  
+            if (result.getStatus() != 200) {
+              sender ! ExtError(name, photo.id, "Failed to send photo to " + url + ", status = " + result.getStatus())
+            } else {
+              sender ! ExtDone(name, photo.id)
+            }
           } catch { 
-        	  case e => 
-        	   sender ! ExtError(name, photo.id, "Failed to send photo to " + url + ", exception " + e.getMessage())
+            case e => 
+              sender ! ExtError(name, photo.id, "Failed to send photo to " + url + ", exception " + e.getMessage())
           }
         case Shutdown => 
           println("Shutting down external application towards " + url)
