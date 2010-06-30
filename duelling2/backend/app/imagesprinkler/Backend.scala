@@ -38,6 +38,7 @@ class Backend extends Actor {
 
         case Backend.RegisterListener(listener) =>
           listeners += listener
+          reply(Unit)
 
         case Backend.UnregisterListener(listener) =>
           listeners -= listener
