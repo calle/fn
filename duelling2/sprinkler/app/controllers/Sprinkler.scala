@@ -7,7 +7,7 @@ import java.io.File
 
 object Sprinkler extends Controller {
 
-  val root = "http://localhost:9000/sprinkle/ext"
+  val root = "http://localhost:9000/sprinkler/ext"
 
   def index = render()
 

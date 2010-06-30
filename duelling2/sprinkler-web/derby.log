@@ -1,0 +1,6 @@
+----------------------------------------------------------------
+2010-06-29 21:52:12.882 GMT:
+ Booting Derby version The Apache Software Foundation - Apache Derby - 10.4.2.0 - (689064): instance a816c00e-0129-85b2-2902-00000053d358
+on database directory /opt/dev/projects/fn/duelling2/sprinkler-web/lift_example  
+
+Database Class Loader started - derby.database.classpath=''
