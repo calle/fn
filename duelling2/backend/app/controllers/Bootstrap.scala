@@ -24,15 +24,18 @@ class Bootstrap extends Job {
     /**
      * Register sprinklers
      */
-    register(backend, new DebugSprinkler());
 
-    val external = new ExternalJsonSprinkler()
-    register(backend, external);
-    ExternalJsonController.sprinkler = Some(external)
+/*
+    register(backend, new DebugSprinkler());
 
     val simple = new SimpleSprinkler()
     register(backend, simple);
     SimpleSprinklerController.sprinkler = Some(simple)
+*/
+
+    val external = new ExternalJsonSprinkler(backend)
+    register(backend, external);
+    ExternalJsonController.sprinkler = Some(external)
 
     val statusListener = new StatusListener()
     register(backend, statusListener)
