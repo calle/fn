@@ -13,23 +13,23 @@ object ExternalJsonController extends Controller {
   def index = render()
 
   def register(name:String, url:String) {
-	send(ExtRegister(name, url))
+	send(ExternalJsonSprinkler.Register(name, url))
   }
 
   def status(name:String, id:String, message:String) {
-	send(ExtStatus(name, id, message))
+	send(ExternalJsonSprinkler.Status(name, id, message))
   }
 
   def done(name:String, id:String) {
-    send(ExtDone(name, id))
+    send(ExternalJsonSprinkler.Done(name, id))
   }
 
   def error(name:String, id:String, message:String) { 
-    send(ExtError(name, id, message))
+    send(ExternalJsonSprinkler.Error(name, id, message))
   }
 
   def unregister(name:String) { 
-    send(ExtUnregister(name))
+    send(ExternalJsonSprinkler.Unregister(name))
   }
 
   private def send(message:Any) {
