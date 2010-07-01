@@ -14,6 +14,9 @@ object Backend {
   case class RegisterSprinkler(spinkler:Sprinkler)
   case class UnregisterSprinkler(spinkler:Sprinkler)
 
+  case object GetSprinklers
+  case class GetSprinklersResponse(spinklers:Seq[Sprinkler])
+  
   case class RegisterListener(listener:Listener)
   case class UnregisterListener(listener:Listener)
 }
@@ -35,6 +38,9 @@ class Backend extends Actor {
 
         case Backend.UnregisterSprinkler(sprinkler) =>
           sprinklers -= sprinkler
+
+        case Backend.GetSprinklers =>
+          reply(Backend.GetSprinklersResponse(List(sprinklers : _*)))
 
         case Backend.RegisterListener(listener) =>
           listeners += listener
