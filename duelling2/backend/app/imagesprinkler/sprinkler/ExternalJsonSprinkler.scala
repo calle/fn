@@ -9,7 +9,6 @@ import scala.actors.Actor._
 import scala.collection.mutable.{ Map => MMap }
 import java.util.concurrent.Future
 
-import imagesprinkler.Backend
 import imagesprinkler._
 
 
@@ -86,10 +85,10 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler {
 private object ExternalJsonInstanceSprinkler {
 
 	case class PhotoInfo(sprinkler:ExternalJsonInstanceSprinkler, photo:Photo, source:OutputChannel[Any], var request:Option[Future[HttpResponse]]) {
-    def sendStart() = source ! imagesprinkler.sprinkler.Started(sprinkler, toInstance())
-	  def sendStatus(message:String) = source ! imagesprinkler.sprinkler.InProgress(sprinkler, toInstance(), message)
-    def sendDone() = source ! imagesprinkler.sprinkler.Complete(sprinkler, toInstance())
-    def sendError(message:String) = source ! imagesprinkler.sprinkler.Error(sprinkler, toInstance(), message)
+    def sendStart() = source ! imagesprinkler.Started(sprinkler, toInstance())
+	  def sendStatus(message:String) = source ! imagesprinkler.InProgress(sprinkler, toInstance(), message)
+    def sendDone() = source ! imagesprinkler.Complete(sprinkler, toInstance())
+    def sendError(message:String) = source ! imagesprinkler.Error(sprinkler, toInstance(), message)
     private def toInstance() = PhotoInstance(photo, sprinkler.name)
 	}
 

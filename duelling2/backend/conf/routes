@@ -9,7 +9,8 @@ GET     /public/                                staticDir:public
 GET     /                                       Input.index
 POST    /image                                  Input.send
 POST    /imageWithCallback                      Input.sendWithCallback
-GET     /status/{uuid}                          StatusController.status
+GET     /status                                 StatusController.index
+GET     /status/next                            StatusController.getStatuses
 POST    /test                          	        Input.test
 POST    /shutdown                               Input.shutdown
 

@@ -34,7 +34,7 @@ object SimpleSprinklerController extends Controller {
     }
     request.args.get("task") match {
       case future:Future[Option[Photo]] => future.get() match {
-        case Some(photo) => renderPhoto(photo);
+        case Some(photo:Photo) => renderPhoto(photo);
         case _ => renderText("{}");
       }
     }

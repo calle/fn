@@ -6,8 +6,7 @@ import play.libs.WS
 import java.io.File
 import java.util.UUID
 
-import imagesprinkler.{Backend, Photo, ImageFile, ImageBase64}
-import imagesprinkler.sprinkler.{Send, Shutdown, Started, InProgress, Complete, Error, PhotoInstance}
+import imagesprinkler._
 import imagesprinkler.listener.InstanceListener
 
 object Input extends Controller {
@@ -21,7 +20,8 @@ object Input extends Controller {
     val photo = Photo(uuid, "title", "description", new ImageFile(new File("public/images/fn.jpg")))
     println("sending photo: " + photo)
     backend.map( _ ! Send(photo) )
-    completed(uuid)
+    flash.success("Send photo with id %s", uuid);
+    index
   }
 
   def send(title:String, description:String, file:File) {
@@ -29,7 +29,8 @@ object Input extends Controller {
     val photo = Photo(uuid, title, description, new ImageFile(file))
     println("sending photo: " + photo)
     backend.map( _ ! Send(photo) )
-    completed(uuid)
+    flash.success("Send photo with id %s", uuid);
+    index
   }
 
   def sendWithCallback(title:String, description:String, image:String, callback:String) {
@@ -43,10 +44,6 @@ object Input extends Controller {
       listener.send(photo)
     }
     renderText("uuid: " + uuid)
-  }
-
-  def completed(uuid:String) {
-    render(uuid)
   }
 
   def shutdown() {

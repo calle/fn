@@ -1,0 +1,95 @@
+#{extends 'main.html' /}
+#{set title:'Sprinkle' /}
+#{set 'moreStyles'}
+<script src="@{'/public/javascripts/ejohn-templating.js'}" type="text/javascript" charset="utf-8"></script>
+#{/set}
+
+<ul id="sprinklers">
+</ul>
+<script type="text/html" id="sprinkler_tmpl">
+	<li class="sprinkler">
+		<h2><%= sprinkler.name %></h2>
+		<ul class="images">
+			<%= sprinkler.images %>
+		</ul>
+	</li>
+</script>
+<script type="text/html" id="image_tmpl">
+	<li class="image">
+		<h2 class="<%= image.done ? 'done' : image.error ? 'failed' : 'progress'"><%= image.title %></h2>
+	  <% if (!(image.done || image.error)) { %>
+		  <ul class="statuses">
+			  <%= image.statuses.replace("\n", '<br />') %>
+		  </ul>
+	  <% } %>
+	</li>
+</script>
+
+
+<script type="text/javascript">
+
+  $(function(){
+
+    var sprinklers = {};
+
+  	// Retrieve new messages
+  	var getStatuses = function() {
+  		$.ajax({
+  			url: '@{getStatuses()}',
+  			success: function(statuses) {
+  				$(statuses).each(function() {
+  				  var sprinkler = this['sprinkler'], 
+  				      photo     = this['photo'];
+  					if (!(sprinkler in sprinklers)) {
+  					  sprinklers[sprinkler] = {
+  					    photos: {},
+  					    photoArray: []
+  					  };
+  					}
+  					if (!(photo in sprinklers[sprinkler].photos)) {
+  					  sprinklers[sprinkler].photos[photo] = photo
+  					  sprinklers[sprinkler].photoArray.push({
+  					    title: photo,
+  					    statuses: []
+  					  });
+  					}
+  					if (this['started']) {
+  					  // do nothing
+  					}
+  					if (this['status']) {
+  					  sprinklers[sprinkler][photo].statuses.push(this['status']);
+  					}
+  					if (this['done']) {
+  					  sprinklers[sprinkler][photo].done = true;
+  					}
+  					if (this['error']) {
+  					  sprinklers[sprinkler][photo].error = this['error'];
+  					}
+  				});
+          display(sprinklers);
+  			},
+  			complete: function() {
+  				setTimeout(getStatuses, 1000);
+  			},
+  			dataType: 'json'
+  		});
+  	}
+  	getStatuses();
+	
+  	// Display a message
+  	var display = function(sprinklers) {
+  		$('#sprinklers').empty();
+  		$(sprinklers).map(function() {
+  		  var sprinkler = this;
+  		  sprinkler.images = "";
+  		  $(sprinkler.photoArray).map(function() {
+  		    var photo = this;
+  		    sprinkler.images += tmpl('image_tmpl', {image: photo})
+  		  });
+  		  $('#sprinklers').append(tmpl('sprinkler_tmpl', {sprinkler: sprinkler}));  
+  		});
+  	}
+
+	});
+
+</script>

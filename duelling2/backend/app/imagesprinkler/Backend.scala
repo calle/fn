@@ -35,9 +35,11 @@ class Backend extends Actor {
 
         case Backend.RegisterSprinkler(sprinkler) =>
           sprinklers += sprinkler
+          reply(Unit)
 
         case Backend.UnregisterSprinkler(sprinkler) =>
           sprinklers -= sprinkler
+          reply(Unit)
 
         case Backend.GetSprinklers =>
           reply(Backend.GetSprinklersResponse(List(sprinklers : _*)))
@@ -48,6 +50,7 @@ class Backend extends Actor {
 
         case Backend.UnregisterListener(listener) =>
           listeners -= listener
+          reply(Unit)
 
         case Send(photo) => 
           println("Sending photo to " + sprinklers.size + " sprinklers")
