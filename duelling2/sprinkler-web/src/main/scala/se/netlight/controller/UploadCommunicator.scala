@@ -6,20 +6,20 @@ import scala.actors.Actor._
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.httpclient._
 import org.apache.commons.httpclient.methods._
+import se.netlight.comet.{UploadActor}
 
 import net.liftweb.util.Helpers._
 
 case class UploadFile(file: File)
-case class AddListener(listener: Actor)
+case class AddListener(listener: UploadActor)
 case class UpdateStatus(id: String, status: String)
 case class UpdateActorStatus(status: String)
 case class GetId
 
 case class File(id: String, title: String, desc: String, data: Array[Byte])
 
-
 object UploadCommunicator extends Actor {
-	val actors = new HashSet[Actor]
+	val actors = new HashSet[UploadActor]
 	var idCounter = 0
 	val b64Encoder = new Base64()
 	val httpClient = new HttpClient()
@@ -58,6 +58,7 @@ object UploadCommunicator extends Actor {
 	      case UploadFile(file: File) =>
 	        performUpload(file)
 	      case UpdateStatus(id: String, status: String) => 
+	        System.out.println("Got status: " + status)
 					notifyListeners(status)
 				case GetId => {
 					idCounter = idCounter + 1

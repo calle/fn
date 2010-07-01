@@ -6,6 +6,7 @@ import scala.xml.{NodeSeq, Text}
 import scala.actors.Actor._  
 import net.liftweb.http._
 import net.liftweb.util._
+import net.liftweb.common._
 
 import se.netlight.controller._
 

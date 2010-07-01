@@ -9,6 +9,7 @@ import _root_.net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConn
 import _root_.java.sql.{Connection, DriverManager}
 import _root_.javax.servlet.http.{HttpServletRequest}
 import _root_.se.netlight.model._
+import _root_.se.netlight.controller.{CallbackHandler}
 
 /**
   * A class that's instantiated early and run.  It allows the application
@@ -19,6 +20,8 @@ class Boot {
     
     // where to search snippet
     LiftRules.addToPackages("se.netlight")
+
+		LiftRules.dispatch.append(CallbackHandler)
 
     // Build SiteMap
     //val entries = Menu(Loc("Home", List("index"), "Home")) :: User.sitemap

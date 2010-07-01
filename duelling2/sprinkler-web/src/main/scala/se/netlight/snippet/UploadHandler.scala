@@ -7,6 +7,7 @@ import net.liftweb.http.SHtml._
 import net.liftweb.http.S._
 import scala.xml.{NodeSeq, Text, Group}
 import se.netlight.controller._
+import net.liftweb.common._
 
 class UploadHandler {
 	private object uploadedFile extends RequestVar[Box[FileParamHolder]](Empty)
