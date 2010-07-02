@@ -63,7 +63,7 @@ object StatusController extends Controller {
 
       case _ =>
       	// Redirect to setup 
-		setup()
+		setup
     }
   }
 

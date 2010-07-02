@@ -7,6 +7,37 @@
 <a href="#" id="once">once</a> | <a href="#" id="start">start</a> | <a href="#" id="stop">stop</a>
 
 <ul id="sprinklers">
+  <li class="sprinkler">
+	<h2>debug sprinkler</h2>
+	<ul class="images">
+	  <li class="image done">
+    	<h2>test image <span class="id">c085c118-7e94-4b57-a831-ac56bd164b89</span></h2>
+	  </li>
+	</ul>
+  </li>
+  <li class="sprinkler">
+	<h2>external json sprinkler</h2>
+	<ul class="images">
+	</ul>
+  </li>
+  <li class="sprinkler">
+	<h2>external.appspot</h2>
+	<ul class="images">
+	  <li class="image failed">
+    	<h2>test image <span class="id">c085c118-7e94-4b57-a831-ac56bd164b89</span></h2>
+    	<div class="statuses">
+      		POST photo c085c118-7e94-4b57-a831-ac56bd164b89 to http://imagesprincler.appspot.com/save<br />
+			Failed to send photo to http://imagesprincler.appspot.com/save, exception: java.util.concurrent.ExecutionException: java.net.ConnectException: Connection refused to http://imagesprincler.appspot.com/save
+    	</div>
+	  </li>
+	  <li class="image progress">
+    	<h2>test image 2 <span class="id">c085c118-7e94-4b57-a831-ac56bd164b89</span></h2>
+    	<div class="statuses">
+      		POST photo c085c118-7e94-4b57-a831-ac56bd164b89 to http://imagesprincler.appspot.com/save
+    	</div>
+	  </li>
+	</ul>
+  </li>
 </ul>
 
 <script type="text/html" id="sprinkler_tmpl">
@@ -18,8 +49,8 @@
   </li>
 </script>
 <script type="text/html" id="image_tmpl">
-  <li class="image">
-    <h2 class="<%= (image.done ? 'done' : (image.error ? 'failed' : 'progress')) %>"><%= image.title %></h2>
+  <li class="image <%= (image.done ? 'done' : (image.error ? 'failed' : 'progress')) %>">
+    <h2><%= image.title %> <span class="id">(<%= image.id %>)</span></h2>
 	<% if (!image.done) { %>
     <div class="statuses">
       <%= image.statuses.join('<br />') %>
@@ -33,7 +64,8 @@
 
   $(function(){
 
-	var running = false;
+	$('#sprinklers').empty();
+	var running = true;
 	  
     $('#once').click(function() {
       running = false;
@@ -58,16 +90,28 @@
         type: 'POST',
         success: function(statuses) {
           updateSprinklers(statuses);
+          if (running) { getStatuses(); }
         },
         error: function(request, status, error) {
           console.log("error: " + status);
         },
-        complete: function() {
-          if (running) { getStatuses(); }
-        },
         dataType: 'json'
       });
     }
+
+    // Start initial update
+    $.ajax({
+      url: "@{setup()}",
+      type: 'POST',
+      success: function(statuses) {
+        updateSprinklers(statuses);
+        if (running) { getStatuses(); }
+      },
+      error: function(request, status, error) {
+        console.log("error: " + status);
+      },
+      dataType: 'json'
+    });
 
    	var updateSprinklers = function(statuses) {
       console.log("success: " + statuses);
@@ -108,7 +152,8 @@
             photo.done = true;
           }
           if (status.photo.error) {
-            photo.error = status.photo.error;
+            photo.error = true;
+            photo.statuses.push(status.photo.error);
           }
         }
 
@@ -135,19 +180,6 @@
         $('#sprinklers').append(tmpl('sprinkler_tmpl', {name: sprinkler.name, images: images}));
       }
     }
-
-    // Start initial update
-    $.ajax({
-      url: "@{setup()}",
-      type: 'POST',
-      success: function(statuses) {
-        updateSprinklers(statuses);
-      },
-      error: function(request, status, error) {
-        console.log("error: " + status);
-      },
-      dataType: 'json'
-    });
 
   });
 
