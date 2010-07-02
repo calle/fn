@@ -60,16 +60,31 @@ get('/', function() {
 // Ajax callback to fetch next photo
 get('/photo/next', function() {
   var seen = this.session.seen_photos || 0,
-      enqueue = photos.length == 0 || seen >= photos.length;
+      enqueue = photos.length == 0 || seen >= photos.length,
+      id = this.session.id;
 
   if (enqueue) {
     sys.puts("Enqueue client " + this.session.id)
-    clients[this.session.id] = this
+    if (clients[id]) {
+      // Respond to old request
+      clients[id].contentType('json')
+      clients[id].respond(200, '{}')
+    }
+    clients[id] = this
   } else {
-    sys.puts("Sending photo " + seen + " to client " + this.session.id)
+    sys.puts("Sending photo " + seen + " to client " + id)
     sendPhoto(this, photos[seen])
     this.session.seen_photos = seen + 1
   }
+
+  var request = this;
+  setTimeout(function() {
+    if (request === clients[id]) {
+      delete clients[id]
+    }
+    request.contentType('json')
+    request.respond(200, '{}')
+  }, 10000)
 })
 
 // Start express server
