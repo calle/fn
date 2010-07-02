@@ -16,13 +16,14 @@ case class UpdateStatus(id: String, status: String)
 case class UpdateActorStatus(status: String)
 case class GetId
 
-case class File(id: String, title: String, desc: String, data: Array[Byte])
+case class File(id: String, title: String, desc: String, mimeType: String, data: Array[Byte])
 
 object UploadCommunicator extends Actor {
 	val actors = new HashSet[UploadActor]
 	var idCounter = 0
 	val b64Encoder = new Base64()
 	val httpClient = new HttpClient()
+    val callbackUrl = "http://mini.calle.cc:9002/callback"
 	
 	def notifyListeners(status: String) = {
 		actors.foreach(_ ! UpdateActorStatus(status))
@@ -32,13 +33,14 @@ object UploadCommunicator extends Actor {
 		val encodedFile = b64Encoder.encodeToString(file.data)
 		System.out.println("Encoded file! Name is " + file.title)
 		System.out.println("Id is " + file.id)
-		System.out.println("Data: " + encodedFile)
+		System.out.println("mimetype: " + file.mimeType)
+		System.out.println("Description: " + file.desc)
 		notifyListeners("Uploading " + file.title)
-		val method = new PostMethod("http://mini.calle.cc:9000/imageWithCallback")
+		val method = new PostMethod("http://backend.fnnl.se/imageWithCallback")
 		method.addParameter("title", file.title)
 		method.addParameter("description", file.desc)
-		method.addParameter("image", "data:image/png;base64," + encodedFile)
-		method.addParameter("callback", "callback")
+		method.addParameter("image", "data:" + file.mimeType +";base64," + encodedFile)
+		method.addParameter("callback", callbackUrl)
 		
 		try {
 			val statusCode = httpClient.executeMethod(method)
