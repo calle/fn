@@ -1,5 +1,4 @@
-%h1 Image sprinkler
-
-#photo
-  %img
-  %span.description
+%form{ action: 'signup', method: 'POST' }
+  .title Enter your name
+  %input{ name: 'name' }
+  %input{ type: 'submit', value: 'Show me photos' }

@@ -1,0 +1,39 @@
+#photo
+  %h2.title
+  %img
+  
+:javascript
+  $(function(){
+  
+    if (!$('#photo')) {
+      return;
+    }
+  
+    var updatePhoto = function(photo) {
+      if (photo.data) {
+        $('#photo .title').text(photo.description);
+        $('#photo img').attr("src", photo.data);
+        $('#photo img').show();
+      }
+    };
+    
+    function poll() {
+      $.ajax({
+        url: '/photo/next',
+        dataType: 'json',
+        success: updatePhoto,
+        complete: poll
+      });
+    }
+    
+    $('#photo .title').text("Wait for first photo")
+    $('#photo img').hide();
+    
+    $.ajax({
+      url: '/photo/first',
+      dataType: 'json',
+      success: updatePhoto,
+      complete: poll
+    });
+
+  })
