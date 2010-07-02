@@ -37,14 +37,23 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler {
       receiveWithin(ExternalJsonSprinkler.ShutdownTimeout) {
 
       	case ExternalJsonSprinkler.Register(name, url) =>
+      	  sprinklers.get(name).map { existing =>  
+            println("Unregistering existing external sprinkler with same name " + name)
+            backend ! Backend.UnregisterSprinkler(existing)
+           	existing ! Shutdown
+      	  }
           println("Registering external sprinkler " + name)
-          val sprinkler = new ExternalJsonInstanceSprinkler(backend, name, url)
+          val sprinkler = new ExternalJsonInstanceSprinkler(name, url)
           sprinklers += (name -> sprinkler)
           sprinkler.start
+          backend !? Backend.RegisterSprinkler(sprinkler)
 
         case ExternalJsonSprinkler.Unregister(name) => 
-          println("Unregistering external sprinkler " + name)
-          sprinklers.remove(name).map ( _ ! Shutdown )
+          sprinklers.remove(name).map { existing => 
+            println("Unregistering external sprinkler " + name)
+            backend ! Backend.UnregisterSprinkler(existing)
+           	existing ! Shutdown
+          }
 
         case Send(photo) =>
           // Ignore sent photos, sprinklers are registered themselves and will receive photos
@@ -84,12 +93,12 @@ class ExternalJsonSprinkler(backend:Backend) extends Sprinkler {
 
 private object ExternalJsonInstanceSprinkler {
 
-	case class PhotoInfo(sprinkler:ExternalJsonInstanceSprinkler, photo:Photo, source:OutputChannel[Any], var request:Option[Future[HttpResponse]]) {
-    def sendStart() = source ! imagesprinkler.Started(sprinkler, toInstance())
+	case class PhotoInfo(sprinkler:ExternalJsonInstanceSprinkler, photo:Photo, source:OutputChannel[Any]) {
+      def sendStart() = source ! imagesprinkler.Started(sprinkler, toInstance())
 	  def sendStatus(message:String) = source ! imagesprinkler.InProgress(sprinkler, toInstance(), message)
-    def sendDone() = source ! imagesprinkler.Complete(sprinkler, toInstance())
-    def sendError(message:String) = source ! imagesprinkler.Error(sprinkler, toInstance(), message)
-    private def toInstance() = PhotoInstance(photo, sprinkler.name)
+      def sendDone() = source ! imagesprinkler.Complete(sprinkler, toInstance())
+      def sendError(message:String) = source ! imagesprinkler.Error(sprinkler, toInstance(), message)
+      private def toInstance() = PhotoInstance(photo, sprinkler.name)
 	}
 
 	case class Start(id:String)
@@ -102,7 +111,7 @@ private object ExternalJsonInstanceSprinkler {
 }
 
 
-private class ExternalJsonInstanceSprinkler(backend:Backend, sprinklerName: String, url: String) extends Sprinkler {
+private class ExternalJsonInstanceSprinkler(sprinklerName: String, url: String) extends Sprinkler {
 
   import ExternalJsonInstanceSprinkler.PhotoInfo
 
@@ -113,40 +122,34 @@ private class ExternalJsonInstanceSprinkler(backend:Backend, sprinklerName: Stri
   def act() {
     println("ExternalJsonActor started for " + sprinklerName)
 
-    backend ! Backend.RegisterSprinkler(this)
-
     var running = true
     while (running) {
       
-      receiveWithin(ExternalJsonInstanceSprinkler.CheckAsyncRequestsInterval) {
+      receive {
         case Send(photo) => 
           println("ExternalJsonActor received photo " + photo)
-          val info = ExternalJsonInstanceSprinkler.PhotoInfo(this, photo, sender, None)
+
+          val info = ExternalJsonInstanceSprinkler.PhotoInfo(this, photo, sender)
           photos += (photo.id -> info)
-          info.sendStart
-          val request = createRequest(photo)
 
-          // Perform status update and start async request
-          info.sendStatus("POST photo " + photo.id + " to " + url)
-          info.request = Some(request.postAsync());
-
-        case TIMEOUT =>
-          photos.foreach { 
-            case (id, info @ PhotoInfo(_, photo, _, Some(request))) if request.isDone => {
-            	info.sendStatus("Photo " + photo.id + " sent to " + url)
-            	val result = request.get()
-            	if (result.getStatus() != 200) {
-            		info.sendError("Failed to send photo to " + url + ", status = " + result.getStatus())
-            	} else {
-            		info.sendDone()
-            	}
-        			//    } catch { 
-        			//      case e => 
-        			//        reply(ExternalJsonInstanceSprinkler.Error(photo.id, "Failed to send photo to " + url + ", exception " + e.getMessage()))
-        			//    }
-            }
-            case _ => 
-          }
+		  actor {
+            // Perform status update and send request
+            info.sendStart
+			try {
+	          val request = createRequest(photo)
+              info.sendStatus("POST photo " + photo.id + " to " + url)
+			  val result = request.post()
+              info.sendStatus("Photo " + photo.id + " sent to " + url)
+           	  if (result.getStatus() != 200) {
+            	info.sendError("Failed to send photo to " + url + ", status = " + result.getStatus())
+              } else {
+            	info.sendDone()
+              }
+			} catch {
+			  case e => 
+        		info.sendError("Failed to send photo to " + url + ", exception: " + e.getMessage())
+			}
+		  }
 
         case Shutdown => 
           println("ExternalJsonInstanceSprinkler " + sprinklerName + " shutting down towards " + url)
@@ -170,8 +173,6 @@ private class ExternalJsonInstanceSprinkler(backend:Backend, sprinklerName: Stri
           println("ExternalJsonInstanceSprinkler " + sprinklerName + " received unknown message: " + message)
       }
     }
-
-    backend ! Backend.UnregisterSprinkler(this)
 
     println("ExternalJsonInstanceSprinkler " + sprinklerName + " terminating towards " + url)
   } 

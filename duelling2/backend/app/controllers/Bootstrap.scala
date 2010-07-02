@@ -26,8 +26,9 @@ class Bootstrap extends Job {
      * Register sprinklers
      */
 
-    register(backend, new DebugSprinkler());
 /*
+    register(backend, new DebugSprinkler());
+
     val simple = new SimpleSprinkler()
     register(backend, simple);
     SimpleSprinklerController.sprinkler = Some(simple)

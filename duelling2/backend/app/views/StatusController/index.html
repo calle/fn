@@ -4,25 +4,59 @@
 <script src="@{'/public/javascripts/ejohn-templating.js'}" type="text/javascript" charset="utf-8"></script>
 #{/set}
 
+<a href="#" id="once">once</a> | <a href="#" id="start">start</a> | <a href="#" id="stop">stop</a>
+
 <ul id="sprinklers">
+  <li class="sprinkler">
+	<h2>debug sprinkler</h2>
+	<ul class="images">
+	  <li class="image done">
+    	<h2>test image <span class="id">c085c118-7e94-4b57-a831-ac56bd164b89</span></h2>
+	  </li>
+	</ul>
+  </li>
+  <li class="sprinkler">
+	<h2>external json sprinkler</h2>
+	<ul class="images">
+	</ul>
+  </li>
+  <li class="sprinkler">
+	<h2>external.appspot</h2>
+	<ul class="images">
+	  <li class="image failed">
+    	<h2>test image <span class="id">c085c118-7e94-4b57-a831-ac56bd164b89</span></h2>
+    	<div class="statuses">
+      		POST photo c085c118-7e94-4b57-a831-ac56bd164b89 to http://imagesprincler.appspot.com/save<br />
+			Failed to send photo to http://imagesprincler.appspot.com/save, exception: java.util.concurrent.ExecutionException: java.net.ConnectException: Connection refused to http://imagesprincler.appspot.com/save
+    	</div>
+	  </li>
+	  <li class="image progress">
+    	<h2>test image 2 <span class="id">c085c118-7e94-4b57-a831-ac56bd164b89</span></h2>
+    	<div class="statuses">
+      		POST photo c085c118-7e94-4b57-a831-ac56bd164b89 to http://imagesprincler.appspot.com/save
+    	</div>
+	  </li>
+	</ul>
+  </li>
 </ul>
+
 <script type="text/html" id="sprinkler_tmpl">
-	<li class="sprinkler">
-		<h2><%= sprinkler.name %></h2>
-		<ul class="images">
-			<%= sprinkler.images %>
-		</ul>
-	</li>
+  <li class="sprinkler">
+    <h2><%= name %></h2>
+    <ul class="images">
+      <%= images %>
+    </ul>
+  </li>
 </script>
 <script type="text/html" id="image_tmpl">
-	<li class="image">
-		<h2 class="<%= image.done ? 'done' : image.error ? 'failed' : 'progress'"><%= image.title %></h2>
-	  <% if (!(image.done || image.error)) { %>
-		  <ul class="statuses">
-			  <%= image.statuses.replace("\n", '<br />') %>
-		  </ul>
-	  <% } %>
-	</li>
+  <li class="image <%= (image.done ? 'done' : (image.error ? 'failed' : 'progress')) %>">
+    <h2><%= image.title %> <span class="id">(<%= image.id %>)</span></h2>
+	<% if (!image.done) { %>
+    <div class="statuses">
+      <%= image.statuses.join('<br />') %>
+    </div>
+	<% } %>
+  </li>
 </script>
 
 
@@ -30,66 +64,123 @@
 
   $(function(){
 
+	$('#sprinklers').empty();
+	var running = true;
+	  
+    $('#once').click(function() {
+      running = false;
+      getStatuses();      
+    });
+    $('#start').click(function() {
+      if (!running) {
+        running = true;
+      	getStatuses();
+      }
+    });
+    $('#stop').click(function() {
+      running = false;
+    });
+	  
     var sprinklers = {};
 
-  	// Retrieve new messages
-  	var getStatuses = function() {
-  		$.ajax({
-  			url: '@{getStatuses()}',
-  			success: function(statuses) {
-  				$(statuses).each(function() {
-  				  var sprinkler = this['sprinkler'], 
-  				      photo     = this['photo'];
-  					if (!(sprinkler in sprinklers)) {
-  					  sprinklers[sprinkler] = {
-  					    photos: {},
-  					    photoArray: []
-  					  };
-  					}
-  					if (!(photo in sprinklers[sprinkler].photos)) {
-  					  sprinklers[sprinkler].photos[photo] = photo
-  					  sprinklers[sprinkler].photoArray.push({
-  					    title: photo,
-  					    statuses: []
-  					  });
-  					}
-  					if (this['started']) {
-  					  // do nothing
-  					}
-  					if (this['status']) {
-  					  sprinklers[sprinkler][photo].statuses.push(this['status']);
-  					}
-  					if (this['done']) {
-  					  sprinklers[sprinkler][photo].done = true;
-  					}
-  					if (this['error']) {
-  					  sprinklers[sprinkler][photo].error = this['error'];
-  					}
-  				});
-          display(sprinklers);
-  			},
-  			complete: function() {
-  				setTimeout(getStatuses, 1000);
-  			},
-  			dataType: 'json'
-  		});
-  	}
-  	getStatuses();
-	
-  	// Display a message
-  	var display = function(sprinklers) {
-  		$('#sprinklers').empty();
-  		$(sprinklers).map(function() {
-  		  var sprinkler = this;
-  		  sprinkler.images = "";
-  		  $(sprinkler.photoArray).map(function() {
-  		    var photo = this;
-  		    sprinkler.images += tmpl('image_tmpl', {image: photo})
-  		  });
-  		  $('#sprinklers').append(tmpl('sprinkler_tmpl', {sprinkler: sprinkler}));  
-  		});
-  	}
+    // Retrieve new messages
+    var getStatuses = function() {
+      $.ajax({
+        url: '@{getStatuses()}',
+        type: 'POST',
+        success: function(statuses) {
+          updateSprinklers(statuses);
+          if (running) { getStatuses(); }
+        },
+        error: function(request, status, error) {
+          console.log("error: " + status);
+        },
+        dataType: 'json'
+      });
+    }
 
-	});
+    // Start initial update
+    $.ajax({
+      url: "@{setup()}",
+      type: 'POST',
+      success: function(statuses) {
+        updateSprinklers(statuses);
+        if (running) { getStatuses(); }
+      },
+      error: function(request, status, error) {
+        console.log("error: " + status);
+      },
+      dataType: 'json'
+    });
+
+   	var updateSprinklers = function(statuses) {
+      console.log("success: " + statuses);
+      $(statuses).each(function(index, status) {
+        var sprinkler = status.sprinkler; 
+
+        if (sprinkler.registered === false) {
+		  delete sprinklers[sprinkler.name];
+		  return;
+        }
+
+        if (sprinkler.registered === true || !(sprinkler.name in sprinklers)) {
+          sprinklers[sprinkler.name] = {
+            name: sprinkler.name,
+            photos: {},
+            photosList: []
+          };
+        }
+
+        if (status.photo && status.photo.id) {
+          var photo = sprinklers[sprinkler.name].photos[status.photo.id];
+          if (!photo) {
+            photo = {
+              id: status.photo.id,
+              title: status.photo.title,
+              statuses: []
+            };
+            sprinklers[sprinkler.name].photos[status.photo.id] = photo;
+            sprinklers[sprinkler.name].photosList.push(photo.id);
+          }
+          if (status.photo.started) {
+           // do nothing
+          }
+          if (status.photo.status) {
+            photo.statuses.push(status.photo.status);
+          }
+          if (status.photo.done) {
+            photo.done = true;
+          }
+          if (status.photo.error) {
+            photo.error = true;
+            photo.statuses.push(status.photo.error);
+          }
+        }
+
+        // TODO: Remove old photos
+      });
+      redraw();
+    };
+    
+    // Display sprinklers
+    var redraw  = function() {
+      $('#sprinklers').empty();
+      var images;
+      for (var sprinkler in sprinklers) {
+    	sprinkler = sprinklers[sprinkler];
+    	images = "";
+        $(sprinkler.photosList).map(function(index, id) {
+            try {
+                var image = sprinkler.photos[id];
+          images += tmpl('image_tmpl', { image: image } );
+            } catch (e) {
+				images += "Error: " + e;
+            }
+        });
+        $('#sprinklers').append(tmpl('sprinkler_tmpl', {name: sprinkler.name, images: images}));
+      }
+    }
+
+  });
 
 </script>

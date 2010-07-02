@@ -1,6 +1,10 @@
 #{extends 'main.html' /}
 #{set title:'Register external sprinkler' /}
 
+#{if flash.success}
+    <p class="success">${flash.success}</p>
+#{/if}
+
 #{form @register() }
   <input type="text" name="name" value="appspot" /><br />
   <input type="text" name="url" value="http://imagesprincler.appspot.com/save"/><br />
