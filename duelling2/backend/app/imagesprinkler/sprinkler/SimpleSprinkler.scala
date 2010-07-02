@@ -6,7 +6,7 @@ import scala.actors.Actor._
 import scala.actors.OutputChannel
 import scala.collection.mutable.{ Buffer => MBuffer }
 
-import imagesprinkler.Photo
+import imagesprinkler._
 
 object SimpleSprinkler {
 	case class GetPhoto()

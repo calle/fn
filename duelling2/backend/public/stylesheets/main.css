@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+    font: 12px/1.4 "Helvetica Nueue", "Lucida Grande", Arial, sans-serif;
+    background: #999;
+    color: #fff;
+}
+a {
+	color: #900;
+}
+#sprinklers {
+	overflow: auto;
+}
+#sprinklers ul {
+	padding: 0;
+	list-style: none;
+}
+	
+#sprinklers h2 {
+	font-size: 1.2em;
+	margin: 0;
+}
+
+#sprinklers .sprinkler {
+	float: left;
+	width: 400px;
+	border: 1px solid #222;
+	background: #666;
+	overflow: auto;
+	margin: 1em;
+	padding: 0.5em;
+}
+
+#sprinklers .sprinkler .images {
+	margin-left: 0.4em;
+}
+#sprinklers .sprinkler .images .statuses {
+	margin-left: 0.4em;
+	overflow: hidden;
+	display: block;
+}
+
+#sprinklers .sprinkler h2 {
+	color: #fff;
+}
+#sprinklers .sprinkler .images h2 {
+	font-weight: normal;
+}
+#sprinklers .sprinkler .images h2 .id {
+	font-style: italic;
+	font-size: 0.8em;
+}
+
+#sprinklers .sprinkler .images .done,
+#sprinklers .sprinkler .images .done h2 {
+	color: #9f9;
+}
+#sprinklers .sprinkler .images .failed,
+#sprinklers .sprinkler .images .failed h2 {
+	color: #f99;
+}
+#sprinklers .sprinkler .images .progress,
+#sprinklers .sprinkler .images .progress h2 {
+	color: #ddd;
+}

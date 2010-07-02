@@ -20,23 +20,22 @@ class Bootstrap extends Job {
 
     // Tell the REST interface about our existance
     Input.backend = Some(backend)
+    StatusController.backend = Some(backend)
 
     /**
      * Register sprinklers
      */
+
     register(backend, new DebugSprinkler());
-
-    val external = new ExternalJsonSprinkler()
-    register(backend, external);
-    ExternalJsonController.sprinkler = Some(external)
-
+/*
     val simple = new SimpleSprinkler()
     register(backend, simple);
     SimpleSprinklerController.sprinkler = Some(simple)
+*/
 
-    val statusListener = new StatusListener()
-    register(backend, statusListener)
-    StatusController.statusListener = Some(statusListener)
+    val external = new ExternalJsonSprinkler(backend)
+    register(backend, external);
+    ExternalJsonController.sprinkler = Some(external)
 
     // Done!
     println("Bootstrap completed")

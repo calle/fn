@@ -1,5 +1,7 @@
 package imagesprinkler
 
+import play.Logger
+
 import scala.actors.Actor
 import scala.actors.Actor._
 import scala.actors.TIMEOUT
@@ -14,6 +16,9 @@ object Backend {
   case class RegisterSprinkler(spinkler:Sprinkler)
   case class UnregisterSprinkler(spinkler:Sprinkler)
 
+  case object GetSprinklers
+  case class GetSprinklersResponse(spinklers:Seq[Sprinkler])
+  
   case class RegisterListener(listener:Listener)
   case class UnregisterListener(listener:Listener)
 }
@@ -32,9 +37,16 @@ class Backend extends Actor {
 
         case Backend.RegisterSprinkler(sprinkler) =>
           sprinklers += sprinkler
+          listeners.foreach  { l => l ! Backend.RegisterSprinkler(sprinkler) }
+          reply(Unit)
 
         case Backend.UnregisterSprinkler(sprinkler) =>
           sprinklers -= sprinkler
+          listeners.foreach  { l => l ! Backend.UnregisterSprinkler(sprinkler) }
+          reply(Unit)
+
+        case Backend.GetSprinklers =>
+          reply(Backend.GetSprinklersResponse(List(sprinklers : _*)))
 
         case Backend.RegisterListener(listener) =>
           listeners += listener
@@ -42,6 +54,7 @@ class Backend extends Actor {
 
         case Backend.UnregisterListener(listener) =>
           listeners -= listener
+          reply(Unit)
 
         case Send(photo) => 
           println("Sending photo to " + sprinklers.size + " sprinklers")
@@ -53,10 +66,12 @@ class Backend extends Actor {
           listeners.foreach  { l => l ! Shutdown }
           running = false
 
-        case TIMEOUT if !running =>
-          println("Timed out waiting for Shutdown of sprinklers or listeners, exiting")
-          sprinklers.clear
-          listeners.clear
+        case TIMEOUT =>
+          if (!running) {
+            println("Timed out waiting for Shutdown of sprinklers or listeners, exiting")
+            sprinklers.clear
+            listeners.clear
+          }
 
         case message @ Started(sprinkler, instance @ PhotoInstance(photo, key)) => 
           // Forward to listeners
@@ -73,6 +88,10 @@ class Backend extends Actor {
         case message @ Error(sprinkler, instance @ PhotoInstance(photo, key), info) => 
           // Forward to listeners
           listeners.foreach { l => l ! message }
+
+        case message => 
+          Logger.warn("Received unknown message " + message + " for Backend")
+
       }
     }
   }

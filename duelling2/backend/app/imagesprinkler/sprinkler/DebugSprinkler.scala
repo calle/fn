@@ -3,7 +3,8 @@ package imagesprinkler.sprinkler
 import scala.actors.Actor
 import scala.actors.Actor._
 
-import imagesprinkler.Backend
+import imagesprinkler._
+
 
 class DebugSprinkler() extends Sprinkler {
 

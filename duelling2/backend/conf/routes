@@ -9,7 +9,9 @@ GET     /public/                                staticDir:public
 GET     /                                       Input.index
 POST    /image                                  Input.send
 POST    /imageWithCallback                      Input.sendWithCallback
-GET     /status/{uuid}                          StatusController.status
+GET     /status                                 StatusController.index
+*       /status/setup                           StatusController.setup(format:'json')
+POST    /status/next                            StatusController.getStatuses(format:'json')
 POST    /test                          	        Input.test
 POST    /shutdown                               Input.shutdown
 
@@ -19,7 +21,7 @@ POST    /sprinkler/ext/{action}                 ExternalJsonController.{action}
 
 GET     /sprinkler/simple                       SimpleSprinklerController.index
 GET     /sprinkler/simple/photo                 SimpleSprinklerController.photo
-GET     /sprinkler/simple/nextPhoto             SimpleSprinklerController.nextPhoto
+GET     /sprinkler/simple/nextPhoto             SimpleSprinklerController.nextPhoto(format:'json')
 
 
 # Catch all

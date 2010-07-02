@@ -1,6 +1,10 @@
 #{extends 'main.html' /}
 #{set title:'Sprinkle' /}
 
+#{if flash.success}
+    <p class="success">${flash.success}</p>
+#{/if}
+
 #{form @send() , id:'creationForm', enctype:'multipart/form-data' }
   <input type="text" name="title" /><br />
   <textarea name="description"></textarea><br />
