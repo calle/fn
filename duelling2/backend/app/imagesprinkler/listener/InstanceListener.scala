@@ -1,5 +1,7 @@
 package imagesprinkler.listener
 
+import play.Logger
+
 import imagesprinkler._
 import imagesprinkler.sprinkler._
 
@@ -30,6 +32,9 @@ object InstanceListener {
 
           case Shutdown => 
             running = false
+
+          case message => 
+            Logger.warn("Received unknown message " + message + " for InstanceListener")
         }
       }
 

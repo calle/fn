@@ -1,13 +1,10 @@
 $(function(){
 
 	var updatePhoto = function(photo) {
-		if (photo.description) {
+		if (photo.data) {
 			$('#photo .description').text(photo.description);
 			$('#photo img').attr("src", photo.data);
 			$('#photo img').show();
-		} else {
-			$('#photo .description').text("no photo");
-			$('#photo img').hide();
 		}
 	};
 	
