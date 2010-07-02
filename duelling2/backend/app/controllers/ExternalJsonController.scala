@@ -14,6 +14,14 @@ object ExternalJsonController extends Controller {
 
   def register(name:String, url:String) {
 	send(ExternalJsonSprinkler.Register(name, url))
+	flash.success("Registered sprinkler %s", name);
+    index
+  }
+
+  def unregister(name:String) { 
+    send(ExternalJsonSprinkler.Unregister(name))
+	flash.success("Unregistered sprinkler %s", name);
+    index
   }
 
   def status(name:String, id:String, message:String) {
@@ -26,10 +34,6 @@ object ExternalJsonController extends Controller {
 
   def error(name:String, id:String, message:String) { 
     send(ExternalJsonSprinkler.Error(name, id, message))
-  }
-
-  def unregister(name:String) { 
-    send(ExternalJsonSprinkler.Unregister(name))
   }
 
   private def send(message:Any) {
