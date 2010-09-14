@@ -1,0 +1,18 @@
+Presentation:
+
+Vad?
+ - Kompetenscell för funktionell programmering, med fokus på praktisk kunskap
+ - Bakgrund i glädjehackande entusiaster som gillar att delta i – och förlora – Duelling Club
+Varför?
+ - Allt hetare område – referera till Nordnets presentation
+ - Berör i princip alla andra områden inom utveckling: Java, .Net, webb ...
+ - För att distribuera kunskapen om funktionell programmering inom Netlight
+ - För att skapa ett forum för att fördjupa sig inom funktionell programmering
+ - För att sprida medvetenheten om vad FP är, vad det är bra till, att det är roligt
+ - "Vända opinionen" – alla har använt det, få gillar det. Fel.
+ - Sprida kärlek
+ - Det är Edge helt enkelt
+Vem?
+ - Alla! Allt som krävs är att man tycker om när det är svårt, tycker om att glädjehacka, och känner att man saknar något utan en funktionell aspekt i sitt liv.
+Hur?
+ - Marriott-träffar, git-hubbande, allmänt snack på Yammer, mail-lista
