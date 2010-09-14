@@ -1,0 +1,16 @@
+client -> server
+
+"login:username"
+"logout"
+"move:[forward,back,left,forward]"
+"shoot:x,y"
+"taung:id,message"
+
+
+server -> client
+
+"login_ok:player1id,player1name.player2id,player2name"
+"ok"
+"error:message"
+"kill:playerid,x,y"
+"killed:playerid,x,y"
