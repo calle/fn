@@ -49,7 +49,7 @@ Battlefield.prototype.login = function(id, name, callbacks) {
         console.dir(parts);
         callback(parts.join(':'));
       }
-      delete messages[messageId];
+      delete self.clients[id].messages[messageId];
     } else if (command === "update") {
       callbacks.update(parts[0]);
     }
@@ -113,6 +113,7 @@ Battlefield.prototype.shoot = function(id, position, callback) {
 }
 
 Battlefield.prototype.taunt = function(id, playerName, message) {
+  console.log("Taunting " + playerName + " with " + message);
   this._send(id, "taunt:" + playerName + ":" + message, function() {});
 }
 
