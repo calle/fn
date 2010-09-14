@@ -1,0 +1,7 @@
+{ "name" : "battleships"
+, "version" : "0.0.1"
+, "dependencies" :
+  { "express" : "1.0.0rc2"
+  , "less" : "1.0.32"
+  }
+}
