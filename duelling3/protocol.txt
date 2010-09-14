@@ -14,3 +14,4 @@ server -> client
 "error:message"
 "kill:playerid,x,y"
 "killed:playerid,x,y"
+"taunted:message"

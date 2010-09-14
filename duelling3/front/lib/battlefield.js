@@ -1,5 +1,6 @@
+var net = require('net');
 
-var Battlefield = function(server, port) {
+var Battlefield = module.exports = function(server, port) {
   this.server = server;
   this.port = port;
   this.clients = {};
@@ -19,21 +20,38 @@ Battlefield.prototype.login = function(id, name, callbacks) {
       messages: {},
       messageId: 0
     }
-    self._send(id, 'login:' + name)
+    self._send(id, 'login:' + name, function(response) {
+      if (response === "error") {
+        callbacks.login("error");
+      } else {
+        var parts = response.split(/,/, 4);
+        callbacks.login(null, {
+          x: parts[0],
+          y: parts[1],
+          dir: parts[2],
+          size: parts[3],
+          clients: parts[4] && parts[4] !== "" ? parts[4].split(/,/) : []
+        });
+      }
+    });
   });
 
   stream.on('data', function (data) {
-    var parts = data.split(/:/, 2);
+    console.log("Received data: " + data);
+    var parts = data.split(/:/);
+    var command = parts.shift();
     
-    if (parts[0] === "response") {
-      var message = parts[1].split(/:/, 2);
-      var callback = messages[message[0]];
-      if (callback && callback instanceof "function") {
-        callback(message[1]);
+    if (command === "response") {
+      console.log("Response data: " + parts[1]);
+      var messageId = parts.shift();
+      var callback = self.clients[id].messages[messageId];
+      if (callback && typeof callback === "function") {
+        console.dir(parts);
+        callback(parts.join(':'));
       }
-      delete messages[message[0]];
-    } else if (parts[0] === "update") {
-      callbacks.update(parts[1]);
+      delete messages[messageId];
+    } else if (command === "update") {
+      callbacks.update(parts[0]);
     }
   });
 
@@ -43,18 +61,18 @@ Battlefield.prototype.login = function(id, name, callbacks) {
   });
 };
 
-Battlefield.prototype.logout = function(client, callback) {
+Battlefield.prototype.logout = function(id, callback) {
   var self = this;
-  this._send(client, "logout", function() {
-    self.clients[client].stream.close();
+  this._send(id, "logout", function() {
+    self.clients[id].stream.close();
     if (callback) {
       callback(null);
     }
   })
 }
 
-Battlefield.prototype.move = function(client, direction, callback) {
-  this._send(client, "move:" + direction, function(response) {
+Battlefield.prototype.move = function(id, direction, callback) {
+  this._send(id, "move:" + direction, function(response) {
     if (response === "error") {
       callback("error");
     } else {
@@ -71,8 +89,8 @@ Battlefield.prototype.move = function(client, direction, callback) {
   })
 }
 
-Battlefield.prototype.shoot = function(client, position, callback) {
-  this._send(client, "move:" + direction, function(response) {
+Battlefield.prototype.shoot = function(id, position, callback) {
+  this._send(id, "shoot:" + position.x + "," + position.y, function(response) {
     if (response === "error") {
       callback("error");
     } else {
@@ -94,18 +112,19 @@ Battlefield.prototype.shoot = function(client, position, callback) {
   })
 }
 
-Battlefield.prototype.taunt = function(client, playerName, message) {
-  this._send(client, "taunt:" + playerName + ":" + message, function() {});
+Battlefield.prototype.taunt = function(id, playerName, message) {
+  this._send(id, "taunt:" + playerName + ":" + message, function() {});
 }
 
-Battlefield.prototype._send = function(client, message, callback) {
-  client = this.clients[client];
+Battlefield.prototype._send = function(id, message, callback) {
+  var client = this.clients[id];
+  console.log("Client: " + client);
   if (client) {
-    var id = client.messageId;
+    var mid = client.messageId;
     client.messageId += 1;
-    client.messages[id] = callback;
-    client.stream.write(id + ':' + message);
+    client.messages[mid] = callback;
+    client.stream.write(mid + ':' + message);
   } else {
-    callback();
+    callback("error");
   }
 };
