@@ -12,120 +12,165 @@ Battlefield.prototype.login = function(id, name, callbacks) {
   var stream = net.createConnection(this.port, this.server)
   stream.setEncoding('ascii')
   stream.setNoDelay(true)
+
   var self = this;
+  
+  // Handle connection, login client
   stream.on('connect', function () {
     // Connected, add this client
     self.clients[id] = {
-      stream: stream,
-      messages: {},
-      messageId: 0
-    }
+      stream: stream
+    };
     self._send(id, 'login:' + name, function(response) {
       if (response === "error") {
         callbacks.login("error");
       } else {
-        var parts = response.split(/,/, 4);
+        var parts = response.split(/,/);
         callbacks.login(null, {
-          x: parts[0],
-          y: parts[1],
-          dir: parts[2],
-          size: parts[3],
-          clients: parts[4] && parts[4] !== "" ? parts[4].split(/,/) : []
+          x:       parts.shift(),
+          y:       parts.shift(),
+          dir:     parts.shift(),
+          size:    parts.shift(),
+          clients: parts.filter(function(pars) { return part; })
         });
       }
     });
   });
 
-  stream.on('data', function (data) {
-    console.log("Received data: " + data);
-    var parts = data.split(/:/);
+  var handleMessage = function(message) {
+    console.log("Battlefield.handleMessage[" + id + "]: " + message);
+    var parts = message.split(/:/);
+
     var command = parts.shift();
-    
     if (command === "response") {
-      console.log("Response data: " + parts[1]);
-      var messageId = parts.shift();
-      var callback = self.clients[id].messages[messageId];
-      if (callback && typeof callback === "function") {
-        console.dir(parts);
-        callback(parts.join(':'));
-      }
-      delete self.clients[id].messages[messageId];
+      self._receive(id, parts.join(":"));
     } else if (command === "update") {
-      callbacks.update(parts[0]);
+      callbacks.update(parts.join(":"));
     }
+  };
+
+  var buffer = "";
+  stream.on('data', function (data) {
+    console.log("Battlefield.data[" + id + "]: " + data);
+    // Append data to buffer
+    buffer += data;
+    // Split in messages
+    var parts = buffer.split(/\n/)
+    // Handle all but last part as full message
+    while (parts.length > 1) handleMessage(parts.shift());
+    // If buffer ends in split-char handle as full message as well
+    if (buffer.match(/\n$/)) handleMessage(parts.pop());
+    // Set buffer to remaning parts
+    buffer = parts.join("\n")
   });
 
   stream.on('end', function () {
+    // Remove this client
     delete self.clients[id];
+    // Invoke end callback
     callbacks.end();
   });
 };
 
 Battlefield.prototype.logout = function(id, callback) {
   var self = this;
-  this._send(id, "logout", function() {
-    self.clients[id].stream.close();
-    if (callback) {
-      callback(null);
+  this._send(id, "logout", function(err) {
+    if (err) { 
+      if (callback) callback(err); 
+    } else {
+      var client = self.clients[id];
+      // Close the stream after logout
+      if (client && client.stream) {
+        client.stream.close();
+      }
+      if (callback) callback(null);
     }
-  })
-}
+  });
+};
 
 Battlefield.prototype.move = function(id, direction, callback) {
-  this._send(id, "move:" + direction, function(response) {
-    if (response === "error") {
-      callback("error");
+  console.log("Battlefield.move[" + id + "]: direction = " + direction);
+  this._send(id, "move:" + direction, function(err, response) {
+    if (err || response === "error") {
+      if (callback) callback(err || "error");
     } else {
       // Response is x,y,dir,size
-      var message = response.split(/,/, 4);
-
-      callback(null, {
-        x: message[0],
-        y: message[1],
-        dir: message[2],
+      var message = response.split(/,/);
+      if (callback) callback(null, {
+        x:    message[0],
+        y:    message[1],
+        dir:  message[2],
         size: message[3]
       });
     }
-  })
-}
+  });
+};
 
 Battlefield.prototype.shoot = function(id, position, callback) {
-  this._send(id, "shoot:" + position.x + "," + position.y, function(response) {
-    if (response === "error") {
-      callback("error");
+  console.log("Battlefield.shoot[" + id + "]: x=" + position.x + ", y=" + position.y);
+  this._send(id, "shoot:" + position.x + "," + position.y, function(err, response) {
+    if (err || response === "error") {
+      if (callback) callback(err || "error");
     } else {
       // Response is either "miss" or "kill,name" 
       var message = response.split(/,/);
-      
-      if (message.length === 1) {
-        callback(null, 
-        {
+      if (message[0] === "miss") {
+        if (callback) callback(null, {
           status: "miss"
         });
-      } else {
-        callback(null, {
+      } else if (message[0] == "kill") {
+        if (callback) callback(null, {
           status: "kill",
           target: message[1]
         });
+      } else {
+        if (callback) callback("Unknown response to shoot: " + message[0]);
       }
     }
   })
 }
 
 Battlefield.prototype.taunt = function(id, playerName, message) {
-  console.log("Taunting " + playerName + " with " + message);
-  this._send(id, "taunt:" + playerName + ":" + message, function() {});
+  console.log("Battlefield.taunt[" + id + "]: player " + playerName + " with " + message);
+  this._send(id, "taunt:" + playerName + ":" + message, function(err, response) {
+  });
 }
 
 Battlefield.prototype._send = function(id, message, callback) {
+  console.log("Battlefield._send[" + id + "]: " + message);
   var client = this.clients[id];
-  console.log("Client: " + client);
-  if (client) {
-    var mid = client.messageId;
-    client.messageId += 1;
-    client.messages[mid] = callback;
-    client.stream.write(mid + ':' + message);
+  if (client && client.stream) {
+    var messageId = client.lastMessageId || 0;
+    client.lastMessageId += 1;
+    client.messageCallbacks[messageId] = callback;
+    console.log("Battlefield._send[" + id + "]: sending message with id " + messageId);
+    client.stream.write(messageId + ':' + message + "\n");
   } else {
     callback("error");
+  }
+};
+
+Battlefield.prototype._receive = function(id, message) {
+  console.log("Battlefield._receive[" + id + "]: " + message);
+ 
+  var parts = message.split(/:/) 
+  var messageId = parts.shift();
+  console.log("Battlefield._receive[" + id + "]: receive response to message with id " + messageId);
+
+  var client = this.clients[id];
+  if (client && client.messageCallbacks) {
+    // Extract callback
+    var callback = client.messageCallbacks[messageId];
+    delete client.messageCallbacks[messageId];
+
+    // Invoke if callback is valid
+    if (callback && typeof callback === "function") {
+      console.log("Battlefield._receive[" + id + "]: invoking callback for message with id " + callbackId + " with data: " + parts.join(":"));
+      callback(null, parts.join(':'));
+    } else {
+      console.log("Battlefield._receive[" + id + "]: cannot find callback for message with id " + callbackId);
+    }
+  } else {
+    console.log("Battlefield._receive[" + id + "]: cannot find client");
   }
 };
