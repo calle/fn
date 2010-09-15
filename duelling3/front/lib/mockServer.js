@@ -19,7 +19,6 @@ var server = net.createServer(function (stream) {
     stream: stream,
     logged_in: false
   };
-  var 
 
   var handleMessage = function(message) {
     console.log("Received message: " + message);
@@ -49,7 +48,6 @@ var server = net.createServer(function (stream) {
       client.name = name;
       client.logged_in = true;
       clients[name] = client;
-      }
     }
 
     // Require user is logged in 
@@ -70,7 +68,7 @@ var server = net.createServer(function (stream) {
   var buffer = "";
   stream.on('data', function (data) {
     buffer += data;
-    var parts = buffer.split(/\n);
+    var parts = buffer.split(/\n/);
     while (parts.length > 1) handleMessage(parts.shift());
     if (buffer.match(/\n$/)) handleMessage(parts.pop());
     buffer = parts.join("\n");
