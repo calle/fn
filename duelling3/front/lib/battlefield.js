@@ -21,8 +21,8 @@ Battlefield.prototype.login = function(id, name, callbacks) {
     self.clients[id] = {
       stream: stream
     };
-    self._send(id, 'login:' + name, function(response) {
-      if (response === "error") {
+    self._send(id, 'login:' + name, function(err, response) {
+      if (err || response === "error") {
         callbacks.login("error");
       } else {
         var parts = response.split(/,/);
@@ -31,7 +31,7 @@ Battlefield.prototype.login = function(id, name, callbacks) {
           y:       parts.shift(),
           dir:     parts.shift(),
           size:    parts.shift(),
-          clients: parts.filter(function(pars) { return part; })
+          clients: parts.filter(function(part) { return part; })
         });
       }
     });
@@ -140,7 +140,12 @@ Battlefield.prototype._send = function(id, message, callback) {
   console.log("Battlefield._send[" + id + "]: " + message);
   var client = this.clients[id];
   if (client && client.stream) {
-    var messageId = client.lastMessageId || 0;
+    if (!client.messageCallbacks) {
+      // First message sent for this client
+      client.messageCallbacks = {};
+      client.lastMessageId = 0;
+    }
+    var messageId = client.lastMessageId;
     client.lastMessageId += 1;
     client.messageCallbacks[messageId] = callback;
     console.log("Battlefield._send[" + id + "]: sending message with id " + messageId);
@@ -165,10 +170,10 @@ Battlefield.prototype._receive = function(id, message) {
 
     // Invoke if callback is valid
     if (callback && typeof callback === "function") {
-      console.log("Battlefield._receive[" + id + "]: invoking callback for message with id " + callbackId + " with data: " + parts.join(":"));
+      console.log("Battlefield._receive[" + id + "]: invoking callback for message with id " + messageId + " with data: " + parts.join(":"));
       callback(null, parts.join(':'));
     } else {
-      console.log("Battlefield._receive[" + id + "]: cannot find callback for message with id " + callbackId);
+      console.log("Battlefield._receive[" + id + "]: cannot find callback for message with id " + messageId);
     }
   } else {
     console.log("Battlefield._receive[" + id + "]: cannot find client");

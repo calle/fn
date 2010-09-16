@@ -27,6 +27,11 @@ var server = net.createServer(function (stream) {
         id      = parts.shift(),
         command = parts.shift();
 
+    if (!command) { 
+      console.log("Invalid message: " + message);
+      return; 
+    }
+    
     // Handle special case login
     if (command === "login") {
       // Logout user if already logged in
@@ -97,7 +102,7 @@ server.login = function(client, id, name) {
     dir: _rand_item(['north', 'south', 'east', 'west']),
     size: _rand(1,5)
   }
-  _reply(stream, id, _pos(client.state) + "," + Object.key(clients).join(","));
+  _reply(client.stream, id, _pos(client.state) + "," + Object.keys(clients).join(","));
 }
 
 server.move = function(client, id, dir) {
@@ -112,8 +117,8 @@ server.move = function(client, id, dir) {
   }
 
   // Normalize client x and y
-  client.state.x = (client.stat.x + board.width) % board.width;
-  client.state.y = (client.stat.y + board.height) % board.height;
+  client.state.x = (client.state.x + board.width ) % board.width;
+  client.state.y = (client.state.y + board.height) % board.height;
 
   _reply(client.stream, id, _pos(client.state));
 }
@@ -139,10 +144,10 @@ var _pos = function(state) {
 }
 
 var _reply = function(stream, id, message) {
-  _send("response:" + id + ":" + message);
+  _send(stream, "response:" + id + ":" + message);
 }
 var _update = function(stream, message) {
-  _send("update:" + message);
+  _send(stream, "update:" + message);
 }
 var _send = function(stream, message) {
   stream.write(message + "\n");

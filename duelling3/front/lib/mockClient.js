@@ -16,7 +16,7 @@ battlefield.login(id, 'calle', {
     battlefield.move(id, 'east');
     battlefield.move(id, 'east');
 
-    battlefield.shoot(id, 3, 6);
+    battlefield.shoot(id, { x:3, y: 6 });
 
     battlefield.taunt(id, 'olle', 'your mama');
 
