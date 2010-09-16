@@ -55,7 +55,7 @@ Battlefield.prototype.login = function(id, name, callbacks) {
     // Append data to buffer
     buffer += data;
     // Split in messages
-    var parts = buffer.split(/\n/)
+    var parts = buffer.split(/\n/).filter(function(part) { return part !== ''; });
     // Handle all but last part as full message
     while (parts.length > 1) handleMessage(parts.shift());
     // If buffer ends in split-char handle as full message as well
@@ -73,6 +73,7 @@ Battlefield.prototype.login = function(id, name, callbacks) {
 };
 
 Battlefield.prototype.logout = function(id, callback) {
+  console.log("Battlefield.logout[" + id + "]");
   var self = this;
   this._send(id, "logout", function(err) {
     if (err) { 
@@ -81,7 +82,8 @@ Battlefield.prototype.logout = function(id, callback) {
       var client = self.clients[id];
       // Close the stream after logout
       if (client && client.stream) {
-        client.stream.close();
+        console.log("Battlefield.logout[" + id + "]: closing stream for client");
+        client.stream.end();
       }
       if (callback) callback(null);
     }

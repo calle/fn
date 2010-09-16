@@ -20,7 +20,7 @@ battlefield.login(id, 'calle', {
 
     battlefield.taunt(id, 'olle', 'your mama');
 
-    battlefield.logout();
+    battlefield.logout(id);
   },
   update: function(message) {
     console.log('got update: ' + message);

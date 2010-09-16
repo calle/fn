@@ -73,7 +73,7 @@ var server = net.createServer(function (stream) {
   var buffer = "";
   stream.on('data', function (data) {
     buffer += data;
-    var parts = buffer.split(/\n/);
+    var parts = buffer.split(/\n/).filter(function(part) { return part !== ''; });
     while (parts.length > 1) handleMessage(parts.shift());
     if (buffer.match(/\n$/)) handleMessage(parts.pop());
     buffer = parts.join("\n");
