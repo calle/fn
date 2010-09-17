@@ -1,4 +1,5 @@
-var net = require('net');
+var net = require('net'),
+    sys = require('sys');
 
 // Clients currently logged in 
 var clients = {};
@@ -59,6 +60,7 @@ var server = net.createServer(function (stream) {
     if (!client.logged_in) return _reply(stream, id, "error");
 
     // Invoke command
+    console.log('invoke server.%s(%s, %d, %s)', command, client.name, id, parts.join(":"));
     server[command](client, id, parts.join(":"));
  
     // Handle special case logout
@@ -102,17 +104,21 @@ server.login = function(client, id, name) {
     dir: _rand_item(['north', 'south', 'east', 'west']),
     size: _rand(1,5)
   }
-  _reply(client.stream, id, _pos(client.state) + "," + Object.keys(clients).join(","));
+  _reply(client.stream, id, board.width + "," + board.height + "," + _pos(client.state) + "," + Object.keys(clients).join(","));
 }
 
 server.move = function(client, id, dir) {
   if (dir === "north") {
-    client.state.y -= 1;
-  } else if (dir === "south") {
+    client.state.dir = "north";
     client.state.y += 1;
+  } else if (dir === "south") {
+    client.state.dir = "south";
+    client.state.y -= 1;
   } else if (dir === "east") {
+    client.state.dir = "east";
     client.state.x += 1;
   } else if (dir === "west") {
+    client.state.dir = "west";
     client.state.x -= 1;
   }
 
@@ -123,8 +129,44 @@ server.move = function(client, id, dir) {
   _reply(client.stream, id, _pos(client.state));
 }
 
-server.shoot = function(client, id, name) {
-  _reply(client.stream, id, "miss");
+var _inside = function(state, x, y) {
+  // Look if x and y is inside of state
+  console.log('Compare: %s to %d %d', sys.inspect(state), x, y)
+  if (state.dir === "north") {
+    return state.x === x && (state.y + state.size) >= y && state.y <= y; 
+  } else if (state.dir === "south") {
+    return state.x === x && state.y >= y && (state.y - state.size) <= y;
+  } else if (state.dir === "east") {
+    return state.x <= x && (state.x + state.size) >= x && state.y === y;
+  } else if (state.dir === "west") {
+    return (state.x - state.size) <= x && state.x >= x && state.y === y;
+  }
+  return false;
+}
+
+server.shoot = function(client, id, pos) {
+  var parts = pos.split(/,/),
+      x = parseInt(parts.shift(), 10),
+      y = parseInt(parts.shift(), 10);
+
+  console.log('server.shoot(%d, %d, %d)', id, x, y)
+
+  // Walk clients and find the ones hit
+  var targets = [];
+  Object.keys(clients).forEach(function(name) {
+    var other = clients[name];
+    if (other === client) return; // Cannot shoot yourself
+    if (_inside(other.state, x, y)) {
+      targets.push(other);
+    } 
+  });
+  
+  // Look for targets
+  if (targets.length > 0) {
+    _reply(client.stream, id, "kill," + targets.map(function(c) {  return c.name; }).join(","));
+  } else {
+    _reply(client.stream, id, "miss");
+  }
 }
 
 server.taunt = function(client, id, name) {
