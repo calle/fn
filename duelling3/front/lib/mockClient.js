@@ -9,24 +9,28 @@ var battlefield = new Battlefield('localhost', 3001, false);
 var id1 = '344',
     id2 = "185";
 
-var step = function(direction, position) {
+var step = function(board, direction, position) {
   var x = position.x, y = position.y;
   if (direction === "north") {
-    return { x:x, y:y+1 };
+    y += 1;
   } else if (direction === "south"){
-    return { x:x, y:y-1 };
+    y -= 1;
   } else if (direction === "east"){
-    return { x:x+1, y:y };
+    x += 1;
   } else if (direction === "west"){
-    return { x:x-1, y:y };
+    x -= 1;
+  }
+  return { 
+    x: (x + board.width ) % board.width,
+    y: (y + board.height) % board.height
   }
 }
 
-var walk = function(position, callback) {
+var walk = function(board, position, callback) {
   var current = position;
   for (var i=0; i < position.size; i++) {
     callback(current.x, current.y);
-    current = step(position.direction, current);
+    current = step(board, position.direction, current);
   }
 };
 
@@ -34,20 +38,23 @@ var drawBoard = function(board, ships) {
   var rows = [], i, row, j;
   for (i = 0; i < board.height; i++) {
     row = [];
-    for (j = 0; j < board.width; i++) { 
-      row.push('¤');
+    for (j = 0; j < board.width; j++) { 
+      row.push('-');
     }
     rows.push(row);
   }
   
-  shift.forEach(function(position) {
-    walk(position, function(x, y) {
-      rows[y][x] = 'X';
+  if (!Array.isArray(ships)) ships = [ships];
+  
+  ships.forEach(function(position) {
+    walk(board, position, function(x, y) {
+      rows[y][x] = (x === position.x && y === position.y) ? '*' : 'X'; 
     });
   });
   
   stdio.setRawMode(false);
-  console.log(rows.map(function(row) { return row.join(''); }).join('\n'));
+  console.log()
+  console.log(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
   stdio.setRawMode(true);
 };
 
@@ -65,13 +72,31 @@ var callbacks = function(login) {
 
 battlefield.login(id1, 'calle', callbacks(function(err, state1) {
   console.log('successfull login calle: %j', state1);
-  
-  var stdin = process.openStdin();
 
+  // Setup stdin
+  var stdin = process.openStdin();
   stdio.setRawMode(true);
-  
   stdin.setEncoding('utf8');
 
+  stdin.on('data', function (chunk) {
+    if (chunk === '\u0003') { // Ctrl-C
+      console.log('Received Ctrl-C');
+      return terminate();
+    } 
+    
+    [['\u001b[A', 'north'], ['\u001b[B', 'south'], ['\u001b[C', 'east'], ['\u001b[D', 'west']].forEach(function(item) {
+      if (chunk === item[0]) {
+        battlefield.move(id1, item[1], function(err, position) {
+          if (!err) drawBoard(state1.board, position)
+        })
+      }
+    })
+    console.log('Received data: ' + sys.inspect(chunk))
+  });
+  stdin.on('end', function () {
+    console.log('stdio.end')
+    terminate();
+  });
   var terminate = function() {
     battlefield.logout(id1, function() {
       stdio.setRawMode(false);
@@ -79,21 +104,12 @@ battlefield.login(id1, 'calle', callbacks(function(err, state1) {
       stdin.destroy();
     });
   }
-  
-  stdin.on('data', function (chunk) {
-    if (chunk === '\u0003') { // Ctrl-C
-      console.log('Received Ctrl-C');
-      return terminate();
-    }
-    console.log('Received data: ' + sys.inspect(chunk))
-  });
 
-  stdin.on('end', function () {
-    console.log('stdio.end')
-    terminate();
-  });
+  // Start by drawing board
+  console.log('Drawing board')
+  console.log(state1)
+  drawBoard(state1.board, [state1.position]);
 
-  
 }));
 
 
