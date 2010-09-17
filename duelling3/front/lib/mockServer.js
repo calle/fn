@@ -5,8 +5,8 @@ var net = require('net'),
 var clients = {};
 
 var board = {
-  width: 8,
-  height: 8
+  width:  16,
+  height: 16
 };
 
 var server = net.createServer(function (stream) {
