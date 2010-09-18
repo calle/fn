@@ -1,4 +1,5 @@
-var net = require('net');
+var net = require('net'),
+    Board = require('./board');
 
 var Battlefield = module.exports = function(server, port, trace) {
   this.server = server;
@@ -30,10 +31,10 @@ Battlefield.prototype.login = function(id, name, callbacks) {
       self.clients[id].loggedIn = true;
       var parts = response.split(/,/);
       callbacks.login(null, {
-        board: {
-          width:  parseInt(parts.shift(), 10),
-          height: parseInt(parts.shift(), 10)
-        },
+        board: new Board(
+          parseInt(parts.shift(), 10), // width
+          parseInt(parts.shift(), 10)  // height
+        ),
         position: {
           x:         parseInt(parts.shift(), 10),
           y:         parseInt(parts.shift(), 10),

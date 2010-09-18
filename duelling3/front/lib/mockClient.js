@@ -2,32 +2,11 @@ var Battlefield = require('./battlefield'),
     stdio = process.binding('stdio'),
     sys = require('sys');
 
-var battlefield = new Battlefield('localhost', 3001, true);
+var battlefield = new Battlefield('localhost', 3001, false);
 var clientName = process.argv[2] || 'Calle';
 var clientId = Math.floor(Math.random() * 1000);
 
 var stdin = process.openStdin();
-
-var coords = {
-  north: { axis: 'y', value:  1 },
-  south: { axis: 'y', value: -1 },
-  east:  { axis: 'x', value:  1 },
-  west:  { axis: 'x', value: -1 },
-}
-
-var walk = function(board, position, callback) {
-  var coord = coords[position.direction],
-      current = { x: position.x, y: position.y },
-      board_size = board[coord.axis === 'x' ? 'width' : 'height']
-
-  // Start from tail of ship and to in direction to front
-  current[coord.axis] -= coord.value * position.size
-
-  for (var i=0; i < position.size; i++) {
-    current[coord.axis] = (current[coord.axis] + coord.value + board_size) % board_size;
-    callback(current.x, current.y);
-  }
-};
 
 var drawBoard = function(state) {
   var board = state.board,
@@ -43,9 +22,8 @@ var drawBoard = function(state) {
 
   var ships = [state.position];
   ships.forEach(function(position) {
-    var coord = coords[position.direction];
-    walk(board, position, function(x, y) {
-      rows[y][x] = (x === position.x && y === position.y) ? 'X' : (coord.axis === 'x' ? '-' : '|');
+    board.reverseWalk(position, position.direction, position.size, function(x, y, axis) {
+      rows[y][x] = (x === position.x && y === position.y) ? 'X' : (axis === 'x' ? '-' : '|');
     });
   });
   
@@ -121,10 +99,7 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
     ].forEach(function(item) {
       if (chunk === item[0]) {
         if (clientState.shooting.aiming) {
-          var coord = coords[item[1]],
-              board_size = clientState.board[coord.axis === 'x' ? 'width' : 'height']
-          clientState.shooting[coord.axis] = 
-            (clientState.shooting[coord.axis] + coord.value + board_size) % board_size;
+          clientState.board.updateNext(clientState.shooting, item[1]);
           drawBoard(clientState)
         } else {
           battlefield.move(clientId, item[1], function(err, position) {
