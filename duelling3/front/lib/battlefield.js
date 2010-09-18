@@ -25,25 +25,23 @@ Battlefield.prototype.login = function(id, name, callbacks) {
       loggedIn: false
     };
     self._send(id, 'login:' + name, function(err, response) {
-      if (err || response === "error") {
-        callbacks.login("error");
-      } else {
-        self.clients[id].loggedIn = true;
-        var parts = response.split(/,/);
-        callbacks.login(null, {
-          board: {
-            width:  parseInt(parts.shift(), 10),
-            height: parseInt(parts.shift(), 10)
-          },
-          position: {
-            x:         parseInt(parts.shift(), 10),
-            y:         parseInt(parts.shift(), 10),
-            direction: parts.shift(),
-            size:      parseInt(parts.shift(), 10)
-          },
-          clients:  parts.filter(function(part) { return part; })
-        });
-      }
+      if (err) return callbacks.login(err);
+
+      self.clients[id].loggedIn = true;
+      var parts = response.split(/,/);
+      callbacks.login(null, {
+        board: {
+          width:  parseInt(parts.shift(), 10),
+          height: parseInt(parts.shift(), 10)
+        },
+        position: {
+          x:         parseInt(parts.shift(), 10),
+          y:         parseInt(parts.shift(), 10),
+          direction: parts.shift(),
+          size:      parseInt(parts.shift(), 10)
+        },
+        clients:  parts.filter(function(part) { return part; })
+      });
     });
   });
 
@@ -121,18 +119,15 @@ Battlefield.prototype.move = function(id, direction, callback) {
   if (!this.clients[id].loggedIn) return callback && callback("not logged in");
 
   this._send(id, "move:" + direction, function(err, response) {
-    if (err || response === "error") {
-      if (callback) callback(err || "error");
-    } else {
-      // Response is x,y,dir,size
-      var message = response.split(/,/);
-      if (callback) callback(null, {
-        x:         parseInt(message.shift(), 10),
-        y:         parseInt(message.shift(), 10),
-        direction: message.shift(),
-        size:      parseInt(message.shift(), 10)
-      });
-    }
+    if (err) return callback && callback(err);
+    // Response is x,y,dir,size
+    var message = response.split(/,/);
+    if (callback) callback(null, {
+      x:         parseInt(message.shift(), 10),
+      y:         parseInt(message.shift(), 10),
+      direction: message.shift(),
+      size:      parseInt(message.shift(), 10)
+    });
   });
 };
 
@@ -143,24 +138,21 @@ Battlefield.prototype.shoot = function(id, position, callback) {
   if (!this.clients[id].loggedIn) return callback && callback("not logged in");
 
   this._send(id, "shoot:" + position.x + "," + position.y, function(err, response) {
-    if (err || response === "error") {
-      if (callback) callback(err || "error");
+    if (err) return callback && callback(err);
+    // Response is either "miss" or "kill,name1,name2,..." 
+    var parts = response.split(/,/),
+        message = parts.shift();
+    if (message === "miss") {
+      if (callback) callback(null, {
+        status: "miss"
+      });
+    } else if (message === "kill") {
+      if (callback) callback(null, {
+        status: "kill",
+        targets: parts
+      });
     } else {
-      // Response is either "miss" or "kill,name1,name2,..." 
-      var parts = response.split(/,/),
-          message = parts.shift();
-      if (message === "miss") {
-        if (callback) callback(null, {
-          status: "miss"
-        });
-      } else if (message === "kill") {
-        if (callback) callback(null, {
-          status: "kill",
-          targets: parts
-        });
-      } else {
-        if (callback) callback("Unknown response to shoot: " + message);
-      }
+      if (callback) callback("Unknown response to shoot: " + message);
     }
   })
 }
@@ -210,7 +202,13 @@ Battlefield.prototype._receive = function(id, message) {
     // Invoke if callback is valid
     if (callback && typeof callback === "function") {
       this._trace("_receive", id, "invoking callback for message with id %d with data: %s", messageId, parts.join(":"));
-      callback(null, parts.join(':'));
+      // Handle error callback
+      if (parts[0] === 'error') {
+        parts.shift();
+        callback(parts.join(':'));
+      } else {
+        callback(null, parts.join(':'));
+      }
     } else {
       this._trace("_receive", id, "cannot find callback for message with id %d", messageId);
     }
