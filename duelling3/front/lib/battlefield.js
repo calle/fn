@@ -12,12 +12,13 @@ Battlefield.prototype.login = function(id, name, callbacks) {
   // Koppla upp mot servern
   var stream = net.createConnection(this.port, this.server)
   stream.setEncoding('ascii')
-  stream.setNoDelay(true)
 
   var self = this;
   
   // Handle connection, login client
   stream.on('connect', function () {
+    stream.setNoDelay(true)
+
     // Connected, add this client
     self.clients[id] = {
       stream: stream
@@ -71,12 +72,19 @@ Battlefield.prototype.login = function(id, name, callbacks) {
     buffer = parts.join("\n")
   });
 
+  stream.on('error', function (err) {
+    // Invoke error callback, then terminate
+    if (callbacks.error) callbacks.error(err);
+    stream.emit('end')
+  });
+
   stream.on('end', function () {
     // Remove this client
     delete self.clients[id];
     // Invoke end callback
     callbacks.end();
   });
+  
 };
 
 Battlefield.prototype.logout = function(id, callback) {
