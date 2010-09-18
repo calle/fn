@@ -47,7 +47,7 @@ var server = net.createServer(function (stream) {
   
       if (clients[name]) {
         // Client with same name already exists
-        return _reply(stream, id, "error");
+        return _reply(stream, id, "error:Name already logged in");
       }
       
       // Update data and add to list of logged in clients
@@ -57,7 +57,7 @@ var server = net.createServer(function (stream) {
     }
 
     // Require user is logged in 
-    if (!client.logged_in) return _reply(stream, id, "error");
+    if (!client.logged_in) return _reply(stream, id, "error: Must login first");
 
     // Invoke command
     console.log('invoke server.%s(%s, %d, %s)', command, client.name, id, parts.join(":"));
