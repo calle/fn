@@ -107,20 +107,32 @@ server.login = function(client, id, name) {
   _reply(client.stream, id, board.width + "," + board.height + "," + _pos(client.state) + "," + Object.keys(clients).join(","));
 }
 
+var coords = {
+  north: { axis: 'y', value:  1 },
+  south: { axis: 'y', value: -1 },
+  east:  { axis: 'x', value:  1 },
+  west:  { axis: 'x', value: -1 },
+}
 server.move = function(client, id, dir) {
-  if (dir === "north") {
-    client.state.dir = "north";
-    client.state.y += 1;
-  } else if (dir === "south") {
-    client.state.dir = "south";
-    client.state.y -= 1;
-  } else if (dir === "east") {
-    client.state.dir = "east";
-    client.state.x += 1;
-  } else if (dir === "west") {
-    client.state.dir = "west";
-    client.state.x -= 1;
+  var now  = coords[client.state.dir],
+      next = coords[dir];
+
+  if (now.axis === next.axis) {
+    // Move forward
+    client.state[next.axis] += next.value;
+    // Flip the ship around
+    if (now.value !== next.value) {
+      client.state[next.axis] += (next.value * (client.state.size - 1));
+    }
+  } else {
+    // Turn
+    var half_size = Math.floor((client.state.size - 1) / 2);
+    client.state[now.axis]  += -now.value * half_size;
+    client.state[next.axis] += next.value * half_size
   }
+
+  // Update direction
+  client.state.dir = dir;
 
   // Normalize client x and y
   client.state.x = (client.state.x + board.width ) % board.width;
@@ -130,16 +142,14 @@ server.move = function(client, id, dir) {
 }
 
 var _inside = function(state, x, y) {
-  // Look if x and y is inside of state
-  console.log('Compare: %s to %d %d', sys.inspect(state), x, y)
-  if (state.dir === "north") {
-    return state.x === x && (state.y + state.size) >= y && state.y <= y; 
-  } else if (state.dir === "south") {
-    return state.x === x && state.y >= y && (state.y - state.size) <= y;
-  } else if (state.dir === "east") {
-    return state.x <= x && (state.x + state.size) >= x && state.y === y;
-  } else if (state.dir === "west") {
-    return (state.x - state.size) <= x && state.x >= x && state.y === y;
+  var coord = coords[state.dir], 
+      ship  = { x:state.x, y:state.y }, i;
+
+  // Look for hit
+  for (i = 0; i < state.size; i++) {
+    console.log('server._inside: looking for hit to %d,%d at %d,%d', x, y, ship.x, ship.y);
+    if (ship.x === x && ship.y === y) return true;
+    ship[coord.axis] += coord.value;
   }
   return false;
 }
