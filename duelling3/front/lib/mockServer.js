@@ -1,7 +1,7 @@
 var net = require('net'),
     sys = require('sys');
 
-// Clients currently logged in 
+// Clients currently logged in
 var clients = {};
 
 var board = {
@@ -23,16 +23,16 @@ var server = net.createServer(function (stream) {
 
   var handleMessage = function(message) {
     console.log("Received message: " + message);
-    
+
     var parts   = message.split(/:/),
         id      = parts.shift(),
         command = parts.shift();
 
-    if (!command) { 
+    if (!command) {
       console.log("Invalid message: " + message);
-      return; 
+      return;
     }
-    
+
     // Handle special case login
     if (command === "login") {
       // Logout user if already logged in
@@ -44,25 +44,25 @@ var server = net.createServer(function (stream) {
 
       // Fix login name
       var name = parts.join(":").replace(",", "")
-  
+
       if (clients[name]) {
         // Client with same name already exists
         return _reply(stream, id, "error:Name already logged in");
       }
-      
+
       // Update data and add to list of logged in clients
       client.name = name;
       client.logged_in = true;
       clients[name] = client;
     }
 
-    // Require user is logged in 
+    // Require user is logged in
     if (!client.logged_in) return _reply(stream, id, "error: Must login first");
 
     // Invoke command
     console.log('invoke server.%s(%s, %d, %s)', command, client.name, id, parts.join(":"));
     server[command](client, id, parts.join(":"));
- 
+
     // Handle special case logout
     if (command === "logout") {
       // Update data and remove from list of logged in clients
@@ -94,7 +94,7 @@ var server = net.createServer(function (stream) {
 });
 
 /**
- * Implement server commands 
+ * Implement server commands
  */
 
 server.login = function(client, id, name) {
@@ -142,7 +142,7 @@ server.move = function(client, id, dir) {
 }
 
 var _inside = function(state, x, y) {
-  var coord = coords[state.dir], 
+  var coord = coords[state.dir],
       ship  = { x:state.x, y:state.y }, i;
 
   // Look for hit
@@ -168,9 +168,9 @@ server.shoot = function(client, id, pos) {
     if (other === client) return; // Cannot shoot yourself
     if (_inside(other.state, x, y)) {
       targets.push(other);
-    } 
+    }
   });
-  
+
   // Look for targets
   if (targets.length > 0) {
     _reply(client.stream, id, "kill," + targets.map(function(c) {  return c.name; }).join(","));

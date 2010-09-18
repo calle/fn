@@ -14,7 +14,7 @@ Battlefield.prototype.login = function(id, name, callbacks) {
   stream.setEncoding('ascii')
 
   var self = this;
-  
+
   // Handle connection, login client
   stream.on('connect', function () {
     stream.setNoDelay(true)
@@ -84,7 +84,7 @@ Battlefield.prototype.login = function(id, name, callbacks) {
     // Invoke end callback
     callbacks.end();
   });
-  
+
 };
 
 Battlefield.prototype.logout = function(id, callback) {
@@ -104,8 +104,8 @@ Battlefield.prototype.logout = function(id, callback) {
   if (!this.clients[id].loggedIn) return close("not logged in");
 
   this._send(id, "logout", function(err) {
-    if (err) { 
-      if (callback) callback(err); 
+    if (err) {
+      if (callback) callback(err);
     } else {
       close();
     }
@@ -139,7 +139,7 @@ Battlefield.prototype.shoot = function(id, position, callback) {
 
   this._send(id, "shoot:" + position.x + "," + position.y, function(err, response) {
     if (err) return callback && callback(err);
-    // Response is either "miss" or "kill,name1,name2,..." 
+    // Response is either "miss" or "kill,name1,name2,..."
     var parts = response.split(/,/),
         message = parts.shift();
     if (message === "miss") {
@@ -188,9 +188,9 @@ Battlefield.prototype._send = function(id, message, callback) {
 };
 
 Battlefield.prototype._receive = function(id, message) {
-  var parts = message.split(/:/) 
+  var parts = message.split(/:/)
   var messageId = parts.shift();
-  
+
   this._trace("_receive", id, "receive response to message with id %d: %s", messageId, message);
 
   var client = this.clients[id];

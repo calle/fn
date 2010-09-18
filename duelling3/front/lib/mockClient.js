@@ -1,5 +1,5 @@
 var Battlefield = require('./battlefield'),
-    stdio = process.binding('stdio'), 
+    stdio = process.binding('stdio'),
     sys = require('sys');
 
 var battlefield = new Battlefield('localhost', 3001, true);
@@ -19,7 +19,7 @@ var step = function(board, direction, position) {
   } else if (direction === "west"){
     x += 1;
   }
-  return { 
+  return {
     x: (x + board.width ) % board.width,
     y: (y + board.height) % board.height
   }
@@ -37,20 +37,20 @@ var drawBoard = function(board, ships) {
   var rows = [], i, row, j;
   for (i = 0; i < board.height; i++) {
     row = [];
-    for (j = 0; j < board.width; j++) { 
+    for (j = 0; j < board.width; j++) {
       row.push('-');
     }
     rows.push(row);
   }
-  
+
   if (!Array.isArray(ships)) ships = [ships];
-  
+
   ships.forEach(function(position) {
     walk(board, position, function(x, y) {
-      rows[y][x] = (x === position.x && y === position.y) ? '*' : 'X'; 
+      rows[y][x] = (x === position.x && y === position.y) ? '*' : 'X';
     });
   });
-  
+
   output('')
   output(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
 };
@@ -100,12 +100,12 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
     // Terminate (Ctrl-C)
     if (chunk === '\u0003') {
       return terminate();
-    } 
-    
+    }
+
     // Move (arrow keys)
-    [ ['\u001b[A', 'north'], 
-      ['\u001b[B', 'south'], 
-      ['\u001b[C', 'east'], 
+    [ ['\u001b[A', 'north'],
+      ['\u001b[B', 'south'],
+      ['\u001b[C', 'east'],
       ['\u001b[D', 'west']
     ].forEach(function(item) {
       if (chunk === item[0]) {
@@ -119,14 +119,14 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
         })
       }
     });
-    
+
     // Shoot (Space)
     if (chunk === ' ') {
       battlefield.shoot(clientId, clientState.position, function(err, result) {
         if (!err) output('Shoot result: %j', result);
       })
     }
-    
+
     // output('Received data: ' + sys.inspect(chunk))
   });
 
