@@ -12,13 +12,13 @@ var id1 = '344',
 var step = function(board, direction, position) {
   var x = position.x, y = position.y;
   if (direction === "north") {
-    y += 1;
-  } else if (direction === "south"){
     y -= 1;
+  } else if (direction === "south"){
+    y += 1;
   } else if (direction === "east"){
-    x += 1;
-  } else if (direction === "west"){
     x -= 1;
+  } else if (direction === "west"){
+    x += 1;
   }
   return { 
     x: (x + board.width ) % board.width,
