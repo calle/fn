@@ -58,12 +58,12 @@ app.post('/login', function(req, res) {
       if (req.session) {
         req.session.statuses.push("error");
       }
-    }
+    },
     end: function() {
       if (req.session) {
         req.session.statuses.push("terminated");
       }
-    },
+    }
   });
 });
 
