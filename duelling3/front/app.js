@@ -54,11 +54,16 @@ app.post('/login', function(req, res) {
         }
       }
     },
+    error: function() {
+      if (req.session) {
+        req.session.statuses.push("error");
+      }
+    }
     end: function() {
       if (req.session) {
         req.session.statuses.push("terminated");
       }
-    }
+    },
   });
 });
 

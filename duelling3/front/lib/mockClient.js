@@ -64,6 +64,9 @@ var callbacks = function(login) {
     update: function(message) {
       console.log('got update: ' + message);
     },
+    error: function(err) {
+      output('connection error: ' + err)
+    },
     end: function() {
       console.log('client terminated');
     }
