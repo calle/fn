@@ -118,17 +118,20 @@ server.move = function(client, id, dir) {
       next = coords[dir];
 
   if (now.axis === next.axis) {
-    // Move forward
+    // Same axis, move forward
     client.state[next.axis] += next.value;
-    // Flip the ship around
+    // Different direction, flip the ship around
     if (now.value !== next.value) {
       client.state[next.axis] += (next.value * (client.state.size - 1));
     }
-  } else {
-    // Turn
+  } else if (client.state.size > 2) {
+    // Turn large ships
     var half_size = Math.floor((client.state.size - 1) / 2);
     client.state[now.axis]  += -now.value * half_size;
     client.state[next.axis] += next.value * half_size
+  } else {
+    // Just move ship
+    client.state[next.axis] += next.value;
   }
 
   // Update direction
