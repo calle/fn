@@ -80,6 +80,12 @@ var output = function() {
   stdio.setRawMode(true);
 }
 
+var terminate = function() {
+  battlefield.logout(clientId, function() {
+    output('terminate: logged out')
+  });
+}
+
 battlefield.login(clientId, 'calle', callbacks(function(err, clientState) {
 
   output('successfull login calle: %j', clientState);
@@ -109,13 +115,6 @@ battlefield.login(clientId, 'calle', callbacks(function(err, clientState) {
     output('stdio.end')
     terminate();
   });
-  var terminate = function() {
-    battlefield.logout(id1, function() {
-      stdio.setRawMode(false);
-      console.log('\nterminate: logged out')
-      stdin.destroy();
-    });
-  }
 
   // Start by drawing board
   output('Drawing board')
