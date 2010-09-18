@@ -76,7 +76,10 @@ var callbacks = function(login) {
 
 var output = function() {
   stdio.setRawMode(false);
+  process.stdout.flush();
+  process.stdout.write('\x1b[0G');
   console.log.apply(console, arguments)
+  process.stdout.flush();
   stdio.setRawMode(true);
 }
 
