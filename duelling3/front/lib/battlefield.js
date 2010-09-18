@@ -21,12 +21,14 @@ Battlefield.prototype.login = function(id, name, callbacks) {
 
     // Connected, add this client
     self.clients[id] = {
-      stream: stream
+      stream: stream,
+      loggedIn: false
     };
     self._send(id, 'login:' + name, function(err, response) {
       if (err || response === "error") {
         callbacks.login("error");
       } else {
+        self.clients[id].loggedIn = true;
         var parts = response.split(/,/);
         callbacks.login(null, {
           board: {
@@ -89,24 +91,35 @@ Battlefield.prototype.login = function(id, name, callbacks) {
 
 Battlefield.prototype.logout = function(id, callback) {
   this._trace("logout", id);
+
   var self = this;
+  var close = function(err) {
+    var client = self.clients[id];
+    if (client && client.stream) {
+      self._trace("logout", id, "closing stream for client");
+      client.stream.end();
+    }
+    if (callback) callback(err);
+  };
+
+  // Make sure we are logged in
+  if (!this.clients[id].loggedIn) return close("not logged in");
+
   this._send(id, "logout", function(err) {
     if (err) { 
       if (callback) callback(err); 
     } else {
-      var client = self.clients[id];
-      // Close the stream after logout
-      if (client && client.stream) {
-        self._trace("logout", id, "closing stream for client");
-        client.stream.end();
-      }
-      if (callback) callback(null);
+      close();
     }
   });
 };
 
 Battlefield.prototype.move = function(id, direction, callback) {
   this._trace("move", id, "direction = %s", direction);
+
+  // Make sure we are logged in
+  if (!this.clients[id].loggedIn) return callback && callback("not logged in");
+
   this._send(id, "move:" + direction, function(err, response) {
     if (err || response === "error") {
       if (callback) callback(err || "error");
@@ -125,6 +138,10 @@ Battlefield.prototype.move = function(id, direction, callback) {
 
 Battlefield.prototype.shoot = function(id, position, callback) {
   this._trace("shoot", id, "x=%d, y=%d", position.x, position.y);
+
+  // Make sure we are logged in
+  if (!this.clients[id].loggedIn) return callback && callback("not logged in");
+
   this._send(id, "shoot:" + position.x + "," + position.y, function(err, response) {
     if (err || response === "error") {
       if (callback) callback(err || "error");
@@ -150,6 +167,10 @@ Battlefield.prototype.shoot = function(id, position, callback) {
 
 Battlefield.prototype.taunt = function(id, playerName, message, callback) {
   this._trace("taunt", id, "player %s with %s", playerName, message);
+
+  // Make sure we are logged in
+  if (!this.clients[id].loggedIn) return callback && callback("not logged in");
+
   this._send(id, "taunt:" + playerName + ":" + message, function(err, response) {
     if (callback) callback(err, response);
   });
