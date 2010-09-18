@@ -8,51 +8,49 @@ var clientId = Math.floor(Math.random() * 1000);
 
 var stdin = process.openStdin();
 
-var step = function(board, direction, position) {
-  var x = position.x, y = position.y;
-  if (direction === "north") {
-    y -= 1;
-  } else if (direction === "south"){
-    y += 1;
-  } else if (direction === "east"){
-    x -= 1;
-  } else if (direction === "west"){
-    x += 1;
-  }
-  return {
-    x: (x + board.width ) % board.width,
-    y: (y + board.height) % board.height
-  }
+var coords = {
+  north: { axis: 'y', value:  1 },
+  south: { axis: 'y', value: -1 },
+  east:  { axis: 'x', value:  1 },
+  west:  { axis: 'x', value: -1 },
 }
 
 var walk = function(board, position, callback) {
-  var current = position;
+  var coord = coords[position.direction],
+      current = { x: position.x, y: position.y },
+      board_size = board[coord.axis === 'x' ? 'width' : 'height']
+
+  // Start from tail of ship and to in direction to front
+  current[coord.axis] -= coord.value * position.size
+
   for (var i=0; i < position.size; i++) {
+    current[coord.axis] = (current[coord.axis] + coord.value + board_size) % board_size;
     callback(current.x, current.y);
-    current = step(board, position.direction, current);
   }
 };
 
-var drawBoard = function(board, ships) {
-  var rows = [], i, row, j;
-  for (i = 0; i < board.height; i++) {
+var drawBoard = function(state) {
+  var board = state.board,
+      rows = [], i, row, j;
+
+  for (i = 0; i < state.board.height; i++) {
     row = [];
-    for (j = 0; j < board.width; j++) {
-      row.push('-');
+    for (j = 0; j < state.board.width; j++) {
+      row.push('•');
     }
     rows.push(row);
   }
 
-  if (!Array.isArray(ships)) ships = [ships];
-
+  var ships = [state.position];
   ships.forEach(function(position) {
+    var coord = coords[position.direction];
     walk(board, position, function(x, y) {
-      rows[y][x] = (x === position.x && y === position.y) ? '*' : 'X';
+      rows[y][x] = (x === position.x && y === position.y) ? 'X' : (coord.axis === 'x' ? '-' : '|');
     });
   });
 
-  output('')
   output(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
+  output('')
 };
 
 var callbacks = function(login) {
@@ -109,14 +107,21 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
       ['\u001b[D', 'west']
     ].forEach(function(item) {
       if (chunk === item[0]) {
-        battlefield.move(clientId, item[1], function(err, position) {
-          if (!err) {
-            // Update position
-            clientState.position = position;
-            // Draw board
-            drawBoard(clientState.board, position)
-          }
-        })
+        if (clientState.shooting.aiming) {
+          var coord = coords[item[1]],
+              board_size = clientState.board[coord.axis === 'x' ? 'width' : 'height']
+          clientState.shooting[coord.axis] = 
+            (clientState.shooting[coord.axis] + coord.value + board_size) % board_size;
+          drawBoard(clientState)
+        } else {
+          battlefield.move(clientId, item[1], function(err, position) {
+            if (!err) {
+              // Update position
+              clientState.position = position;
+              drawBoard(clientState)
+            }
+          })
+        }
       }
     });
 
@@ -138,6 +143,6 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
   // Start by drawing board
   output('Drawing board')
   output(clientState)
-  drawBoard(clientState.board, clientState.position);
+  drawBoard(clientState);
 
 }));
