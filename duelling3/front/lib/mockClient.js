@@ -87,6 +87,10 @@ var terminate = function() {
 }
 
 battlefield.login(clientId, 'calle', callbacks(function(err, clientState) {
+  if (err) {
+    output('Failed to login: %s', err)
+    return terminate();
+  }
 
   output('successfull login calle: %j', clientState);
 
