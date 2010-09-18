@@ -211,7 +211,7 @@ var _rand = function(min, max) {
     max = min - 1;
     min = 0;
   }
-  return Math.floor(Math.random() * (max - min + 1)) + min;  
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 var _rand_item = function(items) {
   return items[_rand(items.length)];
