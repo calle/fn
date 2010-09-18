@@ -4,10 +4,9 @@ var Battlefield = require('./battlefield'),
 
 
 
-var battlefield = new Battlefield('localhost', 3001, false);
+var battlefield = new Battlefield('localhost', 3001, true);
+var clientId = Math.floor(Math.random() * 1000);
 
-var id1 = '344',
-    id2 = "185";
 var stdin = process.openStdin();
 
 var step = function(board, direction, position) {
@@ -104,13 +103,30 @@ battlefield.login(clientId, 'calle', callbacks(function(err, clientState) {
       return terminate();
     } 
     
-    [['\u001b[A', 'north'], ['\u001b[B', 'south'], ['\u001b[C', 'east'], ['\u001b[D', 'west']].forEach(function(item) {
+    // Move (arrow keys)
+    [ ['\u001b[A', 'north'], 
+      ['\u001b[B', 'south'], 
+      ['\u001b[C', 'east'], 
+      ['\u001b[D', 'west']
+    ].forEach(function(item) {
       if (chunk === item[0]) {
-        battlefield.move(id1, item[1], function(err, position) {
-          if (!err) drawBoard(state1.board, position)
+        battlefield.move(clientId, item[1], function(err, position) {
+          if (!err) {
+            // Update position
+            clientState.position = position;
+            // Draw board
+            drawBoard(clientState.board, position)
+          }
         })
       }
     });
+    
+    // Shoot (Space)
+    if (chunk === ' ') {
+      battlefield.shoot(clientId, clientState.position, function(err, result) {
+        if (!err) output('Shoot result: %j', result);
+      })
+    }
     
     // output('Received data: ' + sys.inspect(chunk))
   });
