@@ -2,9 +2,8 @@ var Battlefield = require('./battlefield'),
     stdio = process.binding('stdio'), 
     sys = require('sys');
 
-
-
 var battlefield = new Battlefield('localhost', 3001, true);
+var clientName = process.argv[2] || 'Calle';
 var clientId = Math.floor(Math.random() * 1000);
 
 var stdin = process.openStdin();
@@ -85,13 +84,13 @@ var terminate = function() {
   });
 }
 
-battlefield.login(clientId, 'calle', callbacks(function(err, clientState) {
+battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
   if (err) {
     output('Failed to login: %s', err)
     return terminate();
   }
 
-  output('successfull login calle: %j', clientState);
+  output('successfull login for %s: %j', clientName, clientState);
 
   // Setup stdin
   stdin.setEncoding('utf8');
