@@ -141,24 +141,3 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
   drawBoard(clientState.board, clientState.position);
 
 }));
-
-
-
-
-/*
-
-  battlefield.login(id2, 'olle', callbacks(function(err, state2) {
-    console.log('successfull login olle: %j', state2);
-
-    battlefield.shoot(id1, { x:state2.position.x, y:state2.position.y }, function(err, result) {
-      console.log('shooing result: %j', result);
-      
-      battlefield.taunt(id1, 'olle', 'your mama!', function(err, result) {
-        console.log('taunt result: %j', result);
-        battlefield.logout(id1);
-        battlefield.logout(id2);
-      });
-    });
-  }));
-
-*/
