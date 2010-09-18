@@ -146,13 +146,16 @@ server.move = function(client, id, dir) {
 
 var _inside = function(state, x, y) {
   var coord = coords[state.dir],
-      ship  = { x:state.x, y:state.y }, i;
+      ship  = { x:state.x, y:state.y },
+      board_size = board[coord.axis === 'x' ? 'width' : 'height'];
 
-  // Look for hit
-  for (i = 0; i < state.size; i++) {
+  // Start from tail of ship and to in direction to front
+  ship[coord.axis] -= coord.value * state.size
+
+  for (var i=0; i < state.size; i++) {
+    ship[coord.axis] = (ship[coord.axis] + coord.value + board_size) % board_size;
     console.log('server._inside: looking for hit to %d,%d at %d,%d', x, y, ship.x, ship.y);
     if (ship.x === x && ship.y === y) return true;
-    ship[coord.axis] += coord.value;
   }
   return false;
 }
