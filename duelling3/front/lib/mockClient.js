@@ -48,6 +48,10 @@ var drawBoard = function(state) {
       rows[y][x] = (x === position.x && y === position.y) ? 'X' : (coord.axis === 'x' ? '-' : '|');
     });
   });
+  
+  if (state.shooting.aiming) {
+    rows[state.shooting.y][state.shooting.x] = '⁘'
+  }
 
   output(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
   output('')
@@ -90,6 +94,12 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
 
   output('successfull login for %s: %j', clientName, clientState);
 
+  clientState.shooting = {
+    aiming: false,
+    x: Math.floor(clientState.board.width / 2),
+    y: Math.floor(clientState.board.height / 2),
+  }
+
   // Setup stdin
   stdin.setEncoding('utf8');
   stdio.setRawMode(true);
@@ -125,11 +135,15 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
       }
     });
 
-    // Shoot (Space)
+    // Shoot-mode (Space)
     if (chunk === ' ') {
-      battlefield.shoot(clientId, clientState.position, function(err, result) {
-        if (!err) output('Shoot result: %j', result);
-      })
+      if (clientState.shooting.aiming) {
+        battlefield.shoot(clientId, clientState.shooting, function(err, result) {
+          if (!err) output('Shoot result: %j\n', result);
+        })
+      }
+      clientState.shooting.aiming = !clientState.shooting.aiming;
+      drawBoard(clientState);
     }
 
     // output('Received data: ' + sys.inspect(chunk))
