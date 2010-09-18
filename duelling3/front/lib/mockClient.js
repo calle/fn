@@ -8,6 +8,7 @@ var battlefield = new Battlefield('localhost', 3001, false);
 
 var id1 = '344',
     id2 = "185";
+var stdin = process.openStdin();
 
 var step = function(board, direction, position) {
   var x = position.x, y = position.y;
@@ -52,38 +53,44 @@ var drawBoard = function(board, ships) {
     });
   });
   
-  stdio.setRawMode(false);
-  console.log()
-  console.log(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
-  stdio.setRawMode(true);
+  output('')
+  output(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
 };
 
 var callbacks = function(login) {
   return {
     login: login,
     update: function(message) {
-      console.log('got update: ' + message);
+      output('got update: ' + message);
     },
     error: function(err) {
       output('connection error: ' + err)
     },
     end: function() {
-      console.log('client terminated');
+      output('client terminated');
+      stdio.setRawMode(false)
+      stdin.destroy();
     }
   }
 };
 
-battlefield.login(id1, 'calle', callbacks(function(err, state1) {
-  console.log('successfull login calle: %j', state1);
+var output = function() {
+  stdio.setRawMode(false);
+  console.log.apply(console, arguments)
+  stdio.setRawMode(true);
+}
+
+battlefield.login(clientId, 'calle', callbacks(function(err, clientState) {
+
+  output('successfull login calle: %j', clientState);
 
   // Setup stdin
-  var stdin = process.openStdin();
-  stdio.setRawMode(true);
   stdin.setEncoding('utf8');
+  stdio.setRawMode(true);
 
   stdin.on('data', function (chunk) {
-    if (chunk === '\u0003') { // Ctrl-C
-      console.log('Received Ctrl-C');
+    // Terminate (Ctrl-C)
+    if (chunk === '\u0003') {
       return terminate();
     } 
     
@@ -93,11 +100,13 @@ battlefield.login(id1, 'calle', callbacks(function(err, state1) {
           if (!err) drawBoard(state1.board, position)
         })
       }
-    })
-    console.log('Received data: ' + sys.inspect(chunk))
+    });
+    
+    // output('Received data: ' + sys.inspect(chunk))
   });
+
   stdin.on('end', function () {
-    console.log('stdio.end')
+    output('stdio.end')
     terminate();
   });
   var terminate = function() {
@@ -109,9 +118,9 @@ battlefield.login(id1, 'calle', callbacks(function(err, state1) {
   }
 
   // Start by drawing board
-  console.log('Drawing board')
-  console.log(state1)
-  drawBoard(state1.board, [state1.position]);
+  output('Drawing board')
+  output(clientState)
+  drawBoard(clientState.board, clientState.position);
 
 }));
 
