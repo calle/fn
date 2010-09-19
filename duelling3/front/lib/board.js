@@ -19,7 +19,9 @@ var Board = module.exports = function(width, height) {
   this.height = height;
 };
 
-Board.prototype.next = function(position, direction, steps) {
+Board.STOP = {};
+
+Board.prototype.step = function(position, direction, steps) {
   var info = directions[direction],
       size = this[info.size],
       next = { x:position.x, y:position.y };
@@ -34,34 +36,27 @@ Board.prototype.next = function(position, direction, steps) {
   return next;
 };
 
-Board.prototype.updateNext = function(position, direction, steps) {
-  var next = this.next(position, direction, steps);
-  
-  position.x = next.x; 
-  position.y = next.y;
-  
-  return position;
-};
-
 Board.prototype.walk = function(start, direction, steps, callback) {
-  var current = start;
+  var current = start,
+      axis = directions[direction].axis;
 
   // Walk the number of steps and invoke callback each step
   for (var i = 0; i < steps; i++) {
-    callback(current.x, current.y, directions[direction].axis);
-    current = next(current, direction);
+    if (callback(current.x, current.y, axis) === Board.STOP) return;
+    current = this.step(current, direction);
   }
 };
 
 Board.prototype.reverseWalk = function(end, direction, steps, callback) {
-  var current = end;
+  var current = end,
+      axis = directions[direction].axis;
   
   // Start by rolling back to start
-  current = this.next(current, direction, -steps);
+  current = this.step(current, direction, -steps);
 
   // Walk forward again and invoke callback each step
   for (var i = 0; i < steps; i++) {
-    current = this.next(current, direction);
-    callback(current.x, current.y, directions[direction].axis);
+    current = this.step(current, direction);
+    if (callback(current.x, current.y, axis) === Board.STOP) return;
   }
 };

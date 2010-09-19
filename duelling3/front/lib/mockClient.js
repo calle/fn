@@ -99,7 +99,9 @@ battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
     ].forEach(function(item) {
       if (chunk === item[0]) {
         if (clientState.shooting.aiming) {
-          clientState.board.updateNext(clientState.shooting, item[1]);
+          var next = clientState.board.step(clientState.shooting, item[1]);
+          clientState.shooting.x = next.x; 
+          clientState.shooting.y = next.y;
           drawBoard(clientState)
         } else {
           battlefield.move(clientId, item[1], function(err, position) {
