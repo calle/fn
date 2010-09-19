@@ -1,13 +1,11 @@
 var net = require('net'),
-    sys = require('sys');
+    sys = require('sys'),
+    Board = require('./board');
 
 // Clients currently logged in
 var clients = {};
 
-var board = {
-  width:  16,
-  height: 16
-};
+var board = new Board(8);
 
 var server = net.createServer(function (stream) {
   stream.setEncoding('ascii');
@@ -107,57 +105,28 @@ server.login = function(client, id, name) {
   _reply(client.stream, id, board.width + "," + board.height + "," + _pos(client.state) + "," + Object.keys(clients).join(","));
 }
 
-var coords = {
-  north: { axis: 'y', value:  1 },
-  south: { axis: 'y', value: -1 },
-  east:  { axis: 'x', value:  1 },
-  west:  { axis: 'x', value: -1 },
-}
 server.move = function(client, id, dir) {
-  var now  = coords[client.state.dir],
-      next = coords[dir];
+  
+  var state = client.state,
+      next = board.step(state, dir, 1);
 
-  if (now.axis === next.axis) {
-    // Same axis, move forward
-    client.state[next.axis] += next.value;
-    // Different direction, flip the ship around
-    if (now.value !== next.value) {
-      client.state[next.axis] += (next.value * (client.state.size - 1));
-    }
-  } else if (client.state.size > 2) {
-    // Turn large ships
-    var half_size = Math.floor((client.state.size - 1) / 2);
-    client.state[now.axis]  += -now.value * half_size;
-    client.state[next.axis] += next.value * half_size
-  } else {
-    // Just move ship
-    client.state[next.axis] += next.value;
-  }
+  state.x = next.x;
+  state.y = next.y;
+  state.dir = dir;
 
-  // Update direction
-  client.state.dir = dir;
-
-  // Normalize client x and y
-  client.state.x = (client.state.x + board.width ) % board.width;
-  client.state.y = (client.state.y + board.height) % board.height;
-
-  _reply(client.stream, id, _pos(client.state));
+  _reply(client.stream, id, _pos(state));
 }
 
 var _inside = function(state, x, y) {
-  var coord = coords[state.dir],
-      ship  = { x:state.x, y:state.y },
-      board_size = board[coord.axis === 'x' ? 'width' : 'height'];
-
-  // Start from tail of ship and to in direction to front
-  ship[coord.axis] -= coord.value * state.size
-
-  for (var i=0; i < state.size; i++) {
-    ship[coord.axis] = (ship[coord.axis] + coord.value + board_size) % board_size;
-    console.log('server._inside: looking for hit to %d,%d at %d,%d', x, y, ship.x, ship.y);
-    if (ship.x === x && ship.y === y) return true;
-  }
-  return false;
+  var hit = false;
+  board.reverseWalk(state, state.dir, state.size, function(x2, y2) {
+    console.log('server._inside: looking for hit to %d,%d at %d,%d', x, y, x2, y2);
+    if (x === x2 && y === y2) {
+      hit = true;
+      return Board.STOP;
+    }
+  })
+  return hit;
 }
 
 server.shoot = function(client, id, pos) {
