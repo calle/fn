@@ -21,6 +21,13 @@ var Board = module.exports = function(width, height) {
 
 Board.STOP = {};
 
+Board.prototype.inside = function(position) {
+  return (
+    position.x >= 0 && position.x < this.width &&
+    position.y >= 0 && position.y < this.height
+  );    
+};
+
 Board.prototype.step = function(position, direction, steps) {
   var info = directions[direction],
       size = this[info.size],
