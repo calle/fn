@@ -1,4 +1,5 @@
 var ServerClient = require('./serverClient'),
+    StringProtocol = require('./stringProtocol')
     net = require('net');
 
 /**
@@ -10,6 +11,7 @@ var SocketServerClient = module.exports = function(server, stream) {
   ServerClient.call(this, server);
   
   this.stream = stream;
+  this.protocol = new StringProtocol();
   
   // Setup stream
   stream.setEncoding('ascii');
@@ -23,12 +25,18 @@ var SocketServerClient = module.exports = function(server, stream) {
 sys.inherits(SocketServerClient, ServerClient);
 
 /*
- * SocketServer implementation
+ * ServerClient implementation
  */
 
-SocketServerClient.prototype._send = function(message) {
- this.stream.write(message + "\n");
- this.stream.flush();
+ServerClient.prototype._reply = function(id, type, data) {
+  // Serialize message
+  var message = this.protocol['pack' + capitalize(type) + 'Reply'](data)
+  this._send("response:" + id + ":" + message);
+}
+
+ServerClient.prototype._update = function(type, data) {
+  var message = this.protocol['pack' + capitalize(type) + 'Update'](data)
+  this._send("update:" + message);
 }
 
 // Also override _trace to display remote ip:port as well
@@ -41,8 +49,13 @@ SocketServerClient.prototype._trace = function() {
 }
 
 /*
- * Stream callback methods
+ * Stream methods
  */
+
+SocketServerClient.prototype._send = function(type, data) {
+  this.stream.write(message + this.protocol.messageSeperator);
+  this.stream.flush();
+}
 
 // Received data
 SocketServerClient.prototype.receivedData = function(data) {
@@ -72,6 +85,7 @@ SocketServerClient.prototype.connectionFullyClosed = function(had_error) {
   this.server.clientDisconnected(this);
 }
 
+// Error from connection
 SocketServerClient.prototype.connectionError = function(exception) {
   this._trace("error: %j", exception);
 }
@@ -95,14 +109,24 @@ SocketServerClient.prototype._handleMessage = function(message) {
   }
 
   // Capitalize command
-  command = command.replace(/(.)(.*)/, function(s,c,cs) { return c.toUpperCase() + cs.toLowerCase(); });
+  command = capitalize(command);
 
   // Require user is logged in
   if (this.loggedIn || command === 'Login') {
+    // Parse data for command
+    var data = this.protocol['unpack' + capitalize(command) + 'Request'](rest)
     // Invoke command
-    this._trace('handle%s(%d, %s)', command, id, rest);
-    this['handle' + command](id, rest);
+    this._trace('handle%s(%d, %s)', command, id, data);
+    this['handle' + command](id, data);
   } else {
-    this._reply(id, "error:Not logged in");
+    this._reply(id, 'error', { message:'Not logged in' });
   }
+}
+
+/*
+ * Utility methods
+ */
+
+var capitalize = function(string) {
+  return string.replace(/(.)(.*)/, function(s,c,cs) { return c.toUpperCase() + cs.toLowerCase(); });
 }

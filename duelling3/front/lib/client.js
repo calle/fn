@@ -8,7 +8,7 @@ var net = require('net');
  *  _shoot(position, callback)
  *  _taunt(name, message, callback)
  *  _logout(callback)
- *  _send(message)
+ *  _reply(id, type, data)
  *
  */
  
@@ -20,44 +20,6 @@ var Client = module.exports = function() {
   this.board = undefined;
   this.size  = 0;
   this.state = {};
-}
-
-/*
- * External interface
- */
-
-Client.prototype.taunted = function(from, message) {
-  this._update('taunted:' + from + ':' + message)
-}
-
-Client.prototype.isInside = function(position) {
-  var self = this;
-  
-  // Only check for hits if we are logged in and alive
-  if (!(this.loggedIn && this.alive)) return false;
-  
-  var end = { x:this.state.x, y:this.state.y },
-      direction = this.state.dir,
-      steps = this.size,
-      hit = false;
-
-  // Walk (using the board) over our ship and look for hit
-  this.board.reverseWalk(end, direction, steps, function(x, y) {
-    self._trace('isInside: looking for hit for shot %d,%d at %d,%d', position.x, position.y, x, y);
-    if (position.x === x && position.y === y) {
-      hit = true;
-      return Board.STOP;
-    }
-  })
-
-  return hit;
-}
-
-Client.prototype.killed = function(by, position) {
-  if (this.alive) {
-    this.alive = false;
-    this._update('killed:' + by + ':' + position.x + "," + position.y)
-  }
 }
 
 /*
@@ -76,7 +38,7 @@ Client.prototype.handleLogin = function(id, name) {
       if (!response || response.error) {
 
         // Error logging in
-        this._reply(id, "error:" + (response.error || 'Failed to login'));
+        this._reply(id, 'error', { mesages: (response.error || 'Failed to login') });
 
       } else {
 
@@ -92,16 +54,12 @@ Client.prototype.handleLogin = function(id, name) {
             dir: _rand_item(['north', 'south', 'east', 'west'])
         };
 
-        var response = ""
-        // Append board information
-        response += this.board.width + "," + this.board.height + ","
-        // Append current position and size
-        response += _pos(state) + "," + this.size + ","
-        // Append names of the other player
-        response += response.clientNames.join(",")
-
-        this._reply(id, response);
-
+        this._reply(id, 'login', {
+          board: this.board,
+          position: this.state,
+          size: this.size,
+          clients: response.clientNames
+        });
       }
     });
     
@@ -115,7 +73,7 @@ Client.prototype.handleMove = function(id, direction) {
   this.state.y   = next.y;
   this.state.dir = dir;
 
-  return this._reply(id, _pos(this.state));
+  return this._reply(id, 'move', { position: this.state });
 
   // TODO: Implement functionality like the previous below
 /*
@@ -158,15 +116,11 @@ Client.prototype.handleShoot = function(id, position) {
 
   // Make sure x and y are inside board
   if (!board.inside(position)) {
-    return this._reply("error:Cannot shoot outside board");
+    return this._reply(id, 'error', { message:'Cannot shoot outside board' });
   }
 
   this._shoot(position, function(result) {
-    if (result.length > 0) {
-      this._reply(id, "kill," + result.join(","));
-    } else {
-      this._reply(id, "miss");
-    }
+    this._reply(id, 'shoot', { kills:result });
   });
 }
 
@@ -177,16 +131,16 @@ Client.prototype.handleTaunt = function(id, taunt) {
 
   this._taunt(name, message, function(result) {
     if (result) {
-      this._reply(id, "ok");
+      this._reply(id, 'taunt');
     } else {
-      this._reply(id, "error:No such user")
+      this._reply(id, 'error', 'No such user');
     }
   });
 }
 
 Client.prototype.handleLogout = function(id, name) {
   this.doLogout(function() {¨
-    this._reply(id, "ok");
+    this._reply(id, 'logout');
   });
 }
 
@@ -205,14 +159,6 @@ Client.prototype.doLogout = function(callback) {
  } else {
    callback();
  }
-}
-
-Client.prototype._reply = function(id, message) {
-  this._send("response:" + id + ":" + message);
-}
-
-Client.prototype._update = function(message) {
-  this._send("update:" + message);
 }
 
 /**
