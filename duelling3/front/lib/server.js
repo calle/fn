@@ -64,39 +64,24 @@ Server.prototype.clientConnected = function(connectedClients, clients, stream) {
   });
 }
 
-Server.prototype.login = function(clients, client, name) {
+Server.prototype.login = function(clients, client, name, callback) {
   if (clients[name]) {
-    return {
-      error: 'User already exists with name "' + name + '"'
-    };
+    callback({ message:'User already exists with name "' + name + '"' });
   } else {
     clients[name] = client;
-    return {
+    callback(null, {
       board: this.board,
       clientNames: Object.keys(clients)
-    };
+    });
   }
 }
 
-Server.prototype.logout = function(clients, name) {
+Server.prototype.logout = function(clients, name, callback) {
   delete clients[name];
+  callback(null);
 }
 
-Server.prototype.taunt = function(client, from, to, message) {
-  if (client[to]) {
-    client[to].taunted(from, message);
-    return true;
-  } else {
-    return false;
-  }
-}
-
-Server.prototype._trace = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  console.log.apply(console, ["Server: " + (args.shift() || '')].concat(args));
-}
-
-Server.prototype.shoot = function(clients, by, position) {
+Server.prototype.shoot = function(clients, by, position, callback) {
   var killed = [];
   Object.keys(clients).forEach(function(name) {
     var client = clients[name];
@@ -105,5 +90,19 @@ Server.prototype.shoot = function(clients, by, position) {
       killed.push(name);
     }
   })
-  return killed;
+  callback(null, killed);
+}
+
+Server.prototype.taunt = function(client, from, to, message, callback) {
+  if (client[to]) {
+    client[to].taunted(from, message);
+    callback(null, true);
+  } else {
+    callback(null, false);
+  }
+}
+
+Server.prototype._trace = function() {
+  var args = Array.prototype.slice.apply(arguments);
+  console.log.apply(console, ["Server: " + (args.shift() || '')].concat(args));
 }
