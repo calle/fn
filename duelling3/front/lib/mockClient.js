@@ -1,10 +1,9 @@
-var Battlefield = require('./battlefield'),
+var Client = require('./client/client'),
+    ServerProxySocket = require('./server/server_proxy_socket'),
     stdio = process.binding('stdio'),
     sys = require('sys');
 
-var battlefield = new Battlefield('localhost', 3001, false);
-var clientName = process.argv[2] || 'Calle';
-var clientId = Math.floor(Math.random() * 1000);
+var loginName = process.argv[2] || 'Calle';
 
 var stdin = process.openStdin();
 
@@ -67,76 +66,89 @@ var terminate = function() {
   });
 }
 
-battlefield.login(clientId, clientName, callbacks(function(err, clientState) {
-  if (err) {
-    output('Failed to login: %s', err)
-    return terminate();
-  }
 
-  output('successfull login for %s: %j', clientName, clientState);
+// Create server
+var server = new ServerProxySocket('localhost', 3001);
 
-  clientState.shooting = {
-    aiming: false,
-    x: Math.floor(clientState.board.width / 2),
-    y: Math.floor(clientState.board.height / 2),
-  }
+// Create and register client
+var client = new Client(server);
+server.register(client);
 
-  // Setup stdin
-  stdin.setEncoding('utf8');
-  stdio.setRawMode(true);
+// Listen for connection
+server.on('connected', function () {
 
-  stdin.on('data', function (chunk) {
-    // Terminate (Ctrl-C)
-    if (chunk === '\u0003') {
+  client.login(clientName, function(err, clientState) {
+
+    if (err) {
+      output('Failed to login: %s', err)
       return terminate();
     }
 
-    // Move (arrow keys)
-    [ ['\u001b[A', 'north'],
-      ['\u001b[B', 'south'],
-      ['\u001b[C', 'east'],
-      ['\u001b[D', 'west']
-    ].forEach(function(item) {
-      if (chunk === item[0]) {
-        if (clientState.shooting.aiming) {
-          var next = clientState.board.step(clientState.shooting, item[1]);
-          clientState.shooting.x = next.x; 
-          clientState.shooting.y = next.y;
-          drawBoard(clientState)
-        } else {
-          battlefield.move(clientId, item[1], function(err, position) {
-            if (!err) {
-              // Update position
-              clientState.position = position;
-              drawBoard(clientState)
-            }
-          })
-        }
-      }
-    });
+    output('successfull login for %s: %j', clientName, clientState);
 
-    // Shoot-mode (Space)
-    if (chunk === ' ') {
-      if (clientState.shooting.aiming) {
-        battlefield.shoot(clientId, clientState.shooting, function(err, result) {
-          if (!err) output('Shoot result: %j\n', result);
-        })
-      }
-      clientState.shooting.aiming = !clientState.shooting.aiming;
-      drawBoard(clientState);
+    clientState.shooting = {
+      aiming: false,
+      x: Math.floor(clientState.board.width / 2),
+      y: Math.floor(clientState.board.height / 2),
     }
 
-    // output('Received data: ' + sys.inspect(chunk))
+    // Setup stdin
+    stdin.setEncoding('utf8');
+    stdio.setRawMode(true);
+
+    stdin.on('data', function (chunk) {
+      // Terminate (Ctrl-C)
+      if (chunk === '\u0003') {
+        return terminate();
+      }
+
+      // Move (arrow keys)
+      [ ['\u001b[A', 'north'],
+        ['\u001b[B', 'south'],
+        ['\u001b[C', 'east'],
+        ['\u001b[D', 'west']
+      ].forEach(function(item) {
+        if (chunk === item[0]) {
+          if (clientState.shooting.aiming) {
+            var next = clientState.board.step(clientState.shooting, item[1]);
+            clientState.shooting.x = next.x; 
+            clientState.shooting.y = next.y;
+            drawBoard(clientState)
+          } else {
+            battlefield.move(clientId, item[1], function(err, position) {
+              if (!err) {
+                // Update position
+                clientState.position = position;
+                drawBoard(clientState)
+              }
+            })
+          }
+        }
+      });
+
+      // Shoot-mode (Space)
+      if (chunk === ' ') {
+        if (clientState.shooting.aiming) {
+          battlefield.shoot(clientId, clientState.shooting, function(err, result) {
+            if (!err) output('Shoot result: %j\n', result);
+          })
+        }
+        clientState.shooting.aiming = !clientState.shooting.aiming;
+        drawBoard(clientState);
+      }
+
+      // output('Received data: ' + sys.inspect(chunk))
+    });
+
+    stdin.on('end', function () {
+      output('stdio.end')
+      terminate();
+    });
+
+    // Start by drawing board
+    output('Drawing board')
+    output(clientState)
+    drawBoard(clientState);
+
   });
-
-  stdin.on('end', function () {
-    output('stdio.end')
-    terminate();
-  });
-
-  // Start by drawing board
-  output('Drawing board')
-  output(clientState)
-  drawBoard(clientState);
-
-}));
+});
