@@ -10,9 +10,7 @@ var Server = module.exports = function(options) {
   options |= {};
   
   // Default values
-  var boardSize = options.boardSize || 8,
-      port      = options.port      || 3001,
-      hostname  = options.hostname  || 'localhost';
+  var boardSize = options.boardSize || 8;
 
   if (!options.trace) this._trace = function() {};
 
@@ -34,6 +32,11 @@ var Server = module.exports = function(options) {
   // Create the server
   this.server = new net.Server();
   this.server.on('connection', Server.prototype.clientConnected.bind(this, connections, clients));
+}
+
+Server.prototype.listen = function(hostname, port) {
+  port = port || 3001;
+  hostname = hostname || 'localhost';
 
   // Start listening for connections
   server.listen(port, hostname, function() {
@@ -65,11 +68,11 @@ Server.prototype.clientConnected = function(connections, clients, stream) {
 }
 
 StreamServer.prototype.register = function(client) {
-  // Ignore registrations
+  // Ignore registrations from clients
 }
 
 StreamServer.prototype.unregister = function(client) {
-  // Ignore unregistrations
+  // Ignore unregistrations from clients
 }
 
 Server.prototype.login = function(clients, client, name, callback) {
