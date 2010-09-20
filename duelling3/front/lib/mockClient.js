@@ -40,14 +40,6 @@ var callbacks = function(login) {
     update: function(message) {
       output('got update: ' + message);
     },
-    error: function(err) {
-      output('connection error: ' + err)
-    },
-    end: function() {
-      output('client terminated');
-      stdio.setRawMode(false)
-      stdin.destroy();
-    }
   }
 };
 
@@ -73,6 +65,15 @@ var server = new ServerProxySocket('localhost', 3001);
 // Create and register client
 var client = new Client(server);
 server.register(client);
+
+server.on('error', function(err) {
+  output('connection error: ' + err)
+});
+server.on('closed', function() {
+  output('client terminated');
+  stdio.setRawMode(false)
+  stdin.destroy();
+});
 
 // Listen for connection
 server.on('connected', function () {
