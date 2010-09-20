@@ -1,12 +1,11 @@
 var net = require('net'),
-    sys = require('sys'),
     Board = require('./board'),
     ServerClient = require('./serverClient');
 
 /**
- * The server object
+ * A normal Server
+ * 
  */
-
 var Server = module.exports = function(options) {
   options |= {};
   
@@ -22,8 +21,8 @@ var Server = module.exports = function(options) {
   // The board
   this.board = new Board(boardSize);
 
-  // Connected clients
-  var connectedClients = [];
+  // Connections
+  var connections = [];
 
   // Logged in clients
   var clients = {};
@@ -34,7 +33,7 @@ var Server = module.exports = function(options) {
   
   // Create the server
   this.server = new net.Server();
-  this.server.on('connection', Server.prototype.clientConnected.bind(this, connectedClients, clients);
+  this.server.on('connection', Server.prototype.clientConnected.bind(this, connections, clients));
 
   // Start listening for connections
   server.listen(port, hostname, function() {
@@ -42,12 +41,13 @@ var Server = module.exports = function(options) {
   });
 }
 
-Server.prototype.clientConnected = function(connectedClients, clients, stream) {
-  // Create new client instance
-  var client = new ClientStreamInterface(new Client(this), stream);
+Server.prototype.clientConnected = function(connections, clients, stream) {
+  // Create new client and connection
+  var client = new Client(this);
+  var connection = new ClientStreamConnection(client, stream);
 
   // Add to connected clients
-  connectedClients.push(client);
+  connections.push(connection);
   
   // Listen for stream close and remove client
   stream.on('end', function() {
@@ -57,11 +57,19 @@ Server.prototype.clientConnected = function(connectedClients, clients, stream) {
         delete clients[name];
       }
     });
-    // Remove from connected clients
-    connectedClients = connectedClients.filter(function(existing) { 
-      return existing !== client; 
+    // Remove from connections
+    connections = connections.filter(function(existing) { 
+      return existing !== connection; 
     });
   });
+}
+
+StreamServer.prototype.register = function(client) {
+  // Ignore registrations
+}
+
+StreamServer.prototype.unregister = function(client) {
+  // Ignore unregistrations
 }
 
 Server.prototype.login = function(clients, client, name, callback) {
@@ -85,7 +93,7 @@ Server.prototype.shoot = function(clients, by, position, callback) {
   var killed = [];
   Object.keys(clients).forEach(function(name) {
     var client = clients[name];
-    if (client.occupy(position)) {
+    if (client.occupies(position)) {
       client.killed(by, position);
       killed.push(name);
     }

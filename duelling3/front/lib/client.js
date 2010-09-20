@@ -1,9 +1,9 @@
-var net = require('net'),
-    events = require('events'),
+var events = require('events'),
     sys = require('sys');
 
 /**
- * The Client object, holder for one client connection. 
+ * The Client object, holder for one client connection.
+ *  
  * Extends EventEmitter with the following events:
  *  - taunted { from, message }
  *  - killed { by, position }
@@ -27,12 +27,14 @@ var Client = module.exports = function(server) {
   this.board = undefined;
   this.size  = 0;
   this.state = {};
+  
+  // Register with server
+  this.server.register(client);
 }
 sys.inherits(Client, events.EventEmitter);
 
-
 /*
- * External interface methods, action methods
+ * Action methods
  */
 
 Client.prototype.login = function(name, callback) {
@@ -44,7 +46,7 @@ Client.prototype.login = function(name, callback) {
     // Make sure login name does not contain ','-characters
     var name = name.replace(/,/g, '')
 
-    self.server.login(name, function(err, response) {
+    self.server.login(this, name, function(err, response) {
       if (err) return callback(err);
 
       // Setup internal state
@@ -82,7 +84,7 @@ Client.prototype.logout = function(callback) {
     return callback(null, true);
   }
 
-  this.server.logout(function(err) {
+  this.server.logout(this.name, function(err) {
     if (err) return callback(err);
 
     // Update internal state
@@ -150,7 +152,7 @@ Client.prototype.shoot = function(position, callback) {
     return callback({ message:'Cannot shoot outside board' });
   }
 
-  this.server.shoot(position, function(err, result) {
+  this.server.shoot(this.name, position, function(err, result) {
     if (err) return callback(err);
     callback(null, { kills:(result || []) });
   });
@@ -162,7 +164,7 @@ Client.prototype.taunt = function(name, message, callback) {
 
   this._trace('taunt(%s, %s)', name, message);
 
-  this.server.taunt(name, message, function(err, result) {
+  this.server.taunt(this.name, name, message, function(err, result) {
     if (err) return callback(err);
     if (!result) callback({ message:'No such user' });
     callback(null, true);
@@ -170,27 +172,14 @@ Client.prototype.taunt = function(name, message, callback) {
 };
 
 /*
- * External interface methods, reaction methods
+ * Query methods
  */
 
-Client.prototype.taunted = function(from, message) {
-  this._trace('taunted(%s, %s)', from, message);
+Client.prototype.__defineGetter__('position', function() {
+  return { x:this.state.x, y:this.state.y, direction: this.state.dir };
+});
 
-  // TODO: Verify online, alive?
-  
-  this.emit('taunted', { from:from, message:message });
-}
-
-Client.prototype.killed = function(by, position) {
-  this._trace('killed(%s, %d,%d)', by, position.x, position.y);
-
-  if (this.alive) {
-    this.alive = false;
-    this.emit('killed', { by:by, position:position })
-  }
-}
-
-Client.prototype.occupy = function(position) {
+Client.prototype.occupies = function(position) {
   var self = this;
 
   // Only check for hits if we are logged in and alive
@@ -211,6 +200,15 @@ Client.prototype.occupy = function(position) {
   })
 
   return match;
+}
+
+/*
+ * Internal methods
+ */
+
+Client.prototype._trace = function() {
+  var args = Array.prototype.slice.apply(arguments);
+  console.log.apply(console, ["Client: " + (args.shift() || '')].concat(args));
 }
 
 

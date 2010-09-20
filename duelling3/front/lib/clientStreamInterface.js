@@ -1,13 +1,11 @@
-var StringProtocol = require('./stringProtocol'),
-    net = require('net');
+var StringProtocol = require('./stringProtocol');
 
 /**
- * The ClientStreamInterface exposes a client over a stream so external clients
- * can connect to it.
+ * The ClientStreamConnection connects a client to a stream.
  * 
  */
-var ClientStreamInterface = module.exports = function(client, stream) {
-  if (!(this instanceof ClientStreamInterface)) return new ClientStreamInterface(client, stream);
+var ClientStreamConnection = module.exports = function(client, stream) {
+  if (!(this instanceof ClientStreamConnection)) return new ClientStreamConnection(client, stream);
 
   // Interfaces
   this.client = client;
@@ -16,11 +14,11 @@ var ClientStreamInterface = module.exports = function(client, stream) {
 
   // State
   this.buffer = "";
-  
+
   // Setup client
   client.on('taunted', this.taunted.bind(this));
   client.on('killed',  this.killed.bind(this));
-  
+
   // Setup stream
   stream.setEncoding('ascii');
   stream.on('data',  this.receivedData.bind(this));
@@ -32,22 +30,31 @@ var ClientStreamInterface = module.exports = function(client, stream) {
 };
 
 /*
- * Client methods 
+ * Client events
  */
 
-ClientStreamInterface.prototype.taunted = function(data) {
-  this.update('taunted', data);
+ClientStreamConnection.prototype.taunted = function(from, message) {
+  this._trace('taunted(%s, %s)', from, message);
+
+  // TODO: Verify online, alive?
+  
+  this.clientStream.update('taunted', data);
 }
 
-ClientStreamInterface.prototype.killed = function(data) {
-  this.update('killed', data);
+ClientStreamConnection.prototype.killed = function(by, position) {
+  this._trace('killed(%s, %d,%d)', by, position.x, position.y);
+  
+  if (this.client.alive) {
+    this.client.alive = false;
+    this.clientStream.update('killed', data)
+  }
 }
 
 /*
- * Stream methods
+ * Stream events
  */
 
-ClientStreamInterface.prototype.receivedData = function(data) {
+ClientStreamConnection.prototype.receivedData = function(data) {
   // Append data to buffer
   this.buffer += data;
   
@@ -61,17 +68,17 @@ ClientStreamInterface.prototype.receivedData = function(data) {
   buffer = parts.shft();
 }
 
-ClientStreamInterface.prototype.send = function(data) {
+ClientStreamConnection.prototype.send = function(data) {
   this.stream.write(data);
   this.stream.flush();
 }
 
-ClientStreamInterface.prototype.connectionError = function(exception) {
+ClientStreamConnection.prototype.connectionError = function(exception) {
   // Error from connection
   this._trace("error: %j", exception);
 }
 
-ClientStreamInterface.prototype.clientClosedConnection = function() {
+ClientStreamConnection.prototype.clientClosedConnection = function() {
   // Client closed the connection
   this._trace("remote side closed connection");
   
@@ -79,19 +86,21 @@ ClientStreamInterface.prototype.clientClosedConnection = function() {
   this.stream.end();
 }
   
-ClientStreamInterface.prototype.connectionFullyClosed = function(had_error) {
+ClientStreamConnection.prototype.connectionFullyClosed = function(had_error) {
   // Connection is fully closed
   this._trace("terminated");
   
   // Force client logout
   this.client.logout(function() {});
+  
+  // TODO: Unregister client with server
 }
 
 /*
  * Internal methods
  */
 
-ClientStreamInterface.prototype.handleMessage = function(message) {
+ClientStreamConnection.prototype.handleMessage = function(message) {
   var self = this;
 
   this._trace("received message: %s", message);
@@ -155,20 +164,20 @@ ClientStreamInterface.prototype.handleMessage = function(message) {
   }
 }
 
-ClientStreamInterface.prototype.reply = function(id, type, data) {
+ClientStreamConnection.prototype.reply = function(id, type, data) {
   var message = this.protocol.packResponse(type, data);
   this.send("response:" + id + ":" + message + this.protocol.messageSeparator);
 };
 
-ClientStreamInterface.prototype.update = function(type, data) {
+ClientStreamConnection.prototype.update = function(type, data) {
   var message = this.protocol.packUpdate(type, data);
   this.send("update:" + message + this.protocol.messageSeparator);
 };
 
-ClientStreamInterface.prototype._trace = function() {
+ClientStreamConnection.prototype._trace = function() {
   var args = Array.prototype.slice.apply(arguments),
       address = this.stream.remoteAddress, 
       port = this.stream.remotePort;
 
-  console.log.apply(console, ["ClientStreamInterface[%s:%d]: " + args.shift(), address, port].concat(args));
+  console.log.apply(console, ["ClientStreamConnection[%s:%d]: " + args.shift(), address, port].concat(args));
 };

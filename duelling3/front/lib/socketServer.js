@@ -6,7 +6,7 @@ var StreamServer = require('./streamServer'),
  * A SocketServer connecting to remove server using tcp-socket.
  * Extends StreamServer for actual implementation.
  */
-var SocketServer = module.exports = function(client, hostname, port) {
+var SocketServer = module.exports = function(hostname, port) {
   if (!(this instanceof SocketServer)) return new SocketServer(stream);
 
   // Connect stream
@@ -14,7 +14,7 @@ var SocketServer = module.exports = function(client, hostname, port) {
   stream.setEncoding('ascii')
 
   // Invoke parent constructor
-  StreamServer.call(self, client, stream);
+  StreamServer.call(self, stream);
 
   // Listen for connection
   var self = this;

@@ -3,20 +3,25 @@ var StringProtocol = require('./stringProtocol'),
     sys = require('sys');
 
 /**
- * A Server "implementation" using a stream to forward messages as strings over.
+ * A Server using a stream to forward messages to real server implementation
+ * 
+ * Extends EventEmitter with the following events:
+ *  - taunted { from, message }
+ *  - killed { by, position }
  *
- *    login(name, cb), logout(cb), shoot(pos, cb), taunt(name, msg, cb)
- *
+ *  @param stream - 
+ *    the stream the server is connected to
+ * 
  */
-var StreamServer = module.exports = function(client, stream) {
+var StreamServer = module.exports = function(stream) {
   if (!(this instanceof StreamServer)) return new StreamServer(stream);
   events.EventEmitter.call(this);
 
-  this.client = client;
   this.stream = stream;
   this.protocol = new StringProtocol();
 
   // State
+  this.client = null;
   this.buffer = "";
   this.lastRequestId = 0;
   this.requests = {};
@@ -33,6 +38,17 @@ sys.inherits(StreamServer, events.EventEmitter);
 /*
  * Server methods
  */
+
+StreamServer.prototype.register = function(client) {
+  if (this.client) throw new Error('Can only have one client connected at the time to a StreamServer');
+  this.client = client;  
+}
+
+StreamServer.prototype.unregister = function(client) {
+  if (this.client === client) {
+    this.client = null;
+  }
+}
 
 StreamServer.prototype.login = function(name, callback) {
   this.request('login', { name:name }, callback);
@@ -102,6 +118,11 @@ StreamServer.prototype.connectionFullyClosed = function(had_error) {
  */
 
 StreamServer.prototype.request = function(type, data, callback) {
+  // Make sure client is registered
+  if (!this.client) {
+    return callback({ message:'Not registered' });
+  }
+  
   // Make sure we are connected
   if (!this.stream.writable) {
     return callback({ message:'Not connected' });
@@ -171,6 +192,12 @@ StreamServer.prototype.handleResponse = function(message) {
 StreamServer.prototype.handleUpdate = function(message) {
   this._trace("handleUpdate: received update: %s", message);
 
+  // Make sure client is registered
+  if (!this.client) {
+    this._trace('handleUpdate: no client registered for updates yet, ignore this update');
+    return;
+  }
+  
   var parts = message.split(/:/),
       type = parts.shift(),
       rest = parts.join(':');
