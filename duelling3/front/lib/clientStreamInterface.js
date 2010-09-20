@@ -1,4 +1,4 @@
-var StringProtocol = require('./stringProtocol')
+var StringProtocol = require('./stringProtocol'),
     net = require('net');
 
 /**
@@ -32,6 +32,18 @@ var ClientStreamInterface = module.exports = function(client, stream) {
 };
 
 /*
+ * Client methods 
+ */
+
+ClientStreamInterface.prototype.taunted = function(data) {
+  this.update('taunted', data);
+}
+
+ClientStreamInterface.prototype.killed = function(data) {
+  this.update('killed', data);
+}
+
+/*
  * Stream methods
  */
 
@@ -40,7 +52,7 @@ ClientStreamInterface.prototype.receivedData = function(data) {
   this.buffer += data;
   
   // Split buffer at \n
-  var parts = buffer.split(/\n/);
+  var parts = buffer.split(this.protocol.messageSeparator);
 
   // Invoke message handle for each part but the last
   while (parts.length > 1) this.handleMessage(parts.shift());
@@ -54,33 +66,25 @@ ClientStreamInterface.prototype.send = function(data) {
   this.stream.flush();
 }
 
+ClientStreamInterface.prototype.connectionError = function(exception) {
+  // Error from connection
+  this._trace("error: %j", exception);
+}
+
 ClientStreamInterface.prototype.clientClosedConnection = function() {
   // Client closed the connection
   this._trace("remote side closed connection");
-  this._logout();
+  
+  // Terminate the stream
   this.stream.end();
 }
   
 ClientStreamInterface.prototype.connectionFullyClosed = function(had_error) {
   // Connection is fully closed
   this._trace("terminated");
-}
-
-ClientStreamInterface.prototype.connectionError = function(exception) {
-  // Error from connection
-  this._trace("error: %j", exception);
-}
-
-/*
- * Client methods 
- */
-
-ClientStreamInterface.prototype.taunted = function(data) {
-  this.update('taunted', data);
-}
-
-ClientStreamInterface.prototype.killed = function(data) {
-  this.update('killed', data);
+  
+  // Force client logout
+  this.client.logout(function() {});
 }
 
 /*
