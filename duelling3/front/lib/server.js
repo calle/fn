@@ -34,19 +34,33 @@ var Server = module.exports = function(options) {
   
   // Create the server
   this.server = new net.Server();
-  this.server.on('connection', function(stream) {
-    var client = new ClientStreamInterface(new Client(self), stream);
-
-    connectedClients.push(client);
-    stream.on('end', function() {
-      connectedClients = connectedClients.filter(function(exist) { return exist !== client; });
-    });
-  });
-  // this.server.on('close',      this.teminated.bind(this));
+  this.server.on('connection', Server.prototype.clientConnected.bind(this, connectedClients, clients);
 
   // Start listening for connections
   server.listen(port, hostname, function() {
     self._trace('listening on %s:%d', hostname, port);
+  });
+}
+
+Server.prototype.clientConnected = function(connectedClients, clients, stream) {
+  // Create new client instance
+  var client = new ClientStreamInterface(new Client(this), stream);
+
+  // Add to connected clients
+  connectedClients.push(client);
+  
+  // Listen for stream close and remove client
+  stream.on('end', function() {
+    // Remove from logged in clients
+    Object.keys(clients).forEach(function(name) {
+      if (clients[name] === client) {
+        delete clients[name];
+      }
+    });
+    // Remove from connected clients
+    connectedClients = connectedClients.filter(function(existing) { 
+      return existing !== client; 
+    });
   });
 }
 
