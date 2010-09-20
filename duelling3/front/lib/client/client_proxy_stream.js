@@ -1,11 +1,11 @@
-var StringProtocol = require('./stringProtocol');
+var StringProtocol = require('../protocol/stringProtocol');
 
 /**
- * The ClientStreamConnection connects a client to a stream.
+ * The ClientProxyStream connects a stream to a client.
  * 
  */
-var ClientStreamConnection = module.exports = function(client, stream) {
-  if (!(this instanceof ClientStreamConnection)) return new ClientStreamConnection(client, stream);
+var ClientProxyStream = module.exports = function(client, stream) {
+  if (!(this instanceof ClientProxyStream)) return new ClientProxyStream(client, stream);
 
   // Interfaces
   this.client = client;
@@ -33,7 +33,7 @@ var ClientStreamConnection = module.exports = function(client, stream) {
  * Client events
  */
 
-ClientStreamConnection.prototype.taunted = function(from, message) {
+ClientProxyStream.prototype.taunted = function(from, message) {
   this._trace('taunted(%s, %s)', from, message);
 
   // TODO: Verify online, alive?
@@ -41,7 +41,7 @@ ClientStreamConnection.prototype.taunted = function(from, message) {
   this.clientStream.update('taunted', data);
 }
 
-ClientStreamConnection.prototype.killed = function(by, position) {
+ClientProxyStream.prototype.killed = function(by, position) {
   this._trace('killed(%s, %d,%d)', by, position.x, position.y);
   
   if (this.client.alive) {
@@ -54,7 +54,7 @@ ClientStreamConnection.prototype.killed = function(by, position) {
  * Stream events
  */
 
-ClientStreamConnection.prototype.receivedData = function(data) {
+ClientProxyStream.prototype.receivedData = function(data) {
   // Append data to buffer
   this.buffer += data;
   
@@ -68,17 +68,17 @@ ClientStreamConnection.prototype.receivedData = function(data) {
   buffer = parts.shft();
 }
 
-ClientStreamConnection.prototype.send = function(data) {
+ClientProxyStream.prototype.send = function(data) {
   this.stream.write(data);
   this.stream.flush();
 }
 
-ClientStreamConnection.prototype.connectionError = function(exception) {
+ClientProxyStream.prototype.connectionError = function(exception) {
   // Error from connection
   this._trace("error: %j", exception);
 }
 
-ClientStreamConnection.prototype.clientClosedConnection = function() {
+ClientProxyStream.prototype.clientClosedConnection = function() {
   // Client closed the connection
   this._trace("remote side closed connection");
   
@@ -86,7 +86,7 @@ ClientStreamConnection.prototype.clientClosedConnection = function() {
   this.stream.end();
 }
   
-ClientStreamConnection.prototype.connectionFullyClosed = function(had_error) {
+ClientProxyStream.prototype.connectionFullyClosed = function(had_error) {
   // Connection is fully closed
   this._trace("terminated");
   
@@ -100,7 +100,7 @@ ClientStreamConnection.prototype.connectionFullyClosed = function(had_error) {
  * Internal methods
  */
 
-ClientStreamConnection.prototype.handleMessage = function(message) {
+ClientProxyStream.prototype.handleMessage = function(message) {
   var self = this;
 
   this._trace("received message: %s", message);
@@ -164,20 +164,20 @@ ClientStreamConnection.prototype.handleMessage = function(message) {
   }
 }
 
-ClientStreamConnection.prototype.reply = function(id, type, data) {
+ClientProxyStream.prototype.reply = function(id, type, data) {
   var message = this.protocol.packResponse(type, data);
   this.send("response:" + id + ":" + message + this.protocol.messageSeparator);
 };
 
-ClientStreamConnection.prototype.update = function(type, data) {
+ClientProxyStream.prototype.update = function(type, data) {
   var message = this.protocol.packUpdate(type, data);
   this.send("update:" + message + this.protocol.messageSeparator);
 };
 
-ClientStreamConnection.prototype._trace = function() {
+ClientProxyStream.prototype._trace = function() {
   var args = Array.prototype.slice.apply(arguments),
       address = this.stream.remoteAddress, 
       port = this.stream.remotePort;
 
-  console.log.apply(console, ["ClientStreamConnection[%s:%d]: " + args.shift(), address, port].concat(args));
+  console.log.apply(console, ["ClientProxyStream[%s:%d]: " + args.shift(), address, port].concat(args));
 };
