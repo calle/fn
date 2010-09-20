@@ -22,98 +22,74 @@ var Server = module.exports = function(options) {
   // The board
   this.board = new Board(boardSize);
 
-  // Setup the server private variables
-  with (this._setupConnectedClientsList()) {
-    self.clientConnected = clientConnected;
-    self.clientDisconnected = clientDisconnected;
-  }
-  with (this._setupClientsList()) {
-    self.clientLogin  = login;
-    self.clientLogout = logout;
-    self.clientTaunt  = taunt;
-    self.clientShoot  = shoot;
-  }
+  // Connected clients
+  var connectedClients = [];
 
+  // Logged in clients
+  var clients = {};
+  this.login  = Server.prototype.login.bind(this, clients);
+  this.logout = Server.prototype.logout.bind(this, clients);
+  this.shoot  = Server.prototype.shoot.bind(this, clients);
+  this.taunt  = Server.prototype.taunt.bind(this, clients);
+  
   // Create the server
   this.server = new net.Server();
-  this.server.on('connection', self.clientConnected.bind(this));
+  this.server.on('connection', function(stream) {
+    var client = new ClientStreamInterface(new Client(self), stream);
+
+    connectedClients.push(client);
+    stream.on('end', function() {
+      connectedClients = connectedClients.filter(function(exist) { return exist !== client; });
+    });
+  });
   // this.server.on('close',      this.teminated.bind(this));
 
-  // Start listening to 3001
+  // Start listening for connections
   server.listen(port, hostname, function() {
     self._trace('listening on %s:%d', hostname, port);
   });
 }
 
-Server.prototype._setupConnectedClientsList = function() {
-  // All connected clients
-  var _connectedClients = [];
-  return {
-    clientConnected: function(stream) {
-      var client = new ServerClient(this, stream);
-      _connectedClients.push(client);
-    },
-    clientDisconnected: function(client) {
-      _connectedClients = _connectedClients.filter(function(existing) {
-        return existing !== client;
-      });
-    }
-  };
+Server.prototype.login = function(clients, client, name) {
+  if (clients[name]) {
+    return {
+      error: 'User already exists with name "' + name + '"'
+    };
+  } else {
+    clients[name] = client;
+    return {
+      board: this.board,
+      clientNames: Object.keys(clients)
+    };
+  }
 }
 
-Server.prototype._setupClientsList = function() {
-  // Clients currently logged in
-  var _clients = {};
+Server.prototype.logout = function(clients, name) {
+  delete clients[name];
+}
 
-  // Internal methods for clients
-  var clientsArray = function () { 
-    var result = [];
-    Object.keys(_clients).forEach(function(name) {
-      result.push(_clients[name]);
-    })
-    return result;
-  };
-
-  return {
-    login: function(client, name) {
-      if (_clients[name]) {
-        return {
-          error: 'User already logged in as "' + name + '"'
-        };
-      } else {
-        _clients[name] = client;
-        return {
-          board: this.board,
-          clientNames: Object.keys(_clients)
-        };
-      }
-    },
-    logout: function(name) {
-      delete _clients[name];
-    },
-    taunt: function(from, to, message) {
-      if (_clients[to]) {
-        _clients[to].taunted(from, message);
-        return true;
-      } else {
-        return false;
-      }
-    },
-    shoot: function(by, position) {
-      var killed = [];
-      Object.keys(_clients).forEach(function(name) {
-        var client = _clients[name];
-        if (client.occupy(position)) {
-          client.killed(by, position);
-          killed.push(name);
-        }
-      })
-      return killed;
-    }
-  };
+Server.prototype.taunt = function(client, from, to, message) {
+  if (client[to]) {
+    client[to].taunted(from, message);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 Server.prototype._trace = function() {
   var args = Array.prototype.slice.apply(arguments);
   console.log.apply(console, ["Server: " + (args.shift() || '')].concat(args));
+}
+
+Server.prototype.shoot = function(clients, by, position) {
+  var killed = [];
+  Object.keys(clients).forEach(function(name) {
+    var client = clients[name];
+    if (client.occupy(position)) {
+      client.killed(by, position);
+      killed.push(name);
+    }
+  })
+  return killed;
 }

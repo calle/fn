@@ -64,7 +64,6 @@ ClientStreamInterface.prototype.clientClosedConnection = function() {
 ClientStreamInterface.prototype.connectionFullyClosed = function(had_error) {
   // Connection is fully closed
   this._trace("terminated");
-  this.server.clientDisconnected(this);
 }
 
 ClientStreamInterface.prototype.connectionError = function(exception) {
