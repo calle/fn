@@ -1,12 +1,11 @@
-var net = require('net'),
-    Board = require('./board'),
-    ServerClient = require('./serverClient');
+var Board = require('../board'),
+    Client = require('../client');
 
 /**
- * A normal Server
- * 
+ * The normal Battlefield server object
+ *
  */
-var Server = module.exports = function(options) {
+var BattlefieldServer = module.exports = function(options) {
   options |= {};
   
   // Default values
@@ -19,63 +18,39 @@ var Server = module.exports = function(options) {
   // The board
   this.board = new Board(boardSize);
 
-  // Connections
-  var connections = [];
-
-  // Logged in clients
-  var clients = {};
-  this.login  = Server.prototype.login.bind(this, clients);
-  this.logout = Server.prototype.logout.bind(this, clients);
-  this.shoot  = Server.prototype.shoot.bind(this, clients);
-  this.taunt  = Server.prototype.taunt.bind(this, clients);
+  // Clients
+  var registerdClients = [];
+  var loggedInClients = {};
   
-  // Create the server
-  this.server = new net.Server();
-  this.server.on('connection', Server.prototype.clientConnected.bind(this, connections, clients));
+  // Bind methods to private variables
+  this.register   = BattlefieldServer.prototype.login.bind(this, registerdClients);
+  this.unregister = BattlefieldServer.prototype.login.bind(this, registerdClients, loggedInClients);
+  this.login      = BattlefieldServer.prototype.login.bind(this,  loggedInClients);
+  this.logout     = BattlefieldServer.prototype.logout.bind(this, loggedInClients);
+  this.shoot      = BattlefieldServer.prototype.shoot.bind(this,  loggedInClients);
+  this.taunt      = BattlefieldServer.prototype.taunt.bind(this,  loggedInClients);
 }
 
-Server.prototype.listen = function(hostname, port) {
-  port = port || 3001;
-  hostname = hostname || 'localhost';
+BattlefieldServer.prototype.register = function(registeredClients, client) {
+  registeredClients.push(client);
+}
 
-  // Start listening for connections
-  server.listen(port, hostname, function() {
-    self._trace('listening on %s:%d', hostname, port);
+BattlefieldServer.prototype.unregister = function(registeredClients, loggedInClients, client) {
+  // Remove from registered clients
+  var index = registeredClients.indexOf(client);
+  if (index >= 0) {
+    registeredClients.splice(index, 1);
+  }
+
+  // Remove from logged in clients
+  Object.keys(clients).forEach(function(name) {
+    if (clients[name] === client) {
+      delete clients[name];
+    }
   });
 }
 
-Server.prototype.clientConnected = function(connections, clients, stream) {
-  // Create new client and connection
-  var client = new Client(this);
-  var connection = new ClientStreamConnection(client, stream);
-
-  // Add to connected clients
-  connections.push(connection);
-  
-  // Listen for stream close and remove client
-  stream.on('end', function() {
-    // Remove from logged in clients
-    Object.keys(clients).forEach(function(name) {
-      if (clients[name] === client) {
-        delete clients[name];
-      }
-    });
-    // Remove from connections
-    connections = connections.filter(function(existing) { 
-      return existing !== connection; 
-    });
-  });
-}
-
-StreamServer.prototype.register = function(client) {
-  // Ignore registrations from clients
-}
-
-StreamServer.prototype.unregister = function(client) {
-  // Ignore unregistrations from clients
-}
-
-Server.prototype.login = function(clients, client, name, callback) {
+BattlefieldServer.prototype.login = function(clients, client, name, callback) {
   if (clients[name]) {
     callback({ message:'User already exists with name "' + name + '"' });
   } else {
@@ -87,12 +62,12 @@ Server.prototype.login = function(clients, client, name, callback) {
   }
 }
 
-Server.prototype.logout = function(clients, name, callback) {
+BattlefieldServer.prototype.logout = function(clients, name, callback) {
   delete clients[name];
   callback(null);
 }
 
-Server.prototype.shoot = function(clients, by, position, callback) {
+BattlefieldServer.prototype.shoot = function(clients, by, position, callback) {
   var killed = [];
   Object.keys(clients).forEach(function(name) {
     var client = clients[name];
@@ -104,7 +79,7 @@ Server.prototype.shoot = function(clients, by, position, callback) {
   callback(null, killed);
 }
 
-Server.prototype.taunt = function(client, from, to, message, callback) {
+BattlefieldServer.prototype.taunt = function(client, from, to, message, callback) {
   if (client[to]) {
     client[to].taunted(from, message);
     callback(null, true);
@@ -113,7 +88,7 @@ Server.prototype.taunt = function(client, from, to, message, callback) {
   }
 }
 
-Server.prototype._trace = function() {
+BattlefieldServer.prototype._trace = function() {
   var args = Array.prototype.slice.apply(arguments);
-  console.log.apply(console, ["Server: " + (args.shift() || '')].concat(args));
+  console.log.apply(console, ["BattlefieldServer: " + (args.shift() || '')].concat(args));
 }
