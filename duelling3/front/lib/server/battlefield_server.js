@@ -1,5 +1,6 @@
 var Board = require('../board'),
-    Client = require('../client');
+    Client = require('../client/client'),
+    trace = require('../utils/trace');
 
 /**
  * The normal Battlefield server object
@@ -88,7 +89,4 @@ BattlefieldServer.prototype.taunt = function(client, from, to, message, callback
   }
 }
 
-BattlefieldServer.prototype._trace = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  console.log.apply(console, ["BattlefieldServer: " + (args.shift() || '')].concat(args));
-}
+BattlefieldServer.prototype._trace = trace.prefix("BattlefieldServer: ");

@@ -1,4 +1,5 @@
-var StringProtocol = require('../protocol/stringProtocol');
+var StringProtocol = require('../protocol/stringProtocol'),
+    trace = require('../utils/trace');
 
 /**
  * The ClientProxyStream connects a stream to a client.
@@ -174,10 +175,6 @@ ClientProxyStream.prototype.update = function(type, data) {
   this.send("update:" + message + this.protocol.messageSeparator);
 };
 
-ClientProxyStream.prototype._trace = function() {
-  var args = Array.prototype.slice.apply(arguments),
-      address = this.stream.remoteAddress, 
-      port = this.stream.remotePort;
-
-  console.log.apply(console, ["ClientProxyStream[%s:%d]: " + args.shift(), address, port].concat(args));
-};
+ClientProxyStream.prototype._trace = trace.prefix(function() {
+  return ["ClientProxyStream[%s:%d]: ", this.stream.remoteAddress, this.stream.remotePort]; 
+});

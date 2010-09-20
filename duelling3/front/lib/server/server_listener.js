@@ -1,4 +1,5 @@
-var net = require('net');
+var net = require('net'),
+    trace = require('../utils/trace');
 
 var ServerListener = module.exports = function(server) {
   // The server we use
@@ -45,7 +46,4 @@ ServerListener.prototype.clientConnected = function(connections, stream) {
   });
 }
 
-ServerListener.prototype._trace = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  console.log.apply(console, ["ServerListener: " + (args.shift() || '')].concat(args));
-}
+ServerListener.prototype._trace = trace.prefix("ServerListener: ");

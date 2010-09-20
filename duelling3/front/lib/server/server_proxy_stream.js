@@ -1,6 +1,7 @@
 var StringProtocol = require('../protocol/stringProtocol'),
     events = require('events'),
-    sys = require('sys');
+    sys = require('sys'),
+    trace = require('../utils/trace');
 
 /**
  * A server proxy using a stream to forward messages to real server implementation.
@@ -215,3 +216,7 @@ ServerProxyStream.prototype.handleUpdate = function(message) {
       this._trace("handleUpdate: unknown update type %s", type);
   }
 }
+
+ServerProxyStream.prototype._trace = trace.prefix(function() {
+  return ["ServerProxyStream[%s:%d]: ", this.stream.remoteAddress, this.stream.remotePort]; 
+});

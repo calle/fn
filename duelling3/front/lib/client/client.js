@@ -1,5 +1,6 @@
 var events = require('events'),
-    sys = require('sys');
+    sys = require('sys'),
+    trace = require('../utils/trace');
 
 /**
  * The Client object, holder for one client connection.
@@ -203,11 +204,7 @@ Client.prototype.occupies = function(position) {
  * Internal methods
  */
 
-Client.prototype._trace = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  console.log.apply(console, ["Client: " + (args.shift() || '')].concat(args));
-}
-
+Client.prototype._trace = trace.prefix("Client: ");
 
 /**
  * Helper methods
