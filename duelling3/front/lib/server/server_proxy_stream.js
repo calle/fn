@@ -217,6 +217,4 @@ ServerProxyStream.prototype.handleUpdate = function(message) {
   }
 }
 
-ServerProxyStream.prototype._trace = trace.prefix(function() {
-  return ["ServerProxyStream[%s:%d]: ", this.stream.remoteAddress, this.stream.remotePort]; 
-});
+ServerProxyStream.prototype._trace = trace.prefix("ServerProxyStream: ");

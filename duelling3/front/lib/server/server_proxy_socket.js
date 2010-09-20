@@ -1,6 +1,7 @@
 var ServerProxyStream = require('./server_proxy_stream'),
     net = require('net'),
-    sys = require('sys');
+    sys = require('sys'),
+    trace = require('../utils/trace');
 
 /**
  * A server proxy connecting to remove server using tcp-socket.
@@ -11,15 +12,15 @@ var ServerProxySocket = module.exports = function(hostname, port) {
   if (!(this instanceof ServerProxySocket)) return new ServerProxySocket(stream);
 
   // Default values
-  hostname = hostname || 'localhost';
-  port = port || 3001;
+  this.hostname = hostname || 'localhost';
+  this.port = port || 3001;
 
   // Connect stream
-  var stream = net.createConnection(port, hostname)
+  var stream = net.createConnection(this.port, this.hostname)
   stream.setEncoding('ascii')
 
   // Invoke parent constructor
-  ServerProxyStream.apply(self, [stream]);
+  ServerProxyStream.call(this, stream);
 
   // Listen for connection
   var self = this;
@@ -32,3 +33,7 @@ var ServerProxySocket = module.exports = function(hostname, port) {
   });
 }
 sys.inherits(ServerProxySocket, ServerProxyStream);
+
+ServerProxySocket.prototype._trace = trace.prefix(function() {
+  return ["ServerProxySocket[%s:%d]: ", this.hostname, this.port]; 
+});
