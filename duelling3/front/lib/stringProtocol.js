@@ -1,8 +1,42 @@
 
-var StringProtocol = module.exports = function() {
-  
-  
-};
+/**
+ * String protocol, pack and unpack messages to and from strings
+ *
+ * @param separator -
+ *    between two messages
+ *
+ */
+var StringProtocol = module.exports = function(separator) {
+  this.messageSeparator = separator || '\n';
+}
+
+/*
+ * External interface
+ */
+
+StringProtocol.prototype.packUpdate = function(type, data) {
+  this['pack' + capitalize(type) + 'Update'](data);
+}
+
+StringProtocol.prototype.unpackUpdate = function(type, message) {
+  this['unpack' + capitalize(type) + 'Update'](message);
+}
+
+StringProtocol.prototype.packRequest = function(type, data) {
+  this['pack' + capitalize(type) + 'Request'](data);
+}
+
+StringProtocol.prototype.unpackRequest = function(type, message) {
+  this['unpack' + capitalize(type) + 'Request'](message);
+}
+
+StringProtocol.prototype.packResponse = function(type, data) {
+  this['pack' + capitalize(type) + 'Response'](data);
+}
+
+StringProtocol.prototype.unpackResponse = function(type, message) {
+  this['unpack' + capitalize(type) + 'Response'](message);
+}
 
 /*
  * Updates
@@ -13,7 +47,7 @@ StringProtocol.prototype.packTauntedUpdate = function(data) {
 }
 
 StringProtocol.prototype.unpackTauntedUpdate = function(message) {
-  var parts = message.split(/:/)
+  var parts = message.split(/:/);
   return { 
     from:    parts.shift(), 
     message: parts.join(':') 
@@ -27,7 +61,7 @@ StringProtocol.prototype.packKilledUpdate = function(data) {
 StringProtocol.prototype.unpackKilledUpdate = function(data) {
   var parts = message.split(/:/),
       by = parts.shift(),
-      positions = parts.shift().split(/,/)
+      positions = parts.shift().split(/,/);
   return { 
     by: by,
     position: {
@@ -49,8 +83,24 @@ StringProtocol.prototype.unpackLoginRequest = function(message) {
   return { name: message };
 }
 
+StringProtocol.prototype.packLogoutRequest = function(data) {
+  return '';
+}
+
+StringProtocol.prototype.unpackLogoutRequest = function(message) {
+  return {};
+}
+
+StringProtocol.prototype.packMoveRequest = function(data) {
+  return format('{direction}', data);
+}
+
+StringProtocol.prototype.unpackMoveRequest = function(message) {
+  return { direction: message };
+}
+
 StringProtocol.prototype.packShootRequest = function(data) {
-  return format('{position.x},{position.y}', data)
+  return format('{position.x},{position.y}', data);
 }
 
 StringProtocol.prototype.unpackShootRequest = function(message) {
@@ -64,7 +114,7 @@ StringProtocol.prototype.unpackShootRequest = function(message) {
 }
 
 StringProtocol.prototype.packTauntRequest = function(data) {
-  return format('{name}:{message}')
+  return format('{name}:{message}');
 }
 
 StringProtocol.prototype.unpackTauntRequest = function(message) {
@@ -75,34 +125,20 @@ StringProtocol.prototype.unpackTauntRequest = function(message) {
   };
 }
 
-StringProtocol.prototype.packLogoutRequest = function(data) {
-  return '';
-}
-
-StringProtocol.prototype.unpackLogoutRequest = function(message) {
-  return {};
-}
-
 /*
- * Replies
+ * Responses
  */
 
-StringProtocol.prototype.packErrorReply = function(data) {
-  return format('error:{message}', data);
-}
-
-StringProtocol.prototype.unpackErrorReply = function(message) {
-  return { message: message };
-}
-
-StringProtocol.prototype.packLoginReply = function(data) {
+StringProtocol.prototype.packLoginResponse = function(data) {
   var names = data.clients.join(',')
   return format('{board.width},{board.height},' + 
-    '{position.x},{position.y},{position.dir},{size},' + 
-    names, data);
+                '{position.x},{position.y},{position.dir},' +
+                '{size},' + 
+                names, 
+    data);
 }
 
-StringProtocol.prototype.unpackLoginReply = function(message) {
+StringProtocol.prototype.unpackLoginResponse = function(message) {
   var parts = message.split(/,/)
   return {
     board: {
@@ -119,11 +155,19 @@ StringProtocol.prototype.unpackLoginReply = function(message) {
   };
 }
 
-StringProtocol.prototype.packMoveReply = function(data) {
+StringProtocol.prototype.packLogoutResponse = function(data) {
+  return 'ok';
+}
+
+StringProtocol.prototype.unpackLogoutResponse = function(message) {
+  return {};
+}
+
+StringProtocol.prototype.packMoveResponse = function(data) {
   return format('{position.x},{position.y},{position.dir}', data);
 }
 
-StringProtocol.prototype.unpackMoveReply = function(message) {
+StringProtocol.prototype.unpackMoveResponse = function(message) {
   var parts = message.split(/,/);
   return {
     position: {
@@ -131,17 +175,17 @@ StringProtocol.prototype.unpackMoveReply = function(message) {
       y:   parseInt(message.shift(), 10),
       dir: message.shift()
     }
-  }
+  };
 }
 
-StringProtocol.prototype.packShootReply = function(data) {
+StringProtocol.prototype.packShootResponse = function(data) {
   if (data.kills.length > 0) {
     return 'kill,' + data.kills.join(',');
   }
   return 'miss'
 }
 
-StringProtocol.prototype.unpackShootReply = function(message) {
+StringProtocol.prototype.unpackShootResponse = function(message) {
   var parts = response.split(/,/),
       result = { status: parts.shift() };
   if (result.status === 'kill') {
@@ -150,26 +194,29 @@ StringProtocol.prototype.unpackShootReply = function(message) {
   return result;
 }
 
-StringProtocol.prototype.packTauntReply = function(data) {
+StringProtocol.prototype.packTauntResponse = function(data) {
   return 'ok';
 }
 
-StringProtocol.prototype.unpackTauntReply = function(message) {
+StringProtocol.prototype.unpackTauntResponse = function(message) {
   return {};
 }
 
-StringProtocol.prototype.packLogoutReply = function(data) {
-  return 'ok';
+StringProtocol.prototype.packErrorResponse = function(data) {
+  return format('error:{message}', data);
 }
 
-StringProtocol.prototype.unpackLogoutReply = function(message) {
-  return {};
+StringProtocol.prototype.unpackErrorResponse = function(message) {
+  return { message: message };
 }
-
 
 /*
  * Helper methods
  */
+
+var capitalize = function(string) {
+  return string.replace(/(.)(.*)/, function(s,c,cs) { return c.toUpperCase() + cs.toLowerCase(); });
+}
 
 var format = function(format, data) {
   return format.replace(/\{([^\}]+)\}/, function(_, key) {

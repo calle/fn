@@ -103,7 +103,7 @@ Server.prototype._setupClientsList = function() {
       var killed = [];
       Object.keys(_clients).forEach(function(name) {
         var client = _clients[name];
-        if (client.isInside(position)) {
+        if (client.occupy(position)) {
           client.killed(by, position);
           killed.push(name);
         }

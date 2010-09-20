@@ -1,18 +1,25 @@
-var net = require('net');
+var net = require('net'),
+    events = require('events'),
+    sys = require('sys');
 
 /**
- * The Client object, holder for one client connection.
+ * The Client object, holder for one client connection. 
+ * Extends EventEmitter with the following events:
+ *  - taunted { from, message }
+ *  - killed { by, position }
  *
- * Subclasses need to override the following methods:
- *  _login(name, callback)
- *  _shoot(position, callback)
- *  _taunt(name, message, callback)
- *  _logout(callback)
- *  _reply(id, type, data)
+ *  @param server - 
+ *    the server instance having interface: 
+ *    login(name, cb), logout(cb), shoot(pos, cb), taunt(name, msg, cb)
  *
  */
- 
-var Client = module.exports = function() {
+var Client = module.exports = function(server) {
+  if (!(this instanceof Client)) return new Client(server);
+  events.EventEmitter.call(this);
+
+  // The server interface
+  this.server = server;
+  
   // The client state
   this.name = undefined;
   this.loggedIn = false;
@@ -21,59 +28,85 @@ var Client = module.exports = function() {
   this.size  = 0;
   this.state = {};
 }
+sys.inherits(Client, events.EventEmitter);
+
 
 /*
- * Message handler methods
+ * External interface methods, action methods
  */
 
-
-Client.prototype.handleLogin = function(id, name) {
+Client.prototype.login = function(name, callback) {
+  var self = this;
+  
   // Start by logging out user if already logged in
-  this.doLogout(function() {
+  self.logout(function() {
 
     // Make sure login name does not contain ','-characters
     var name = name.replace(/,/g, '')
 
-    this._login(name, function(response) {
-      if (!response || response.error) {
+    self.server.login(name, function(err, response) {
+      if (err) return callback({ message:err });
 
-        // Error logging in
-        this._reply(id, 'error', { mesages: (response.error || 'Failed to login') });
+      // Setup internal state
+      self.name = name;
+      self.loggedIn = true;
+      self.alive = true;
+      self.board = response.board;
+      self.size  = _rand(1,5);
+      self.state = {
+        x:   _rand(self.board.width),
+        y:   _rand(self.board.height),
+        dir: _rand_item(['north', 'south', 'east', 'west'])
+      };
 
-      } else {
-
-        // Setup internal state
-        this.name = name;
-        this.loggedIn = true;
-        this.alive = true;
-        this.board = response.board;
-        this.size  = _rand(1,5);
-        this.state = {
-              x: _rand(this.board.width),
-              y: _rand(this.board.height),
-            dir: _rand_item(['north', 'south', 'east', 'west'])
-        };
-
-        this._reply(id, 'login', {
-          board: this.board,
-          position: this.state,
-          size: this.size,
-          clients: response.clientNames
-        });
-      }
+      // TODO: Ask server if position is valid
+      
+      // Invoke callback
+      callback(null, {
+        board:    self.board,
+        position: self.state,
+        size:     self.size,
+        clients:  response.clientNames
+      });
     });
-    
-  });
-}
 
-Client.prototype.handleMove = function(id, direction) {
+  });
+};
+
+Client.prototype.logout = function(callback) {
+  var self = this;
+
+  // Make sure we are logged in
+  if (!this.loggedIn) {
+    // Logout when not logged in is always successful
+    return callback(null, true);
+  }
+
+  this.server.logout(function(err) {
+    if (err) return callback(err);
+
+    // Update internal state
+    delete self.name;
+    self.loggedIn = false;
+    self.alive = false;
+    
+    callback(null, true);
+  });
+};
+
+Client.prototype.move = function(direction, callback) {
+  // Make sure we are logged in
+  if (!this.loggedIn) return callback({ message:'Not logged in' });
+  
   var next = this.board.step(this.state, direction, 1);
 
+  // TODO: Ask server if move is valid
+  
   this.state.x   = next.x;
   this.state.y   = next.y;
   this.state.dir = dir;
 
-  return this._reply(id, 'move', { position: this.state });
+  callback(null, { position: this.state });
 
   // TODO: Implement functionality like the previous below
 /*
@@ -104,70 +137,86 @@ Client.prototype.handleMove = function(id, direction) {
   client.state.x = (client.state.x + board.width ) % board.width;
   client.state.y = (client.state.y + board.height) % board.height;
 */
-}
+};
 
-Client.prototype.handleShoot = function(id, position) {
-  var parts = position.split(/,/),
-      x = parseInt(parts.shift(), 10),
-      y = parseInt(parts.shift(), 10),
-      position = { x:x, y:y };
+Client.prototype.shoot = function(position, callback) {
+  // Make sure we are logged in
+  if (!this.loggedIn) return callback({ message:'Not logged in' });
 
-  this._trace('shoot[%d](%d, %d)', id, x, y)
+  this._trace('shoot(%d, %d)', position.x, position.y);
 
   // Make sure x and y are inside board
   if (!board.inside(position)) {
-    return this._reply(id, 'error', { message:'Cannot shoot outside board' });
+    return callback({ message:'Cannot shoot outside board' });
   }
 
-  this._shoot(position, function(result) {
-    this._reply(id, 'shoot', { kills:result });
+  this.server.shoot(position, function(err, result) {
+    if (err) return callback(err);
+    callback(null, { kills:(result || []) });
   });
-}
+};
 
-Client.prototype.handleTaunt = function(id, taunt) {
-  var parts = taunt.split(/:/),
-      name = parts.shift(),
-      message = parts.join(/:/);
+Client.prototype.taunt = function(name, message, callback) {
+  // Make sure we are logged in
+  if (!this.loggedIn) return callback({ message:'Not logged in' });
 
-  this._taunt(name, message, function(result) {
-    if (result) {
-      this._reply(id, 'taunt');
-    } else {
-      this._reply(id, 'error', 'No such user');
-    }
+  this._trace('taunt(%s, %s)', name, message);
+
+  this.server.taunt(name, message, function(err, result) {
+    if (err) return callback(err);
+    if (!result) callback({ message:'No such user' });
+    callback(null, true);
   });
-}
-
-Client.prototype.handleLogout = function(id, name) {
-  this.doLogout(function() {¨
-    this._reply(id, 'logout');
-  });
-}
+};
 
 /*
- * Internal methods
+ * External interface methods, reaction methods
  */
 
-Client.prototype.doLogout = function(callback) {
- if (this.loggedIn) {
-   this._logout(function() {
-     delete this.name;
-     this.loggedIn = false;
-     this.alive = false;
-     callback();
-   })
- } else {
-   callback();
- }
+Client.prototype.taunted = function(from, message) {
+  this._trace('taunted(%s, %s)', from, message);
+
+  // TODO: Verify online, alive?
+  
+  this.emit('taunted', { from:from, message:message });
 }
+
+Client.prototype.occupy = function(position) {
+  var self = this;
+
+  // Only check for hits if we are logged in and alive
+  if (!(this.loggedIn && this.alive)) return false;
+
+  var end = { x:this.state.x, y:this.state.y },
+      direction = this.state.dir,
+      steps = this.size,
+      match = false;
+
+  // Walk (using the board) over our ship and look for match
+  this.board.reverseWalk(end, direction, steps, function(x, y) {
+    self._trace('isInside: looking for hit for shot %d,%d at %d,%d', position.x, position.y, x, y);
+    if (position.x === x && position.y === y) {
+      match = true;
+      return Board.STOP;
+    }
+  })
+
+  return match;
+}
+
+Client.prototype.killed = function(by, position) {
+  this._trace('killed(%s, %d,%d)', by, position.x, position.y);
+
+  if (this.alive) {
+    this.alive = false;
+    this.emit('killed', { by:by, position:position })
+  }
+}
+
 
 /**
  * Helper methods
  */
-
-var _pos = function(state) {
-  return state.x + "," + state.y + "," + state.dir;
-}
 
 var _rand = function(min, max) {
   if (!max) {
