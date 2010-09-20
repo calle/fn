@@ -2,16 +2,18 @@ client -> server
 
 "login:username"
 "logout"
-"move:[forward,back,left,forward]"
+"move:forward,back,left,forward
 "shoot:x,y"
 "taung:id,message"
 
 
 server -> client
 
-"login_ok:player1id,player1name.player2id,player2name"
+"login_ok:player1id,player2id"
 "ok"
 "error:message"
 "kill:playerid,x,y"
 "killed:playerid,x,y"
-"taunted:message"
+"taunted:playerid,message"
+"userlogin:playerid"
+"userlogout:playerid"
