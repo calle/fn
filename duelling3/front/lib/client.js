@@ -45,7 +45,7 @@ Client.prototype.login = function(name, callback) {
     var name = name.replace(/,/g, '')
 
     self.server.login(name, function(err, response) {
-      if (err) return callback({ message:err });
+      if (err) return callback(err);
 
       // Setup internal state
       self.name = name;
@@ -181,6 +181,15 @@ Client.prototype.taunted = function(from, message) {
   this.emit('taunted', { from:from, message:message });
 }
 
+Client.prototype.killed = function(by, position) {
+  this._trace('killed(%s, %d,%d)', by, position.x, position.y);
+
+  if (this.alive) {
+    this.alive = false;
+    this.emit('killed', { by:by, position:position })
+  }
+}
+
 Client.prototype.occupy = function(position) {
   var self = this;
 
@@ -202,15 +211,6 @@ Client.prototype.occupy = function(position) {
   })
 
   return match;
-}
-
-Client.prototype.killed = function(by, position) {
-  this._trace('killed(%s, %d,%d)', by, position.x, position.y);
-
-  if (this.alive) {
-    this.alive = false;
-    this.emit('killed', { by:by, position:position })
-  }
 }
 
 
