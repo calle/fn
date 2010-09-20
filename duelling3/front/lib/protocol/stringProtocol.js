@@ -148,9 +148,9 @@ StringProtocol.prototype.unpackLoginResponse = function(message) {
     position: {
       x:     parseInt(parts.shift(), 10),
       y:     parseInt(parts.shift(), 10),
-      dir:   parts.shift(),
+      dir:   parts.shift()
     },
-    size:    parseInt(parts.shift(), 10)
+    size:    parseInt(parts.shift(), 10),
     clients: parts.filter(function(part) { return part; })
   };
 }
@@ -189,7 +189,7 @@ StringProtocol.prototype.unpackShootResponse = function(message) {
   var parts = response.split(/,/),
       result = { status: parts.shift() };
   if (result.status === 'kill') {
-    result.targets = parts.filter(function(part) { return part; });
+    result.targets = parts.filter(function(part) { return part; });
   }
   return result;
 }
