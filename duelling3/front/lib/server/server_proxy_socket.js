@@ -10,8 +10,12 @@ var ServerProxyStream = require('./server_proxy_stream'),
 var ServerProxySocket = module.exports = function(hostname, port) {
   if (!(this instanceof ServerProxySocket)) return new ServerProxySocket(stream);
 
+  // Default values
+  hostname = hostname || 'localhost';
+  port = port || 3001;
+
   // Connect stream
-  var stream = net.createConnection(this.port, this.server)
+  var stream = net.createConnection(port, hostname)
   stream.setEncoding('ascii')
 
   // Invoke parent constructor

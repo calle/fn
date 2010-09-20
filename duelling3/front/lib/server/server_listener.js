@@ -14,14 +14,17 @@ var ServerListener = module.exports = function(server) {
 }
 
 ServerListener.prototype.listen = function(hostname, port) {
-  port = port || 3001;
+  var self = this;
+  
+  // Default values
   hostname = hostname || 'localhost';
+  port = port || 3001;
 
   // Start listening for connections
-  server.listen(port, hostname, function() {
+  this.tcpServer.listen(port, hostname, function() {
     self._trace('listening on %s:%d', hostname, port);
-});
-
+  });
+}
   
 ServerListener.prototype.clientConnected = function(connections, stream) {
   // Create new client
