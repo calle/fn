@@ -55,13 +55,14 @@ var output = function(string) {
  */
 
 var format = function(format, data) {
-  return format.replace(/%([sdj])/, function(_, type) {
+  return format.replace(/%([sdj])/g, function(_, type) {
     var value = data.shift();
     switch (type) {
       case 's':
         return value === undefined ? '' : value.toString();
       case 'd':
         if (!(typeof(value) === 'number')) throw new Error('%d argument must be number in: ' + format);
+        return value.toFixed(0);
       case 'j':
         return JSON.stringify(value);
     }
