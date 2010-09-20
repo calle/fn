@@ -1,20 +1,20 @@
-var StringProtocol = require('./stringProtocol'),
+var StringProtocol = require('../protocol/stringProtocol'),
     events = require('events'),
     sys = require('sys');
 
 /**
- * A Server using a stream to forward messages to real server implementation
+ * A server proxy using a stream to forward messages to real server implementation.
  * 
  * Extends EventEmitter with the following events:
- *  - taunted { from, message }
- *  - killed { by, position }
+ *  - error(exception)
+ *  - closed()
  *
  *  @param stream - 
  *    the stream the server is connected to
  * 
  */
-var StreamServer = module.exports = function(stream) {
-  if (!(this instanceof StreamServer)) return new StreamServer(stream);
+var ServerProxyStream = module.exports = function(stream) {
+  if (!(this instanceof ServerProxyStream)) return new ServerProxyStream(stream);
   events.EventEmitter.call(this);
 
   this.stream = stream;
@@ -33,36 +33,36 @@ var StreamServer = module.exports = function(stream) {
   stream.on('end',   this.connectionFullyClosed.bind(this));
   stream.on('error', this.connectionError.bind(this));
 }
-sys.inherits(StreamServer, events.EventEmitter);
+sys.inherits(ServerProxyStream, events.EventEmitter);
 
 /*
  * Server methods
  */
 
-StreamServer.prototype.register = function(client) {
-  if (this.client) throw new Error('Can only have one client connected at the time to a StreamServer');
+ServerProxyStream.prototype.register = function(client) {
+  if (this.client) throw new Error('Can only have one client connected at the time to a ServerProxyStream');
   this.client = client;  
 }
 
-StreamServer.prototype.unregister = function(client) {
+ServerProxyStream.prototype.unregister = function(client) {
   if (this.client === client) {
     this.client = null;
   }
 }
 
-StreamServer.prototype.login = function(name, callback) {
+ServerProxyStream.prototype.login = function(name, callback) {
   this.request('login', { name:name }, callback);
 }
 
-StreamServer.prototype.logout = function(name, callback) {
+ServerProxyStream.prototype.logout = function(name, callback) {
   this.request('logout', {}, callback);
 }
 
-StreamServer.prototype.shoot = function(by, position, callback) {
+ServerProxyStream.prototype.shoot = function(by, position, callback) {
   this.request('shoot', { by:by, posisition:position }, callback);
 }
 
-StreamServer.prototype.taunt = function(from, to, message, callback) {
+ServerProxyStream.prototype.taunt = function(from, to, message, callback) {
   this.request('taunt', { from:from, to:to, message:message }, callback);
 }
 
@@ -70,7 +70,7 @@ StreamServer.prototype.taunt = function(from, to, message, callback) {
  * Stream methods
  */
 
-StreamServer.prototype.receivedData = function(data) {
+ServerProxyStream.prototype.receivedData = function(data) {
   // Append data to buffer
   this.buffer += data;
   
@@ -84,12 +84,12 @@ StreamServer.prototype.receivedData = function(data) {
   buffer = parts.shft();
 }
 
-StreamServer.prototype.send = function(data) {
+ServerProxyStream.prototype.send = function(data) {
   this.stream.write(data);
   this.stream.flush();
 }
 
-StreamServer.prototype.connectionError = function(exception) {
+ServerProxyStream.prototype.connectionError = function(exception) {
   // Error from connection
   this._trace("error: %j", exception);
   
@@ -97,7 +97,7 @@ StreamServer.prototype.connectionError = function(exception) {
   this.emit('error', exception);
 }
 
-StreamServer.prototype.serverClosedConnection = function() {
+ServerProxyStream.prototype.serverClosedConnection = function() {
   // Server closed the connection
   this._trace("remote side closed connection");
   
@@ -105,7 +105,7 @@ StreamServer.prototype.serverClosedConnection = function() {
   this.stream.end();
 }
   
-StreamServer.prototype.connectionFullyClosed = function(had_error) {
+ServerProxyStream.prototype.connectionFullyClosed = function(had_error) {
   // Connection is fully closed
   this._trace("terminated");
   
@@ -117,7 +117,7 @@ StreamServer.prototype.connectionFullyClosed = function(had_error) {
  * Internal methods
  */
 
-StreamServer.prototype.request = function(type, data, callback) {
+ServerProxyStream.prototype.request = function(type, data, callback) {
   // Make sure client is registered
   if (!this.client) {
     return callback({ message:'Not registered' });
@@ -144,7 +144,7 @@ StreamServer.prototype.request = function(type, data, callback) {
   this.send(requestId + ':' + message);
 }
 
-StreamServer.prototype.handleMessage = function(message) {
+ServerProxyStream.prototype.handleMessage = function(message) {
   this._trace("handleMessage: %s", message);
 
   var parts = message.split(/:/),
@@ -160,7 +160,7 @@ StreamServer.prototype.handleMessage = function(message) {
   }
 }
 
-StreamServer.prototype.handleResponse = function(message) {
+ServerProxyStream.prototype.handleResponse = function(message) {
   var parts = message.split(/:/),
       requestId = parts.shift(),
       rest = parts.join(':');
@@ -189,7 +189,7 @@ StreamServer.prototype.handleResponse = function(message) {
   }
 }
 
-StreamServer.prototype.handleUpdate = function(message) {
+ServerProxyStream.prototype.handleUpdate = function(message) {
   this._trace("handleUpdate: received update: %s", message);
 
   // Make sure client is registered
