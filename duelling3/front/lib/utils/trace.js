@@ -71,7 +71,7 @@ var format = function(format, data) {
         return JSON.stringify(value);
       case 'e':
         // Stringify error
-        return value.message + "\n\t" + value.stack.join('\n\t')
+        return value.message + "\n"; //  + value.stack.join("\n\t")
     }
     throw new Error('Invalid format in: ' + format);
   });
