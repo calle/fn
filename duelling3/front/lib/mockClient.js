@@ -3,7 +3,7 @@ var Client = require('./client/client'),
     stdio = process.binding('stdio'),
     sys = require('sys');
 
-var loginName = process.argv[2] || 'Calle';
+var clientName = process.argv[2] || 'Calle';
 
 var stdin = process.openStdin();
 
