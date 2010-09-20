@@ -27,9 +27,6 @@ var Client = module.exports = function(server) {
   this.board = undefined;
   this.size  = 0;
   this.state = {};
-  
-  // Register with server
-  this.server.register(client);
 }
 sys.inherits(Client, events.EventEmitter);
 
