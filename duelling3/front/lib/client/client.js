@@ -42,7 +42,7 @@ Client.prototype.login = function(name, callback) {
   self.logout(function() {
 
     // Make sure login name does not contain ','-characters
-    var name = name.replace(/,/g, '')
+    name = name.replace(/,/g, '')
 
     self.server.login(this, name, function(err, response) {
       if (err) return callback(err);

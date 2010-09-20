@@ -24,8 +24,8 @@ var BattlefieldServer = module.exports = function(options) {
   var loggedInClients = {};
   
   // Bind methods to private variables
-  this.register   = BattlefieldServer.prototype.login.bind(this, registerdClients);
-  this.unregister = BattlefieldServer.prototype.login.bind(this, registerdClients, loggedInClients);
+  this.register   = BattlefieldServer.prototype.register.bind(this, registerdClients);
+  this.unregister = BattlefieldServer.prototype.unregister.bind(this, registerdClients, loggedInClients);
   this.login      = BattlefieldServer.prototype.login.bind(this,  loggedInClients);
   this.logout     = BattlefieldServer.prototype.logout.bind(this, loggedInClients);
   this.shoot      = BattlefieldServer.prototype.shoot.bind(this,  loggedInClients);
@@ -44,8 +44,8 @@ BattlefieldServer.prototype.unregister = function(registeredClients, loggedInCli
   }
 
   // Remove from logged in clients
-  Object.keys(clients).forEach(function(name) {
-    if (clients[name] === client) {
+  Object.keys(loggedInClients).forEach(function(name) {
+    if (loggedInClients[name] === client) {
       delete clients[name];
     }
   });

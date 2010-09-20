@@ -1,5 +1,7 @@
 var net = require('net'),
-    trace = require('../utils/trace');
+    trace = require('../utils/trace'),
+    Client = require('../client/client'),
+    ClientProxyStream = require('../client/client_proxy_stream');
 
 var ServerListener = module.exports = function(server) {
   // The server we use
@@ -27,19 +29,21 @@ ServerListener.prototype.listen = function(hostname, port) {
 }
   
 ServerListener.prototype.clientConnected = function(connections, stream) {
+  var self = this;
+
   // Create new client
-  var client = new ClientStreamConnection(new Client(this.server), stream);
+  var client = new ClientProxyStream(new Client(self.server), stream);
 
   // Add to connected clients
-  connections.push(clients);
+  connections.push(client);
   
   // Register client on server
-  this.server.register(client);
+  self.server.register(client);
   
   // Listen for stream close and remove client
   stream.on('end', function() {
     // Unregister client from server
-    this.server.unregister(client);
+    self.server.unregister(client);
 
     // Remove from connections
     var index = connections.indexOf(client);

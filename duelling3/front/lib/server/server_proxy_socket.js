@@ -19,7 +19,7 @@ var ServerProxySocket = module.exports = function(hostname, port) {
   stream.setEncoding('ascii')
 
   // Invoke parent constructor
-  ServerProxyStream.call(self, stream);
+  ServerProxyStream.apply(self, [stream]);
 
   // Listen for connection
   var self = this;

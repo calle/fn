@@ -92,7 +92,7 @@ ServerProxyStream.prototype.send = function(data) {
 
 ServerProxyStream.prototype.connectionError = function(exception) {
   // Error from connection
-  this._trace("error: %j", exception);
+  this._trace("error: %e", exception);
   
   // Signal the error
   this.emit('error', exception);
@@ -123,7 +123,7 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
   if (!this.client) {
     return callback({ message:'Not registered' });
   }
-  
+
   // Make sure we are connected
   if (!this.stream.writable) {
     return callback({ message:'Not connected' });

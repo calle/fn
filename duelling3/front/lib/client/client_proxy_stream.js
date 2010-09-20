@@ -76,7 +76,7 @@ ClientProxyStream.prototype.send = function(data) {
 
 ClientProxyStream.prototype.connectionError = function(exception) {
   // Error from connection
-  this._trace("error: %j", exception);
+  this._trace("error: %e", exception);
 }
 
 ClientProxyStream.prototype.clientClosedConnection = function() {

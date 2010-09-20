@@ -55,16 +55,23 @@ var output = function(string) {
  */
 
 var format = function(format, data) {
-  return format.replace(/%([sdj])/g, function(_, type) {
+  return format.replace(/%([sdje])/g, function(_, type) {
     var value = data.shift();
     switch (type) {
       case 's':
         return value === undefined ? '' : value.toString();
       case 'd':
-        if (!(typeof(value) === 'number')) throw new Error('%d argument must be number in: ' + format);
-        return value.toFixed(0);
+        if (typeof(value) === 'string') value = parseInt(value, 10);
+        if (typeof(value) === 'number') {
+          return value.toFixed(0);
+        } else {
+          return 'NaN';
+        }
       case 'j':
         return JSON.stringify(value);
+      case 'e':
+        // Stringify error
+        return value.message + "\n\t" + value.stack.join('\n\t')
     }
     throw new Error('Invalid format in: ' + format);
   });
