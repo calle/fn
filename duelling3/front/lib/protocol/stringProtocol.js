@@ -15,27 +15,27 @@ var StringProtocol = module.exports = function(separator) {
  */
 
 StringProtocol.prototype.packUpdate = function(type, data) {
-  this['pack' + capitalize(type) + 'Update'](data);
+  return this['pack' + capitalize(type) + 'Update'](data);
 }
 
 StringProtocol.prototype.unpackUpdate = function(type, message) {
-  this['unpack' + capitalize(type) + 'Update'](message);
+  return this['unpack' + capitalize(type) + 'Update'](message);
 }
 
 StringProtocol.prototype.packRequest = function(type, data) {
-  this['pack' + capitalize(type) + 'Request'](data);
+  return this['pack' + capitalize(type) + 'Request'](data);
 }
 
 StringProtocol.prototype.unpackRequest = function(type, message) {
-  this['unpack' + capitalize(type) + 'Request'](message);
+  return this['unpack' + capitalize(type) + 'Request'](message);
 }
 
 StringProtocol.prototype.packResponse = function(type, data) {
-  this['pack' + capitalize(type) + 'Response'](data);
+  return this['pack' + capitalize(type) + 'Response'](data);
 }
 
 StringProtocol.prototype.unpackResponse = function(type, message) {
-  this['unpack' + capitalize(type) + 'Response'](message);
+  return this['unpack' + capitalize(type) + 'Response'](message);
 }
 
 /*
@@ -219,7 +219,7 @@ var capitalize = function(string) {
 }
 
 var format = function(format, data) {
-  return format.replace(/\{([^\}]+)\}/, function(_, key) {
+  return format.replace(/\{([^\}]+)\}/g, function(_, key) {
     var parts = key.split(/\./),
         value = data;
 

@@ -56,17 +56,19 @@ ClientProxyStream.prototype.killed = function(by, position) {
  */
 
 ClientProxyStream.prototype.receivedData = function(data) {
+  this._trace('receivedData: %s', data);
+
   // Append data to buffer
   this.buffer += data;
   
   // Split buffer at \n
-  var parts = buffer.split(this.protocol.messageSeparator);
+  var parts = this.buffer.split(this.protocol.messageSeparator);
 
   // Invoke message handle for each part but the last
   while (parts.length > 1) this.handleMessage(parts.shift());
 
   // Parts now contains only the last part, make this the current buffer
-  buffer = parts.shft();
+  this.buffer = parts.shift();
 }
 
 ClientProxyStream.prototype.send = function(data) {

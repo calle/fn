@@ -76,13 +76,13 @@ ServerProxyStream.prototype.receivedData = function(data) {
   this.buffer += data;
   
   // Split buffer at \n
-  var parts = buffer.split(this.protocol.messageSeparator);
+  var parts = this.buffer.split(this.protocol.messageSeparator);
 
   // Invoke message handle for each part but the last
   while (parts.length > 1) this.handleMessage(parts.shift());
 
   // Parts now contains only the last part, make this the current buffer
-  buffer = parts.shft();
+  this.buffer = parts.shift();
 }
 
 ServerProxyStream.prototype.send = function(data) {
@@ -130,6 +130,7 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
   }
 
   // Serialize message
+  this._trace("request: pack %s with data %j", type, data);
   var message = this.protocol.packRequest(type, data); 
 
   // Step request id and add type and callback
@@ -141,8 +142,8 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
   };
 
   // Send request
-  this._trace("send: sending message with id %d: %s", requestId, message);
-  this.send(requestId + ':' + message);
+  this._trace("request: sending message with id %d: %s", requestId, message);
+  this.send(requestId + ':' + message + this.protocol.messageSeparator);
 }
 
 ServerProxyStream.prototype.handleMessage = function(message) {
