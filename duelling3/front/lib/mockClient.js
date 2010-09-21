@@ -21,7 +21,8 @@ var drawBoard = function(state) {
 
   var ships = [state.position];
   ships.forEach(function(position) {
-    board.reverseWalk(position, position.direction, position.size, function(x, y, axis) {
+    console.log(position);
+    board.reverseWalk(position, position.dir, position.size, function(x, y, axis) {
       rows[y][x] = (x === position.x && y === position.y) ? 'X' : (axis === 'x' ? '-' : '|');
     });
   });
@@ -52,13 +53,6 @@ var output = function() {
   stdio.setRawMode(true);
 }
 
-var terminate = function() {
-  battlefield.logout(clientId, function() {
-    output('terminate: logged out')
-  });
-}
-
-
 // Create server
 var server = new ServerProxySocket('localhost', 3001);
 
@@ -74,6 +68,13 @@ server.on('closed', function() {
   stdio.setRawMode(false)
   stdin.destroy();
 });
+
+
+var terminate = function() {
+  client.logout(function() {
+    output('terminate: logged out')
+  });
+}
 
 // Listen for connection
 server.on('connected', function () {
@@ -116,10 +117,12 @@ server.on('connected', function () {
             clientState.shooting.y = next.y;
             drawBoard(clientState)
           } else {
-            battlefield.move(clientId, item[1], function(err, position) {
+            output('Moving client %s', item[1]);
+            client.move(item[1], function(err, result) {
               if (!err) {
                 // Update position
-                clientState.position = position;
+                clientState.position = result.position;
+                clientState.position.dir = result.direction;
                 drawBoard(clientState)
               }
             })
@@ -130,8 +133,14 @@ server.on('connected', function () {
       // Shoot-mode (Space)
       if (chunk === ' ') {
         if (clientState.shooting.aiming) {
-          battlefield.shoot(clientId, clientState.shooting, function(err, result) {
-            if (!err) output('Shoot result: %j\n', result);
+          client.shoot(clientState.shooting, function(err, result) {
+            if (err) { return output('Error shooting: %j', err); } 
+
+            output('Shoot result: %j\n', result);
+            // Taunt the killed users
+            result.forEach(function(user) {
+              client.taunt(user, 'Got you!!', function(err, result) {});                
+            });
           })
         }
         clientState.shooting.aiming = !clientState.shooting.aiming;
