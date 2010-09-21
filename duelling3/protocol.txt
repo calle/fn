@@ -1,10 +1,11 @@
 Syntax:
 
-	[xx,yy]  -> either xx or yy are valid values
-	'string' -> literal string 'string'
-	name     -> variable
-	:        -> literal string ':'
-	,		 -> literal string ','
+	[xx,yy]   -> either xx or yy are valid values
+	'string'  -> literal string 'string'
+	direction -> either 'north', 'south', 'east', 'west'
+	name      -> variable
+	:         -> literal string ':'
+	,		  -> literal string ','
 
 
 client -> server
