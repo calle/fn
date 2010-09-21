@@ -7,8 +7,12 @@ var events = require('events'),
  * The Client object, holder for one client connection.
  *  
  * Extends EventEmitter with the following events:
- *  - taunted { from, message }
- *  - killed { by, position }
+ *  - userLogin(name, position, direction) 
+ *  - userLogout(name)
+ *  - userMoved(name, position, direction)
+ *  - userKilled(name, by, position)
+ *  - killed(by, position)
+ *  - taunted(by, message)
  *
  *  @param server - 
  *    the server instance having interface: 
@@ -33,7 +37,7 @@ var Client = module.exports = function(server) {
 sys.inherits(Client, events.EventEmitter);
 
 /*
- * Action methods
+ * External interface methods
  */
 
 Client.prototype.login = function(name, callback) {
@@ -85,7 +89,7 @@ Client.prototype.logout = function(callback) {
   }
 
   var self = this;
-  
+
   this._trace('logout: performing server logout');
   this.server.logout(this.name, function(err) {
     if (err) return callback(err);
@@ -111,40 +115,8 @@ Client.prototype.move = function(direction, callback) {
     self.state.x   = result.position.x;
     self.state.y   = result.position.y;
     self.state.dir = result.direction;
-    self._trace('invoke callback with state: %j', self.state);
     callback(null, result);
   });
-  
-
-  // TODO: Implement functionality like the previous below
-/*
-  var now  = coords[client.state.dir],
-      next = coords[direction];
-
-  if (now.axis === next.axis) {
-    // Same axis, move forward
-    client.state[next.axis] += next.value;
-    // Different direction, flip the ship around
-    if (now.value !== next.value) {
-      client.state[next.axis] += (next.value * (client.state.size - 1));
-    }
-  } else if (client.state.size > 2) {
-    // Turn large ships
-    var half_size = Math.floor((client.state.size - 1) / 2);
-    client.state[now.axis]  += -now.value * half_size;
-    client.state[next.axis] += next.value * half_size
-  } else {
-    // Just move ship
-    client.state[next.axis] += next.value;
-  }
-
-  // Update direction
-  client.state.dir = direction;
-
-  // Normalize client x and y
-  client.state.x = (client.state.x + board.width ) % board.width;
-  client.state.y = (client.state.y + board.height) % board.height;
-*/
 };
 
 Client.prototype.shoot = function(position, callback) {
@@ -178,6 +150,43 @@ Client.prototype.taunt = function(name, message, callback) {
 };
 
 /*
+ * Server interface methods
+ */
+
+Client.prototype.userLogin = function(name, position, direction) {
+  this._trace('userLogin(%s, %d,%d, %d)', name, position.x, position.y, direction);
+  this.emit('userLogin', name, position, direction);
+};
+
+Client.prototype.userLogout = function(name) {
+  this._trace('userLogout(%s)', name);
+  this.emit('userLogout', name);    
+};
+
+Client.prototype.userMoved = function(name, position, direction) {
+  this._trace('userMoved(%s, %d,%d, %d)', name, position.x, position.y, direction);
+  this.emit('userMoved', name, position, direction);
+};
+
+Client.prototype.userKilled = function(name, by, position) {
+  this._trace('userKilled(%s, %s, %d,%d)', name, by, position.x, position.y);
+  this.emit('userKilled', name, by, position);
+};
+
+Client.prototype.killed = function(by, position) {
+  this._trace('killed(%s, %d,%d)', by, position.x, position.y);
+  if (this.alive) {
+    this.alive = false;
+    this.emit('killed', by, position);
+  }
+};
+
+ClientServerState.prototype.taunted = function(by, message) {
+  this._trace('taunted(%s, %s)', by, message);
+  this.emit('taunted', by, message);
+}
+
+/*
  * Query methods
  */
 
@@ -185,47 +194,8 @@ Client.prototype.__defineGetter__('position', function() {
   return { x:this.state.x, y:this.state.y, direction: this.state.dir };
 });
 
-Client.prototype.occupies = function(position) {
-  var self = this;
-
-  // Only check for hits if we are logged in and alive
-  if (!(this.loggedIn && this.alive)) return false;
-
-  var end = { x:this.state.x, y:this.state.y },
-      direction = this.state.dir,
-      steps = this.size,
-      match = false;
-
-  // Walk (using the board) over our ship and look for match
-  this.board.reverseWalk(end, direction, steps, function(x, y) {
-    self._trace('isInside: looking for hit for shot %d,%d at %d,%d', position.x, position.y, x, y);
-    if (position.x === x && position.y === y) {
-      match = true;
-      return Board.STOP;
-    }
-  })
-
-  return match;
-}
-
 /*
  * Internal methods
  */
 
 Client.prototype._trace = trace.prefix("Client: ");
-
-/**
- * Helper methods
- */
-
-var _rand = function(min, max) {
-  if (!max) {
-    max = min - 1;
-    min = 0;
-  }
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-var _rand_item = function(items) {
-  return items[_rand(items.length)];
-}

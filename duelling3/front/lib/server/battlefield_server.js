@@ -16,99 +16,113 @@ var BattlefieldServer = module.exports = function(options) {
   var board = new Board(boardSize);
 
   // Clients
-  var registerdClients = [];
-  var loggedInClients  = [];
+  var client  = [];
   
   // Bind methods to private variables
-  this.register   = BattlefieldServer.prototype.register  .bind(this, registerdClients);
-  this.unregister = BattlefieldServer.prototype.unregister.bind(this, registerdClients, loggedInClients);
-  this.login      = BattlefieldServer.prototype.login     .bind(this, loggedInClients, board);
-  this.logout     = BattlefieldServer.prototype.logout    .bind(this, loggedInClients);
-  this.move       = BattlefieldServer.prototype.move      .bind(this, loggedInClients, board);
-  this.shoot      = BattlefieldServer.prototype.shoot     .bind(this, loggedInClients);
-  this.taunt      = BattlefieldServer.prototype.taunt     .bind(this, loggedInClients);
-}
-
-BattlefieldServer.prototype.register = function(registeredClients, client) {
-  this._trace('register(%s)', client);
-  registeredClients.push(client);
-}
-
-BattlefieldServer.prototype.unregister = function(registeredClients, loggedInClients, client) {
-  this._trace('unregister(%s)', client);
-
-  // Remove from registered clients
-  var index = registeredClients.indexOf(client);
-  if (index >= 0) {
-    registeredClients.splice(index, 1);
-  }
-
-  // Remove from logged in clients
-  Object.keys(loggedInClients).forEach(function(name) {
-    if (loggedInClients[name] === client) {
-      delete clients[name];
-    }
-  });
+  this.login      = BattlefieldServer.prototype.login     .bind(this, client, board);
+  this.logout     = BattlefieldServer.prototype.logout    .bind(this, client);
+  this.move       = BattlefieldServer.prototype.move      .bind(this, client, board);
+  this.shoot      = BattlefieldServer.prototype.shoot     .bind(this, client);
+  this.taunt      = BattlefieldServer.prototype.taunt     .bind(this, client);
 }
 
 BattlefieldServer.prototype.login = function(clients, board, client, name, callback) {
   this._trace('login(%s)', name);
 
   if (clients[name]) {
-    callback({ message:'User already exists with name "' + name + '"' });
-  } else {
-    clients[name] = client;
-    callback(null, {
-      board: { width:board.width, height:board.height },
-      clientNames: Object.keys(clients)
-    });
-  }
+    return callback({ message:'User already exists with name "' + name + '"' });
+  } 
+
+  // Generate unique key for this client
+  var key = clients.length;
+
+  var client = new ClientServerState(client, board);
+  client.login(name);
+  
+  // Update clients array with information about client
+  clients[key] = client;
+
+  // Notify the other clients
+  clients.forEach(function(c) { c.userLogin(client.name, { x:client.position.x, y:client.position.y }, client.direction); });
+
+  // Response with successful login
+  callback(null, {
+    key: key, 
+    board: { width:board.width, height:board.height },
+    position: { x:client.position.x, y:client.position.y },
+    direction: client.direction,
+    otherClients: clients.map(function(c) { return c.name; }).filter(function(n) { return n !== name; })
+  });
 }
 
-BattlefieldServer.prototype.logout = function(clients, name, callback) {
-  this._trace('logout(%s)', name);
-  delete clients[name];
+BattlefieldServer.prototype.logout = function(clients, key, callback) {
+  this._trace('logout(%s)', key);
+
+  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  var client = clients[key];
+  
+  // Remove from clients
+  delete clients[key];
+
+  // Notify the other clients
+  clients.forEach(function(c) { c.userLogout(client.name); });
+
   callback(null);
 }
 
-BattlefieldServer.prototype.move = function(clients, borad, name, direction, callback) {
-  this._trace('move(%s)', direction);
-  
-  // TODO: Get state from clients map
-  var state = { x:1, y:1, dir:'west' };
-  
-  var next = board.step(state, direction, 1);
+BattlefieldServer.prototype.move = function(clients, borad, key, direction, callback) {
+  this._trace('move(%s, %s)', key, direction);
 
-  state.x   = next.x;
-  state.y   = next.y;
-  state.dir = direction;
+  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  var client = clients[key];
 
-  callback(null, { position:{ x:state.x, y:state.y}, direction:state.dir });
+  // Step client
+  client.move(direction);
+
+  // Notify the other clients
+  clients.forEach(function(c) { if (c !== client) c.userMoved(client.name, client.position, client.direction); });
+
+  // Invoke callback
+  callback(null, { 
+    position: { x:client.position.x, y:client.position.y }, 
+    direction: client.direction 
+  });
 }
   
-BattlefieldServer.prototype.shoot = function(clients, by, position, callback) {
-  this._trace('shoot(%s, %d, %d)', by, position.x, position.y);
+BattlefieldServer.prototype.shoot = function(clients, key, position, callback) {
+  this._trace('shoot(%s, %d, %d)', key, position.x, position.y);
+
+  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  var client = clients[key];
 
   var killed = [];
-  Object.keys(clients).forEach(function(name) {
-    var client = clients[name];
-    if (client.occupies(position)) {
-      client.killed(by, position);
-      killed.push(name);
+  clients.forEach(function(other)) {
+    if (other.occupies(position)) {
+      other.killed(by, position);
+
+      // Notify the other clients
+      clients.forEach(function(c) { if (c !== client && c !== other) c.userKilled(other.name, by, position); });
+
+      killed.push(other.name);
     }
-  })
+  });
   callback(null, killed);
 }
 
-BattlefieldServer.prototype.taunt = function(client, from, to, message, callback) {
-  this._trace('taunt(%s, %s, %s)', from, to, message);
-  
-  if (client[to]) {
-    client[to].taunted(from, message);
-    callback(null, true);
-  } else {
-    callback(null, false);
-  }
+BattlefieldServer.prototype.taunt = function(client, key, to, message, callback) {
+  this._trace('taunt(%s, %s, %s)', key, to, message);
+
+  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  var client = clients[key];
+
+  var found = false;
+  clients.forEach(function(other)) {
+    if (other.name === to) {
+      other.taunted(client.name, message);
+      found = true;
+    }
+  })
+  callback(null, found);
 }
 
 BattlefieldServer.prototype._trace = trace.prefix("BattlefieldServer: ");
