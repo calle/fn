@@ -37,14 +37,8 @@ ServerListener.prototype.clientConnected = function(connections, stream) {
   // Add to connected clients
   connections.push(client);
   
-  // Register client on server
-  self.server.register(client);
-  
   // Listen for stream close and remove client
-  stream.on('end', function() {
-    // Unregister client from server
-    self.server.unregister(client);
-
+  client.on('closed', function() {
     // Remove from connections
     var index = connections.indexOf(client);
     if (index >= 0) {

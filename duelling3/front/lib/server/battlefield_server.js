@@ -63,7 +63,7 @@ BattlefieldServer.prototype.logout = function(clients, key, callback) {
   var client = clients[key];
   
   // Remove from clients
-  delete clients[key];
+  clients.splice(clients.indexOf(client), 1);
 
   // Notify the other clients
   clients.forEach(function(c) { c.userLogout(client.name); });
