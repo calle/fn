@@ -15,19 +15,19 @@ var trace = module.exports = function() {
 
 trace.prefix = function() {
   var prefixArgs = Array.prototype.slice.apply(arguments),
-      prefix = prefixArgs.shift();
+      prefixFormat = prefixArgs.shift();
 
   return function() {
     var args = Array.prototype.slice.apply(arguments);
     
-    if (typeof(prefix) === 'function') {
+    if (typeof(prefixFormat) === 'function') {
       // Invoke prefixFormat if it's a function
-      var current = prefix.apply(this);
+      var current = prefixFormat.apply(this);
       // Invoke trace with current prefix
       trace.apply(this, [current.shift() + args.shift()].concat(current).concat(args));
     } else {
       // Invoke trace
-      trace.apply(this, [prefix + args.shift()].concat(prefixArgs).concat(args));
+      trace.apply(this, [prefixFormat + args.shift()].concat(prefixArgs).concat(args));
     }
   };
 }
