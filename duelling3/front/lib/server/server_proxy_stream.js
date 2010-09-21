@@ -51,20 +51,24 @@ ServerProxyStream.prototype.unregister = function(client) {
   }
 }
 
-ServerProxyStream.prototype.login = function(name, callback) {
+ServerProxyStream.prototype.login = function(client, name, callback) {
   this.request('login', { name:name }, callback);
 }
 
-ServerProxyStream.prototype.logout = function(name, callback) {
+ServerProxyStream.prototype.logout = function(client, callback) {
   this.request('logout', {}, callback);
 }
 
-ServerProxyStream.prototype.shoot = function(by, position, callback) {
-  this.request('shoot', { by:by, posisition:position }, callback);
+ServerProxyStream.prototype.move = function(client, direction, callback) {
+  this.request('move',  { direction:direction }, callback);
 }
 
-ServerProxyStream.prototype.taunt = function(from, to, message, callback) {
-  this.request('taunt', { from:from, to:to, message:message }, callback);
+ServerProxyStream.prototype.shoot = function(client, position, callback) {
+  this.request('shoot', { position:position }, callback);
+}
+
+ServerProxyStream.prototype.taunt = function(client, name, message, callback) {
+  this.request('taunt', { name:name, message:message }, callback);
 }
 
 /*
@@ -86,6 +90,7 @@ ServerProxyStream.prototype.receivedData = function(data) {
 }
 
 ServerProxyStream.prototype.send = function(data) {
+  this._trace('send: %s', data);
   this.stream.write(data);
   this.stream.flush();
 }
@@ -131,7 +136,7 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
 
   // Serialize message
   this._trace("request: pack %s with data %j", type, data);
-  var message = this.protocol.packRequest(type, data); 
+  var args = this.protocol.packRequest(type, data); 
 
   // Step request id and add type and callback
   var requestId = this.lastRequestId;
@@ -142,8 +147,8 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
   };
 
   // Send request
-  this._trace("request: sending message with id %d: %s", requestId, message);
-  this.send(requestId + ':' + message + this.protocol.messageSeparator);
+  this._trace("request: sending %s message with id %d: %s", type, requestId, args);
+  this.send(requestId + ':' + type + ':' + args + this.protocol.messageSeparator);
 }
 
 ServerProxyStream.prototype.handleMessage = function(message) {
@@ -178,8 +183,7 @@ ServerProxyStream.prototype.handleResponse = function(message) {
     
     // Handle errors
     if (parts[0] === 'error') {
-      parts.shift();
-      callback(this.protocol.unpackErrorResponse(parts.join(':')));
+      request.callback(this.protocol.unpackErrorResponse(parts.join(':')));
     } else {
       // Parse data for command
       var data = this.protocol.unpackResponse(request.type, rest)

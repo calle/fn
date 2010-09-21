@@ -107,8 +107,8 @@ StringProtocol.prototype.unpackShootRequest = function(message) {
   var parts = message.split(/,/)
   return {
     position: {
-      x:parseInt(parts.shift(), 10), 
-      y:parseInt(parts.shift(), 10) 
+      x: parseInt(parts.shift(), 10), 
+      y: parseInt(parts.shift(), 10) 
     }
   };
 }
@@ -164,34 +164,35 @@ StringProtocol.prototype.unpackLogoutResponse = function(message) {
 }
 
 StringProtocol.prototype.packMoveResponse = function(data) {
-  return format('{position.x},{position.y},{position.dir}', data);
+  return format('{position.x},{position.y},{direction}', data);
 }
 
 StringProtocol.prototype.unpackMoveResponse = function(message) {
   var parts = message.split(/,/);
   return {
     position: {
-      x:   parseInt(message.shift(), 10),
-      y:   parseInt(message.shift(), 10),
-      dir: message.shift()
-    }
+      x: parseInt(parts.shift(), 10),
+      y: parseInt(parts.shift(), 10),
+    },
+    direction: parts.shift()
   };
 }
 
 StringProtocol.prototype.packShootResponse = function(data) {
-  if (data.kills.length > 0) {
-    return 'kill,' + data.kills.join(',');
+  if (data && data.length > 0) {
+    return 'kill,' + data.join(',');
   }
   return 'miss'
 }
 
 StringProtocol.prototype.unpackShootResponse = function(message) {
-  var parts = response.split(/,/),
-      result = { status: parts.shift() };
-  if (result.status === 'kill') {
-    result.targets = parts.filter(function(part) { return part; });
+  var parts = message.split(/,/),
+      status = parts.shift();
+  if (status === 'kill') {
+    return parts.filter(function(part) { return part; });
+  } else {
+    return [];
   }
-  return result;
 }
 
 StringProtocol.prototype.packTauntResponse = function(data) {
@@ -207,7 +208,8 @@ StringProtocol.prototype.packErrorResponse = function(data) {
 }
 
 StringProtocol.prototype.unpackErrorResponse = function(message) {
-  return { message: message };
+  var parts = message.split(/:/);
+  return { message:parts[1] };
 }
 
 /*

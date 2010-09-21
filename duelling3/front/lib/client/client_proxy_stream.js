@@ -91,7 +91,7 @@ ClientProxyStream.prototype.clientClosedConnection = function() {
   
 ClientProxyStream.prototype.connectionFullyClosed = function(had_error) {
   // Connection is fully closed
-  this._trace("terminated");
+  this._trace("client connection is terminated");
   
   // Force client logout
   this.client.logout(function() {});
@@ -129,52 +129,49 @@ ClientProxyStream.prototype.handleMessage = function(message) {
   // Lowercase command
   command = command.toLowerCase();
 
-  // Require user is logged in
-  if (this.loggedIn || command === 'login') {
-    
-    // Parse data for command
-    var data = this.protocol.unpackRequest(command, rest)
-    
-    // Prepare response callback
-    var callback = function(err, result) {
-      if (err) {
-        self.reply(id, 'error', err);
-      } else {
-        self.reply(id, command, result);
-      }
+  // Parse data for command
+  var data = this.protocol.unpackRequest(command, rest)
+  
+  // Prepare response callback
+  var callback = function(err, result) {
+    self._trace('received callback(%j, %j)', err, result);
+    if (err) {
+      self.reply(id, 'error', err);
+    } else {
+      self.reply(id, command, result);
     }
-    
-    this._trace('[%d] - client.%s(%j)', id, command, data);
+  }
+  
+  this._trace('[%d] - client.%s(%j)', id, command, data);
 
-    // Invoke command on client
-    switch (command) {
-      case 'login':
-        return this.client.login(data.name, callback);
-      case 'logout':
-        return this.client.logout(callback);
-      case 'move':
-        return this.client.move(data.direction, callback);
-      case 'shoot':
-        return this.client.shoot(data.position, callback);
-      case 'taunt':
-        return this.client.taunt(data.name, data.message, callback);
-      default:
-        return this.reply(id, 'error', { message:'Unknown command' });
-    }
-    
-  } else {
-    this.reply(id, 'error', { message:'Not logged in' });
+  // Invoke command on client
+  switch (command) {
+    case 'login':
+      return this.client.login(data.name, callback);
+    case 'logout':
+      return this.client.logout(callback);
+    case 'move':
+      return this.client.move(data.direction, callback);
+    case 'shoot':
+      return this.client.shoot(data.position, callback);
+    case 'taunt':
+      return this.client.taunt(data.name, data.message, callback);
+    default:
+      return this.reply(id, 'error', { message:'Unknown command' });
   }
 }
 
 ClientProxyStream.prototype.reply = function(id, type, data) {
+  this._trace('reply to %s with data %d', type, id, data);
   var message = this.protocol.packResponse(type, data);
+  this._trace('reply to %s with id %d: %s', type, id, message);
   this.send("response:" + id + ":" + message + this.protocol.messageSeparator);
 };
 
 ClientProxyStream.prototype.update = function(type, data) {
   var message = this.protocol.packUpdate(type, data);
-  this.send("update:" + message + this.protocol.messageSeparator);
+  this._trace('%s update: %s', type, message);
+  this.send("update:" + type + ":" + message + this.protocol.messageSeparator);
 };
 
 ClientProxyStream.prototype._trace = trace.prefix(function() {

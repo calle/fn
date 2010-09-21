@@ -1,6 +1,7 @@
 var events = require('events'),
     sys = require('sys'),
-    trace = require('../utils/trace');
+    trace = require('../utils/trace'),
+    Board = require('../utils/board.js');
 
 /**
  * The Client object, holder for one client connection.
@@ -44,14 +45,16 @@ Client.prototype.login = function(name, callback) {
     // Make sure login name does not contain ','-characters
     name = name.replace(/,/g, '');
 
-    self.server.login(name, function(err, response) {
+    self.server.login(self, name, function(err, response) {
       if (err) return callback(err);
 
+      self._trace('successful login to server with name %s', name);
+      
       // Setup internal state
       self.name = name;
       self.loggedIn = true;
       self.alive = true;
-      self.board = response.board;
+      self.board = new Board(response.board);
       self.size  = _rand(1,5);
       self.state = {
         x:   _rand(self.board.width),
@@ -74,14 +77,16 @@ Client.prototype.login = function(name, callback) {
 };
 
 Client.prototype.logout = function(callback) {
-  var self = this;
-
   // Make sure we are logged in
   if (!this.loggedIn) {
+    this._trace('logout: not logged in yet');
     // Logout when not logged in is always successful
     return callback(null, true);
   }
 
+  var self = this;
+  
+  this._trace('logout: performing server logout');
   this.server.logout(this.name, function(err) {
     if (err) return callback(err);
 
@@ -89,7 +94,7 @@ Client.prototype.logout = function(callback) {
     delete self.name;
     self.loggedIn = false;
     self.alive = false;
-    
+
     callback(null, true);
   });
 };
@@ -97,16 +102,19 @@ Client.prototype.logout = function(callback) {
 Client.prototype.move = function(direction, callback) {
   // Make sure we are logged in
   if (!this.loggedIn) return callback({ message:'Not logged in' });
-  
-  var next = this.board.step(this.state, direction, 1);
 
-  // TODO: Ask server if move is valid
-  
-  this.state.x   = next.x;
-  this.state.y   = next.y;
-  this.state.dir = dir;
+  var self = this;
 
-  callback(null, { position: this.state });
+  this.server.move(this.name, this.state.dir, function(err, result) {
+    if (err) return callback(err);
+    self._trace('move response from server: %j', result);
+    self.state.x   = result.position.x;
+    self.state.y   = result.position.y;
+    self.state.dir = result.direction;
+    self._trace('invoke callback with state: %j', self.state);
+    callback(null, result);
+  });
+  
 
   // TODO: Implement functionality like the previous below
 /*
@@ -146,7 +154,7 @@ Client.prototype.shoot = function(position, callback) {
   this._trace('shoot(%d, %d)', position.x, position.y);
 
   // Make sure x and y are inside board
-  if (!board.inside(position)) {
+  if (!this.board.inside(position)) {
     return callback({ message:'Cannot shoot outside board' });
   }
 
