@@ -1,19 +1,34 @@
+Syntax:
+
+	[xx,yy]  -> either xx or yy are valid values
+	'string' -> literal string 'string'
+	name     -> variable
+	:        -> literal string ':'
+	,		 -> literal string ','
+
+
 client -> server
 
-"login:username"
-"logout"
-"move:forward,back,left,forward
-"shoot:x,y"
-"taung:id,message"
+"requestId:'login':username"
+"requestId:'logout'"
+"requestId:'move':['forward','back','left','right']"
+"requestId:'shoot':x,y"
+"requestId:'taunt':playerName:message"
 
 
 server -> client
 
-"login_ok:player1id,player2id"
-"ok"
-"error:message"
-"kill:playerid,x,y"
-"killed:playerid,x,y"
-"taunted:playerid,message"
-"userlogin:playerid"
-"userlogout:playerid"
+responses:
+[all]  -> "'response':requestId:'error':message"
+login  -> "'response':requestId:board_width,board_height,x,y,direction,size,player1Name,player2Name,..."
+logout -> "'response':requestId:'ok'"
+move   -> "'response':requestId:x,y,direction"
+shoot  -> "'response':requestId:'miss'"
+	   -> "'response':requestId:'kill':player1Name,player2Name,..."
+taunt  -> "'response':requestId:'ok'"
+
+updates:
+killed  -> "'update':'killed':killerName:x,y"
+taunted -> "'update':'taunted':taunterName:message"
+login   -> "'update':'userlogin':playerName"
+logout  -> "'update':'userlogout':playerName"
