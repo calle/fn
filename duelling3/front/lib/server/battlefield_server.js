@@ -59,7 +59,7 @@ BattlefieldServer.prototype.login = function(clients, board, client, name, callb
 BattlefieldServer.prototype.logout = function(clients, key, callback) {
   this._trace('logout(%s)', key);
 
-  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  if (!(key in clients)) { return callback({ message:'User not logged in' }); }
   var client = clients[key];
   
   // Remove from clients
@@ -74,7 +74,7 @@ BattlefieldServer.prototype.logout = function(clients, key, callback) {
 BattlefieldServer.prototype.move = function(clients, board, key, direction, callback) {
   this._trace('move(%s, %s)', key, direction);
 
-  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  if (!(key in clients)) { return callback({ message:'User not logged in' }); }
   var client = clients[key];
 
   // Step client
@@ -93,11 +93,11 @@ BattlefieldServer.prototype.move = function(clients, board, key, direction, call
 BattlefieldServer.prototype.shoot = function(clients, board, key, position, callback) {
   this._trace('shoot(%s, %d, %d)', key, position.x, position.y);
 
-  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  if (!(key in clients)) { return callback({ message:'User not logged in' }); }
   var client = clients[key];
 
   var killed = [];
-  clients.forEach(function(other)) {
+  clients.forEach(function(other) {
     if (other.occupies(board, position)) {
       other.killed(by, position);
 
@@ -113,11 +113,11 @@ BattlefieldServer.prototype.shoot = function(clients, board, key, position, call
 BattlefieldServer.prototype.taunt = function(client, key, to, message, callback) {
   this._trace('taunt(%s, %s, %s)', key, to, message);
 
-  if (!(key in clients)) { return callback({ message:'User not logged in' });
+  if (!(key in clients)) { return callback({ message:'User not logged in' }); }
   var client = clients[key];
 
   var found = false;
-  clients.forEach(function(other)) {
+  clients.forEach(function(other) {
     if (other.name === to) {
       other.taunted(client.name, message);
       found = true;

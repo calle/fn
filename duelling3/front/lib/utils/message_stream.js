@@ -1,4 +1,4 @@
-var StringProtocol = require('../protocol/stringProtocol'),
+var StringProtocol = require('../protocol/string_protocol'),
     events = require('events'),
     sys = require('sys'),
     trace = require('../utils/trace');

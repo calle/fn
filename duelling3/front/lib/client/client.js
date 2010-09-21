@@ -179,10 +179,10 @@ Client.prototype.killed = function(by, position) {
   }
 };
 
-ClientServerState.prototype.taunted = function(by, message) {
+Client.prototype.taunted = function(by, message) {
   this._trace('taunted(%s, %s)', by, message);
   this.emit('taunted', by, message);
-}
+};
 
 /*
  * Query methods
