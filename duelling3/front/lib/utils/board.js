@@ -55,6 +55,7 @@ Board.prototype.walk = function(start, direction, steps, callback) {
 };
 
 Board.prototype.reverseWalk = function(end, direction, steps, callback) {
+  console.log('Board.reverseWalk(%j, %s, %d, cb)', end, direction, steps);
   var current = end,
       axis = directions[direction].axis;
   
