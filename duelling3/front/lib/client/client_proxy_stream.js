@@ -13,6 +13,7 @@ var ClientProxyStream = module.exports = function(client, stream) {
   // Interfaces
   this.client = client;
   this.stream = new MessageStream(stream);
+  this.protocol = this.stream.protocol;
 
   // Setup client events
   client.on('userLogin',  this.userLogin.bind(this));

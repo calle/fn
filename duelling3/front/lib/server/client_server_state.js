@@ -4,11 +4,10 @@ var trace = require('../utils/trace');
  * The ClientServerState is responsible for one clients state in the server
  * 
  */
-var ClientServerState = module.exports = function(client, board) {
-  if (!(this instanceof ClientServerState)) return new ClientServerState(client, board);
+var ClientServerState = module.exports = function(client) {
+  if (!(this instanceof ClientServerState)) return new ClientServerState(client);
 
   this.target = client;
-  this.board  = board;
   
   // State
   this.name      = null;
@@ -20,7 +19,7 @@ var ClientServerState = module.exports = function(client, board) {
 
 };
 
-ClientServerState.prototype.login = function(name) {
+ClientServerState.prototype.login = function(board, name) {
 
   // Setup state
   this.name = name;
@@ -28,15 +27,15 @@ ClientServerState.prototype.login = function(name) {
   this.alive    = true;
   
   // Random position, direction and size
-  this.position  = { x:rand(board.width), y:rand(self.board.height) };
+  this.position  = { x:rand(board.width), y:rand(board.height) };
   this.direction = rand_item(['north', 'south', 'east', 'west']);
   this.size      = rand(1, 5);
 
 };
 
-ClientServerState.prototype.move = function(direction) {
+ClientServerState.prototype.move = function(board, direction) {
   // Step using board
-  var next = this.board.step(this.position, direction, 1);
+  var next = board.step(this.position, direction, 1);
 
   // Update position
   this.position = next;
@@ -73,7 +72,7 @@ ClientServerState.prototype.move = function(direction) {
    */
 }
 
-ClientServerState.prototype.occupies = function(position) {
+ClientServerState.prototype.occupies = function(board, position) {
   var self = this;
 
   // Only check for occupation if we are logged in and alive
@@ -83,7 +82,7 @@ ClientServerState.prototype.occupies = function(position) {
       match = false;
 
   // Walk (using the board) over our ship and look for match
-  this.board.reverseWalk(end, this.direction, this.size, function(x, y) {
+  board.reverseWalk(end, this.direction, this.size, function(x, y) {
     self._trace('occupies: looking for hit for shot %d,%d at %d,%d', position.x, position.y, x, y);
     if (position.x === x && position.y === y) {
       match = true;

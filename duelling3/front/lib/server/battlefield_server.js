@@ -16,14 +16,14 @@ var BattlefieldServer = module.exports = function(options) {
   var board = new Board(boardSize);
 
   // Clients
-  var client  = [];
+  var clients  = [];
   
   // Bind methods to private variables
-  this.login      = BattlefieldServer.prototype.login     .bind(this, client, board);
-  this.logout     = BattlefieldServer.prototype.logout    .bind(this, client);
-  this.move       = BattlefieldServer.prototype.move      .bind(this, client, board);
-  this.shoot      = BattlefieldServer.prototype.shoot     .bind(this, client);
-  this.taunt      = BattlefieldServer.prototype.taunt     .bind(this, client);
+  this.login  = BattlefieldServer.prototype.login .bind(this, clients, board);
+  this.logout = BattlefieldServer.prototype.logout.bind(this, clients);
+  this.move   = BattlefieldServer.prototype.move  .bind(this, clients, board);
+  this.shoot  = BattlefieldServer.prototype.shoot .bind(this, clients, board);
+  this.taunt  = BattlefieldServer.prototype.taunt .bind(this, clients);
 }
 
 BattlefieldServer.prototype.login = function(clients, board, client, name, callback) {
@@ -36,8 +36,8 @@ BattlefieldServer.prototype.login = function(clients, board, client, name, callb
   // Generate unique key for this client
   var key = clients.length;
 
-  var client = new ClientServerState(client, board);
-  client.login(name);
+  var client = new ClientServerState(client);
+  client.login(board, name);
   
   // Update clients array with information about client
   clients[key] = client;
@@ -47,10 +47,11 @@ BattlefieldServer.prototype.login = function(clients, board, client, name, callb
 
   // Response with successful login
   callback(null, {
-    key: key, 
-    board: { width:board.width, height:board.height },
-    position: { x:client.position.x, y:client.position.y },
-    direction: client.direction,
+    key:          key, 
+    board:        { width:board.width, height:board.height },
+    position:     { x:client.position.x, y:client.position.y },
+    direction:    client.direction,
+    size:         client.size,
     otherClients: clients.map(function(c) { return c.name; }).filter(function(n) { return n !== name; })
   });
 }
@@ -70,14 +71,14 @@ BattlefieldServer.prototype.logout = function(clients, key, callback) {
   callback(null);
 }
 
-BattlefieldServer.prototype.move = function(clients, borad, key, direction, callback) {
+BattlefieldServer.prototype.move = function(clients, board, key, direction, callback) {
   this._trace('move(%s, %s)', key, direction);
 
   if (!(key in clients)) { return callback({ message:'User not logged in' });
   var client = clients[key];
 
   // Step client
-  client.move(direction);
+  client.move(board, direction);
 
   // Notify the other clients
   clients.forEach(function(c) { if (c !== client) c.userMoved(client.name, client.position, client.direction); });
@@ -89,7 +90,7 @@ BattlefieldServer.prototype.move = function(clients, borad, key, direction, call
   });
 }
   
-BattlefieldServer.prototype.shoot = function(clients, key, position, callback) {
+BattlefieldServer.prototype.shoot = function(clients, board, key, position, callback) {
   this._trace('shoot(%s, %d, %d)', key, position.x, position.y);
 
   if (!(key in clients)) { return callback({ message:'User not logged in' });
@@ -97,7 +98,7 @@ BattlefieldServer.prototype.shoot = function(clients, key, position, callback) {
 
   var killed = [];
   clients.forEach(function(other)) {
-    if (other.occupies(position)) {
+    if (other.occupies(board, position)) {
       other.killed(by, position);
 
       // Notify the other clients

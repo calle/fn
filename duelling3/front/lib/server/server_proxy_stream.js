@@ -17,7 +17,7 @@ var ServerProxyStream = module.exports = function(stream) {
   events.EventEmitter.call(this);
 
   this.stream = new MessageStream(stream);
-  this.protocol = new StringProtocol();
+  this.protocol = this.stream.protocol;
 
   // State
   this.client = null;
@@ -121,13 +121,8 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
       callback: callback
   };
   
-  // Serialize message
-  this._trace("request: pack %s with data %j", type, data);
-  var args = this.protocol.packRequest(type, data); 
-
   // Send request
-  this._trace("request: sending %s message with id %d: %s", type, requestId, args);
-  this.send(requestId + ':' + type + ':' + args + this.protocol.messageSeparator);
+  this.stream.request(requestId, type, data);
 }
 
 ServerProxyStream.prototype.streamResponse = function(message) {

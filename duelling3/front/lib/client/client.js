@@ -16,7 +16,7 @@ var events = require('events'),
  *
  *  @param server - 
  *    the server instance having interface: 
- *    login(name, cb), logout(cb), shoot(pos, cb), taunt(name, msg, cb)
+ *    login(client, name, cb), logout(key, cb), move(key, dir), shoot(key, pos, cb), taunt(key, name, msg, cb)
  *
  */
 var Client = module.exports = function(server) {
@@ -27,12 +27,13 @@ var Client = module.exports = function(server) {
   this.server = server;
   
   // The client state
-  this.name = undefined;
+  this.key = undefined;
   this.loggedIn = false;
   this.alive = false; // We become alive when we login
   this.board = undefined;
+  this.position = undefined;
+  this.direction = undefined;
   this.size  = 0;
-  this.state = {};
 }
 sys.inherits(Client, events.EventEmitter);
 
@@ -52,28 +53,23 @@ Client.prototype.login = function(name, callback) {
     self.server.login(self, name, function(err, response) {
       if (err) return callback(err);
 
-      self._trace('successful login to server with name %s', name);
-      
+      self._trace('successful login to server with name %s: %j', name, response);
+
       // Setup internal state
-      self.name = name;
+      self.key = response.key;
       self.loggedIn = true;
       self.alive = true;
-      self.board = new Board(response.board);
-      self.size  = _rand(1,5);
-      self.state = {
-        x:   _rand(self.board.width),
-        y:   _rand(self.board.height),
-        dir: _rand_item(['north', 'south', 'east', 'west'])
-      };
+      self.board = new Board(response.board.width, response.board.height);
+      self.position = response.position;
+      self.direction = response.direction;
+      self.size = response.size;
 
-      // TODO: Ask server if position is valid
-      
       // Invoke callback
       callback(null, {
         board:    self.board,
-        position: self.state,
+        position: self.position,
         size:     self.size,
-        clients:  response.clientNames
+        clients:  response.otherClients
       });
     });
 
@@ -91,11 +87,11 @@ Client.prototype.logout = function(callback) {
   var self = this;
 
   this._trace('logout: performing server logout');
-  this.server.logout(this.name, function(err) {
+  this.server.logout(this.key, function(err) {
     if (err) return callback(err);
 
     // Update internal state
-    delete self.name;
+    delete self.key;
     self.loggedIn = false;
     self.alive = false;
 
@@ -109,13 +105,15 @@ Client.prototype.move = function(direction, callback) {
 
   var self = this;
 
-  this.server.move(this.name, this.state.dir, function(err, result) {
+  this.server.move(this.key, this.state.dir, function(err, result) {
     if (err) return callback(err);
     self._trace('move response from server: %j', result);
-    self.state.x   = result.position.x;
-    self.state.y   = result.position.y;
-    self.state.dir = result.direction;
-    callback(null, result);
+    self.position = result.position;
+    self.direction = result.direction;
+    callback(null, { 
+      position:  self.position, 
+      direction: self.direction 
+    });
   });
 };
 
@@ -130,7 +128,7 @@ Client.prototype.shoot = function(position, callback) {
     return callback({ message:'Cannot shoot outside board' });
   }
 
-  this.server.shoot(this.name, position, function(err, result) {
+  this.server.shoot(this.key, position, function(err, result) {
     if (err) return callback(err);
     callback(null, { kills:(result || []) });
   });
@@ -142,7 +140,7 @@ Client.prototype.taunt = function(name, message, callback) {
 
   this._trace('taunt(%s, %s)', name, message);
 
-  this.server.taunt(this.name, name, message, function(err, result) {
+  this.server.taunt(this.key, name, message, function(err, result) {
     if (err) return callback(err);
     if (!result) callback({ message:'No such user' });
     callback(null, true);
