@@ -1,118 +1,164 @@
-var Battlefield = require('./battlefield'),
-    stdio = process.binding('stdio'), 
+var Client = require('./client/client'),
+    ServerProxySocket = require('./server/server_proxy_socket'),
+    stdio = process.binding('stdio'),
     sys = require('sys');
 
+var clientName = process.argv[2] || 'Calle';
 
+var stdin = process.openStdin();
 
-var battlefield = new Battlefield('localhost', 3001, false);
+var drawBoard = function(state) {
+  var board = state.board,
+      rows = [], i, row, j;
 
-var id1 = '344',
-    id2 = "185";
-
-var step = function(direction, position) {
-  var x = position.x, y = position.y;
-  if (direction === "north") {
-    return { x:x, y:y+1 };
-  } else if (direction === "south"){
-    return { x:x, y:y-1 };
-  } else if (direction === "east"){
-    return { x:x+1, y:y };
-  } else if (direction === "west"){
-    return { x:x-1, y:y };
-  }
-}
-
-var walk = function(position, callback) {
-  var current = position;
-  for (var i=0; i < position.size; i++) {
-    callback(current.x, current.y);
-    current = step(position.direction, current);
-  }
-};
-
-var drawBoard = function(board, ships) {
-  var rows = [], i, row, j;
-  for (i = 0; i < board.height; i++) {
+  for (i = 0; i < state.board.height; i++) {
     row = [];
-    for (j = 0; j < board.width; i++) { 
-      row.push('¤');
+    for (j = 0; j < state.board.width; j++) {
+      row.push('•');
     }
     rows.push(row);
   }
-  
-  shift.forEach(function(position) {
-    walk(position, function(x, y) {
-      rows[y][x] = 'X';
+
+  var ships = [state.position];
+  ships.forEach(function(position) {
+    console.log(position);
+    board.reverseWalk(position, position.dir, position.size, function(x, y, axis) {
+      rows[y][x] = (x === position.x && y === position.y) ? 'X' : (axis === 'x' ? '-' : '|');
     });
   });
   
-  stdio.setRawMode(false);
-  console.log(rows.map(function(row) { return row.join(''); }).join('\n'));
-  stdio.setRawMode(true);
+  if (state.shooting.aiming) {
+    rows[state.shooting.y][state.shooting.x] = '⁘'
+  }
+
+  output(rows.reverse().map(function(row) { return row.join(' '); }).join('\n'));
+  output('')
 };
 
 var callbacks = function(login) {
   return {
     login: login,
     update: function(message) {
-      console.log('got update: ' + message);
+      output('got update: ' + message);
     },
-    end: function() {
-      console.log('client terminated');
-    }
   }
 };
 
-battlefield.login(id1, 'calle', callbacks(function(err, state1) {
-  console.log('successfull login calle: %j', state1);
-  
-  var stdin = process.openStdin();
-
+var output = function() {
+  stdio.setRawMode(false);
+  process.stdout.flush();
+  process.stdout.write('\x1b[0G');
+  console.log.apply(console, arguments)
+  process.stdout.flush();
   stdio.setRawMode(true);
-  
-  stdin.setEncoding('utf8');
+}
 
-  var terminate = function() {
-    battlefield.logout(id1, function() {
-      stdio.setRawMode(false);
-      console.log('\nterminate: logged out')
-      stdin.destroy();
-    });
-  }
-  
-  stdin.on('data', function (chunk) {
-    if (chunk === '\u0003') { // Ctrl-C
-      console.log('Received Ctrl-C');
+// Create server
+var server = new ServerProxySocket('localhost', 3001);
+
+// Create and register client
+var client = new Client(server);
+server.register(client);
+
+server.on('error', function(err) {
+  output('connection error: ' + err)
+});
+server.on('closed', function() {
+  output('client terminated');
+  stdio.setRawMode(false)
+  stdin.destroy();
+});
+
+
+var terminate = function() {
+  client.logout(function() {
+    output('terminate: logged out')
+  });
+}
+
+// Listen for connection
+server.on('connected', function () {
+
+  client.login(clientName, function(err, clientState) {
+
+    if (err) {
+      output('Failed to login: %s', err)
       return terminate();
     }
-    console.log('Received data: ' + sys.inspect(chunk))
-  });
 
-  stdin.on('end', function () {
-    console.log('stdio.end')
-    terminate();
-  });
+    output('successfull login for %s: %j', clientName, clientState);
 
-  
-}));
+    clientState.shooting = {
+      aiming: false,
+      x: Math.floor(clientState.board.width / 2),
+      y: Math.floor(clientState.board.height / 2),
+    }
 
+    // Setup stdin
+    stdin.setEncoding('utf8');
+    stdio.setRawMode(true);
 
+    stdin.on('data', function (chunk) {
+      // Terminate (Ctrl-C)
+      if (chunk === '\u0003') {
+        return terminate();
+      }
 
-
-/*
-
-  battlefield.login(id2, 'olle', callbacks(function(err, state2) {
-    console.log('successfull login olle: %j', state2);
-
-    battlefield.shoot(id1, { x:state2.position.x, y:state2.position.y }, function(err, result) {
-      console.log('shooing result: %j', result);
-      
-      battlefield.taunt(id1, 'olle', 'your mama!', function(err, result) {
-        console.log('taunt result: %j', result);
-        battlefield.logout(id1);
-        battlefield.logout(id2);
+      // Move (arrow keys)
+      [ ['\u001b[A', 'north'],
+        ['\u001b[B', 'south'],
+        ['\u001b[C', 'east'],
+        ['\u001b[D', 'west']
+      ].forEach(function(item) {
+        if (chunk === item[0]) {
+          if (clientState.shooting.aiming) {
+            var next = clientState.board.step(clientState.shooting, item[1]);
+            clientState.shooting.x = next.x; 
+            clientState.shooting.y = next.y;
+            drawBoard(clientState)
+          } else {
+            output('Moving client %s', item[1]);
+            client.move(item[1], function(err, result) {
+              if (!err) {
+                // Update position
+                clientState.position = result.position;
+                clientState.position.dir = result.direction;
+                drawBoard(clientState)
+              }
+            })
+          }
+        }
       });
-    });
-  }));
 
-*/
+      // Shoot-mode (Space)
+      if (chunk === ' ') {
+        if (clientState.shooting.aiming) {
+          client.shoot(clientState.shooting, function(err, result) {
+            if (err) { return output('Error shooting: %j', err); } 
+
+            output('Shoot result: %j\n', result);
+            // Taunt the killed users
+            result.forEach(function(user) {
+              client.taunt(user, 'Got you!!', function(err, result) {});                
+            });
+          })
+        }
+        clientState.shooting.aiming = !clientState.shooting.aiming;
+        drawBoard(clientState);
+      }
+
+      // output('Received data: ' + sys.inspect(chunk))
+    });
+
+    stdin.on('end', function () {
+      output('stdio.end')
+      terminate();
+    });
+
+    // Start by drawing board
+    output('Drawing board')
+    output(clientState)
+    drawBoard(clientState);
+
+  });
+});

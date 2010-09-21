@@ -19,11 +19,11 @@ app.configure(function(){
 });
 
 app.configure('development', function(){
-    app.use(connect.errorHandler({ dumpExceptions: true, showStack: true })); 
+    app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('production', function(){
-   app.use(connect.errorHandler()); 
+   app.use(connect.errorHandler());
 });
 
 // Routes
@@ -48,10 +48,15 @@ app.post('/login', function(req, res) {
         battlefield.logout(id, function() {});
       } else {
         req.session.statuses.push("updated:" + message);
-        
+
         if (req.session.statusTimeout) {
           cancelTimeout(req.session.statusTimeout);
         }
+      }
+    },
+    error: function() {
+      if (req.session) {
+        req.session.statuses.push("error");
       }
     },
     end: function() {
@@ -75,7 +80,7 @@ app.post('/status', function(req, res) {
 
 app.post('/fire', function(req, res) {
   battlefield.shoot(req.session.id, {
-      x: req.param('x'), 
+      x: req.param('x'),
       y: req.param('y')
     }, function(err, response) {
       res.send(err ? 503 : response);
@@ -83,7 +88,7 @@ app.post('/fire', function(req, res) {
 });
 
 app.post('/move', function(req, res) {
-  battlefield.move(req.session.id, req.param('direction'), 
+  battlefield.move(req.session.id, req.param('direction'),
     function(err, response) {
       res.send(err ? 503 : response);
     });
