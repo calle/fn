@@ -24,7 +24,7 @@ var MessageStream = module.exports = function(stream) {
   stream.setEncoding('ascii');
   stream.on('data',  this.receivedData.bind(this));
   stream.on('error', this.connectionError.bind(this));
-  stream.on('close', this.clientClosedConnection.bind(this));
+  stream.on('close', this.otherSideClosedConnection.bind(this));
   stream.on('end',   this.connectionFullyClosed.bind(this));
 
   this._trace("connected");
@@ -34,6 +34,10 @@ sys.inherits(MessageStream, events.EventEmitter);
 /*
  * External interface methods
  */
+
+MessageStream.__defineGetter__('writable', function() {
+  return this.stream.writable;
+});
 
 MessageStream.prototype.send = function(data) {
   // Make sure we are connected
@@ -103,9 +107,9 @@ MessageStream.prototype.connectionError = function(exception) {
   this.emit('error', exception);
 }
 
-MessageStream.prototype.serverClosedConnection = function() {
-  // Server closed the connection
-  this._trace("remote side closed connection");
+MessageStream.prototype.otherSideClosedConnection = function() {
+  // Other side closed the connection
+  this._trace("other side closed connection");
   
   // Terminate the stream
   this.stream.end();

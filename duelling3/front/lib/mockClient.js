@@ -82,7 +82,7 @@ server.on('connected', function () {
   client.login(clientName, function(err, clientState) {
 
     if (err) {
-      output('Failed to login: %s', err)
+      output('Failed to login: %j', err)
       return terminate();
     }
 

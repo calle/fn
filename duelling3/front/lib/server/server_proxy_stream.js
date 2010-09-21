@@ -1,4 +1,6 @@
 var MessageStream = require('../utils/message_stream'),
+    sys = require('sys'),
+    events = require('events'),
     trace = require('../utils/trace');
 
 /**
@@ -29,7 +31,7 @@ var ServerProxyStream = module.exports = function(stream) {
   stream.setEncoding('ascii');
   stream.on('message', this.streamMessage.bind(this));
   stream.on('error',   this.streamError.bind(this));
-  stream.on('close',   this.streamClose.bind(this));
+  stream.on('closed',  this.streamClosed.bind(this));
 }
 sys.inherits(ServerProxyStream, events.EventEmitter);
 
@@ -108,11 +110,6 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
     return callback({ message:'Not registered' });
   }
 
-  // Make sure we are connected
-  if (!this.stream.writable) {
-    return callback({ message:'Not connected' });
-  }
-
   // Step request id and add type and callback
   var requestId = this.lastRequestId;
   this.lastRequestId += 1;
@@ -122,7 +119,13 @@ ServerProxyStream.prototype.request = function(type, data, callback) {
   };
   
   // Send request
-  this.stream.request(requestId, type, data);
+  var result = this.stream.request(requestId, type, data);
+
+  if (!result) {
+    // Failed to send request, remove requestId and invoke callback
+    delete this.requests[requestId];
+    return callback({ message:'Failed to send request' });
+  }
 }
 
 ServerProxyStream.prototype.streamResponse = function(message) {

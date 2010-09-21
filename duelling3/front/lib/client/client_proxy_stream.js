@@ -1,4 +1,6 @@
 var MessageStream = require('../utils/message_stream'),
+    sys = require('sys'),
+    events = require('events'),
     trace = require('../utils/trace');
 
 /**
@@ -7,6 +9,7 @@ var MessageStream = require('../utils/message_stream'),
  */
 var ClientProxyStream = module.exports = function(client, stream) {
   if (!(this instanceof ClientProxyStream)) return new ClientProxyStream(client, stream);
+  events.EventEmitter.call(this);
 
   var self = this;
   
@@ -30,6 +33,7 @@ var ClientProxyStream = module.exports = function(client, stream) {
 
   this._trace("setup complete");
 };
+sys.inherits(ClientProxyStream, events.EventEmitter);
 
 /*
  * Client events
@@ -122,18 +126,18 @@ ClientProxyStream.prototype.streamMessage = function(message) {
 
 ClientProxyStream.prototype.streamError = function(error) {
   this._trace('streamError: %e', error);
+  this.emit('error', error);
 }
 
 ClientProxyStream.prototype.streamClosed = function() {
   this._trace('streamClosed');
   // Logout client
   this.client.logout(function() {});
+  this.emit('closed');
 }
 
 /*
  * Internal methods
  */
 
-ClientProxyStream.prototype._trace = trace.prefix(function() {
-  return ["ClientProxyStream[%s:%d]: ", this.stream.remoteAddress, this.stream.remotePort]; 
-});
+ClientProxyStream.prototype._trace = trace.prefix("ClientProxyStream: ");

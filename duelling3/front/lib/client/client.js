@@ -43,10 +43,8 @@ sys.inherits(Client, events.EventEmitter);
 
 Client.prototype.login = function(name, callback) {
   var self = this;
-  
-  // Start by logging out user if already logged in
-  self.logout(function() {
 
+  var _login = function() {
     // Make sure login name does not contain ','-characters
     name = name.replace(/,/g, '');
 
@@ -72,8 +70,14 @@ Client.prototype.login = function(name, callback) {
         clients:  response.otherClients
       });
     });
-
-  });
+  };
+  
+  if (this.loggedIn) {
+    // Start by logging out user if already logged in
+    self.logout(_login);
+  } else {
+    _login();
+  }
 };
 
 Client.prototype.logout = function(callback) {
@@ -183,14 +187,6 @@ Client.prototype.taunted = function(by, message) {
   this._trace('taunted(%s, %s)', by, message);
   this.emit('taunted', by, message);
 };
-
-/*
- * Query methods
- */
-
-Client.prototype.__defineGetter__('position', function() {
-  return { x:this.state.x, y:this.state.y, direction: this.state.dir };
-});
 
 /*
  * Internal methods
