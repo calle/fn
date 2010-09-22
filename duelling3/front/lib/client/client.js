@@ -29,6 +29,7 @@ var Client = module.exports = function(server) {
   this.key = undefined;
   this.loggedIn = false;
   this.alive = false; // We become alive when we login
+  this.name = undefined;
   this.board = undefined;
   this.position = undefined;
   this.direction = undefined;
@@ -57,6 +58,7 @@ Client.prototype.login = function(name, callback) {
       self.key       = response.key;
       self.loggedIn  = true;
       self.alive     = true;
+      self.name      = name;
       self.board     = new Board(response.board.width, response.board.height);
       self.position  = response.position;
       self.direction = response.direction;
