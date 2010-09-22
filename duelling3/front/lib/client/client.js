@@ -136,7 +136,9 @@ Client.prototype.shoot = function(position, callback) {
     return callback({ message:'Cannot shoot outside board' });
   }
 
+  var self = this;
   this.server.shoot(this.key, position, function(err, result) {
+    self._trace('shoot: response is (%j, %j)', err, result);
     if (err) return callback(err);
     callback(null, { kills:(result || []) });
   });

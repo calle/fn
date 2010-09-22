@@ -45,7 +45,7 @@ MessageStream.prototype.send = function(data) {
     return false;
   }
   
-  this._trace('send: %s', data);
+  this._trace('send: %j', data);
   this.stream.write(data);
   this.stream.flush();
 
@@ -91,7 +91,7 @@ MessageStream.prototype.update = function(type, data) {
  */
 
 MessageStream.prototype.receivedData = function(data) {
-  this._trace('receivedData: %s', data)
+  this._trace('receivedData: %j', data)
 
   // Append data to buffer
   this.buffer += data;

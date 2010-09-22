@@ -143,6 +143,7 @@ ServerProxyStream.prototype.streamResponse = function(message) {
     } else {
       // Parse data for command
       var data = this.protocol.unpackResponse(request.type, rest)
+      this._trace("streamResponse: unpack %s response %j to %j", request.type, rest, data);
       request.callback(null, data);
     }
 
