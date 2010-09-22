@@ -2,3 +2,39 @@ body {
   padding: 50px;
   font: 14px "Lucida Grande", "Helvetica Nueue", Arial, sans-serif;
 }
+#content {
+  float: left;
+  width: 100%;
+}
+#field {
+  float: left;
+}
+#field input {
+  font-size: 2em;
+  border: 1px solid black;
+  padding: 0.2em;
+}
+#field table {
+  border-collapse: collapse;
+}
+#field table td {
+  border: 1px solid #999;
+  width: 14px;
+  height: 14px;
+}
+#field .ship {
+  background: red;
+}
+#field td.head {
+  background: #900;
+}
+#info {
+  float: right;
+  width: 200px;
+  border-left: 1px solid black;
+  padding: 15px;
+}
+#info ul {
+  list-style: none;
+  border-top: 1px solid #333;
+}
