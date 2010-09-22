@@ -33,12 +33,19 @@ jQuery(function($) {
     position = result.position;
     direction = result.direction;
     size = result.size;
-    clients = result.clients;
+    clients = [result.name].concat(result.clients);
     
     setup();
   }, function(error) {
     $('#field input').show();
   })
+
+  $('#info #logout').click(function() {
+    post('/logout', function() {
+      $('#field table').remove();
+      $('#field input').show();
+    });
+  });
 
   // On login attempt
   $('#field input').keydown(function(event) {
@@ -57,7 +64,7 @@ jQuery(function($) {
         position = result.position;
         direction = result.direction;
         size = result.size;
-        clients = result.clients;
+        clients = [username].concat(result.clients);
         
         setup();
       });
@@ -90,6 +97,8 @@ jQuery(function($) {
 
     setupKeyListener();
 
+    setTimeout(pollForUpdates, 200);
+
     // Update clients list
     redrawClients();
     
@@ -100,6 +109,11 @@ jQuery(function($) {
   var setupTd = function(x, y) {
     var td = $('<td />', { id:'board_' + x + '_' + y });
     td.click(function() {
+      
+      post('/fire', { x:x, y:y }, function(result) {
+        console.log(result);
+      })
+      
       console.log('Shoot(%d,%d)', x, y);
     });
     return td;
@@ -118,6 +132,22 @@ jQuery(function($) {
           return move('left');
       }
       console.log(event.keyCode)
+    });
+  }
+
+  var pollForUpdates = function() {
+    post('/status', function(messages) {
+      if (messages.length > 0) {
+        console.log(messages)
+        $.each(messages, function(i, message) {
+          $('#info #messages').append('<li>' + message + '</li>');
+        });
+      }
+      // Retry on success
+      pollForUpdates();
+    }, function() { 
+      // Retry on error also
+      pollForUpdates();
     });
   }
 

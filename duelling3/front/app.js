@@ -95,7 +95,7 @@ app.post('/login', function(req, res) {
 
 app.post('/status', function(req, res) {
   if (req.session && req.session.statuses && req.session.statuses.length > 0) {
-    res.send(req.sessions.statuses);
+    res.send(req.session.statuses);
     req.session.statuses = [];
   } else {
     req.session.statusTimeout = setTimeout(function() {
@@ -132,7 +132,7 @@ app.post('/move', function(req, res) {
 app.post('/logout', function(req, res) {
   if (req.session && req.session.client) {
     req.session.client.logout(function(err, response) {
-        res.send(err ? 500 : response);
+        res.send('');
       });
   } else {
     res.send(403);
