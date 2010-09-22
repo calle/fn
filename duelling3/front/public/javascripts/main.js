@@ -41,6 +41,7 @@ jQuery(function($) {
   })
 
   $('#info #logout').click(function() {
+    pollingForUpdates = false;
     post('/logout', function() {
       $('#field table').remove();
       $('#field input').show();
@@ -97,7 +98,8 @@ jQuery(function($) {
 
     setupKeyListener();
 
-    setTimeout(pollForUpdates, 200);
+    pollingForUpdates = true;
+    setTimeout(pollForUpdates, 100);
 
     // Update clients list
     redrawClients();
@@ -135,9 +137,10 @@ jQuery(function($) {
     });
   }
 
+  var pollingForUpdates = false;
   var pollForUpdates = function() {
     post('/status', function(messages) {
-      if (messages.length > 0) {
+      if (messages && messages.length > 0) {
         console.log(messages)
         $.each(messages, function(i, message) {
           $('#info #messages').append('<li>' + message + '</li>');
@@ -149,7 +152,7 @@ jQuery(function($) {
       // Retry on error also
       pollForUpdates();
     });
-  }
+  };
 
   var move = function(towards) {
     console.log('move towards %s', towards);
