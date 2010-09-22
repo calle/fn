@@ -81,7 +81,7 @@ ServerProxyStream.prototype.streamMessage = function(message) {
   } else if (type === "update") {
     this.streamUpdate(rest);
   } else {
-    this._trace('streamMessage: unknown message type: ' + command)
+    this._trace('streamMessage: unknown message type: %s', type)
   }
 }
 
@@ -166,13 +166,17 @@ ServerProxyStream.prototype.streamUpdate = function(message) {
 
   var data = this.protocol.unpackUpdate(type, rest);
 
-  switch (type) {
+  switch (type.toLowerCase()) {
+    case 'userlogin':
+      return this.client.userLogin(data.name);
+    case 'userlogout':
+      return this.client.userLogout(data.name);
+    case 'userkilled':
+      return this.client.userKilled(data.name);
     case 'taunted':
-      this.client.taunted(data.from, data.message);
-      break;
+      return this.client.taunted(data.by, data.message);
     case 'killed':
-      this.client.killed(data.by, data.position);
-      break;
+      return this.client.killed(data.by, data.position);
     default:
       this._trace("streamUpdate: unknown update type %s", type);
   }

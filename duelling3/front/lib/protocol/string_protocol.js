@@ -83,7 +83,7 @@ StringProtocol.prototype.packKilledUpdate = function(data) {
   return format('{by}:{position.x},{position.y}', data);
 }
 
-StringProtocol.prototype.unpackKilledUpdate = function(data) {
+StringProtocol.prototype.unpackKilledUpdate = function(message) {
   var parts = message.split(/:/),
       by = parts.shift(),
       positions = parts.shift().split(/,/);
