@@ -258,8 +258,10 @@ generate_new_position(BoardX, BoardY, _State) ->
 	    3->west;
 	    _->north
 	end,
-    {random:uniform(BoardX), 
-     random:uniform(BoardY), Dir, 3}.
+    {random:uniform(BoardX) rem BoardX, 
+     random:uniform(BoardY) rem BoardY, 
+     Dir, 
+     random:uniform(5)}.
 %%
 %% Get a list of all logged in users.
 %%
