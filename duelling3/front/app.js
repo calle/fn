@@ -37,7 +37,7 @@ app.get('/', function(req, res){
 });
 
 app.post('/state', function(req, res) {
-  if (req.session && req.session.client) {
+  if (req.session && req.session.client && req.session.client.loggedIn) {
     res.send({
       name:      req.session.client.name,
       board:     { width:req.session.client.board.width, height:req.session.client.board.height },
@@ -81,12 +81,14 @@ app.post('/login', function(req, res) {
   [ 'userLogin', 'userLogout', 'userMoved', 'userKilled', 'killed', 'taunted'
   ].forEach(function(type) {
     client.on(type, function() {
+      console.log('app.js: Received update to %s: %j', type, arguments)
       if (!alive()) {
         client.logout(function() {});
       } else {
+        console.log('app.js: Push to statuses array')
         req.session.statuses.push("updated:" + type + ':' + JSON.stringify(arguments));
         if (req.session.statusTimeout) {
-          cancelTimeout(req.session.statusTimeout);
+          clearTimeout(req.session.statusTimeout);
         }
       }
     });
@@ -94,6 +96,7 @@ app.post('/login', function(req, res) {
 });
 
 app.post('/status', function(req, res) {
+  console.log('app.js: Fetching statuses: %d', req.session && req.session.statuses ? req.session.statuses.length : -1);
   if (req.session && req.session.statuses && req.session.statuses.length > 0) {
     res.send(req.session.statuses);
     req.session.statuses = [];
