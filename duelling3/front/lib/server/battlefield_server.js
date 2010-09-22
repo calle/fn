@@ -43,7 +43,7 @@ BattlefieldServer.prototype.login = function(clients, board, client, name, callb
   clients[key] = client;
 
   // Notify the other clients
-  clients.forEach(function(c) { c.userLogin(client.name, { x:client.position.x, y:client.position.y }, client.direction); });
+  clients.forEach(function(c) { c.userLogin(client.name); });
 
   // Response with successful login
   callback(null, {
@@ -81,7 +81,7 @@ BattlefieldServer.prototype.move = function(clients, board, key, direction, call
   client.move(board, direction);
 
   // Notify the other clients
-  clients.forEach(function(c) { if (c !== client) c.userMoved(client.name, client.position, client.direction); });
+  // clients.forEach(function(c) { if (c !== client) c.userMoved(client.name, client.position, client.direction); });
 
   // Invoke callback
   callback(null, { 
@@ -102,7 +102,7 @@ BattlefieldServer.prototype.shoot = function(clients, board, key, position, call
       other.killed(by, position);
 
       // Notify the other clients
-      clients.forEach(function(c) { if (c !== client && c !== other) c.userKilled(other.name, by, position); });
+      clients.forEach(function(c) { if (c !== client && c !== other) c.userKilled(other.name); });
 
       killed.push(other.name);
     }

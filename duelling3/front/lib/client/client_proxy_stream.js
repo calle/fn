@@ -21,7 +21,6 @@ var ClientProxyStream = module.exports = function(client, stream) {
   // Setup client events
   client.on('userLogin',  this.userLogin.bind(this));
   client.on('userLogout', this.userLogout.bind(this));
-  client.on('userMoved',  this.userMoved.bind(this));
   client.on('userKilled', this.userKilled.bind(this));
   client.on('taunted',    this.taunted.bind(this));
   client.on('killed',     this.killed.bind(this));
@@ -39,20 +38,16 @@ sys.inherits(ClientProxyStream, events.EventEmitter);
  * Client events
  */
 
-ClientProxyStream.prototype.userLogin = function(name, position, direction) {
-  this.stream.update('userLogin', { name:name, position:position, direction:direction }); 
+ClientProxyStream.prototype.userLogin = function(name) {
+  this.stream.update('userLogin', { name:name }); 
 };
 
 ClientProxyStream.prototype.userLogout = function(name) { 
   this.stream.update('userLogout', { name:name }); 
 };
 
-ClientProxyStream.prototype.userMoved = function(name, position, direction) { 
-  this.stream.update('userMoved', { name:name, position:position, direction:direction }); 
-};
-
-ClientProxyStream.prototype.userKilled = function(name, by, position) { 
-  this.stream.update('userKilled', { name:name, by:by, position:position }); 
+ClientProxyStream.prototype.userKilled = function(name) { 
+  this.stream.update('userKilled', { name:name }); 
 };
 
 ClientProxyStream.prototype.taunted = function(by, message) { 

@@ -43,6 +43,30 @@ StringProtocol.prototype.unpackResponse = function(type, message) {
  * Updates
  */
 
+StringProtocol.prototype.packUserLoginUpdate = function(data) {
+  return format('{name}', data);
+}
+
+StringProtocol.prototype.unpackUserLoginUpdate = function(message) {
+  return { name:message };
+}
+
+StringProtocol.prototype.packUserLogoutUpdate = function(data) {
+  return format('{name}', data);
+}
+
+StringProtocol.prototype.unpackUserLogoutUpdate = function(message) {
+  return { name:message };
+}
+
+StringProtocol.prototype.packUserKilledUpdate = function(data) {
+  return format('{name}', data);
+}
+
+StringProtocol.prototype.unpackUserKilledUpdate = function(message) {
+  return { name:message };
+}
+
 StringProtocol.prototype.packTauntedUpdate = function(data) {
   return format('{from}:{message}', data);
 }

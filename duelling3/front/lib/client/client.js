@@ -7,10 +7,9 @@ var events = require('events'),
  * The Client object, holder for one client connection.
  *  
  * Extends EventEmitter with the following events:
- *  - userLogin(name, position, direction) 
+ *  - userLogin(name) 
  *  - userLogout(name)
- *  - userMoved(name, position, direction)
- *  - userKilled(name, by, position)
+ *  - userKilled(name)
  *  - killed(by, position)
  *  - taunted(by, message)
  *
@@ -156,9 +155,9 @@ Client.prototype.taunt = function(name, message, callback) {
  * Server interface methods
  */
 
-Client.prototype.userLogin = function(name, position, direction) {
-  this._trace('userLogin(%s, %d,%d, %d)', name, position.x, position.y, direction);
-  this.emit('userLogin', name, position, direction);
+Client.prototype.userLogin = function(name) {
+  this._trace('userLogin(%s)', name);
+  this.emit('userLogin', name);
 };
 
 Client.prototype.userLogout = function(name) {
@@ -166,14 +165,9 @@ Client.prototype.userLogout = function(name) {
   this.emit('userLogout', name);    
 };
 
-Client.prototype.userMoved = function(name, position, direction) {
-  this._trace('userMoved(%s, %d,%d, %d)', name, position.x, position.y, direction);
-  this.emit('userMoved', name, position, direction);
-};
-
-Client.prototype.userKilled = function(name, by, position) {
-  this._trace('userKilled(%s, %s, %d,%d)', name, by, position.x, position.y);
-  this.emit('userKilled', name, by, position);
+Client.prototype.userKilled = function(name) {
+  this._trace('userKilled(%s)', name);
+  this.emit('userKilled', name);
 };
 
 Client.prototype.killed = function(by, position) {
