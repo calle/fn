@@ -54,7 +54,6 @@ app.post('/state', function(req, res) {
 app.post('/login', function(req, res) {
 
   req.session.statuses = [];
-  var id = req.session.id;
 
   // Create server
   var server = new ServerProxySocket('localhost', 9000);
@@ -81,29 +80,33 @@ app.post('/login', function(req, res) {
   [ 'userLogin', 'userLogout', 'userMoved', 'userKilled', 'killed', 'taunted'
   ].forEach(function(type) {
     client.on(type, function() {
-      console.log('app.js: Received update to %s: %j', type, arguments)
+      console.log('app.js[%s]: Received update to %s: %j', req.sessionID, type, arguments)
       if (!alive()) {
         client.logout(function() {});
       } else {
-        console.log('app.js: Push to statuses array')
         req.session.statuses.push("updated:" + type + ':' + JSON.stringify(arguments));
-        if (req.session.statusTimeout) {
-          clearTimeout(req.session.statusTimeout);
+        if (statusTimeouts[req.sessionID]) {
+          statusTimeouts[req.sessionID]();
         }
       }
     });
   });
 });
 
+var statusTimeouts = {};
+
 app.post('/status', function(req, res) {
-  console.log('app.js: Fetching statuses: %d', req.session && req.session.statuses ? req.session.statuses.length : -1);
+  console.log('app.js[%s]: Fetching statuses: %d', req.sessionID, req.session.statuses ? req.session.statuses.length : -1);
   if (req.session && req.session.statuses && req.session.statuses.length > 0) {
     res.send(req.session.statuses);
-    req.session.statuses = [];
+    // Clear 
+    while (req.session.statuses.length > 0) req.session.statuses.shift();
   } else {
-    req.session.statusTimeout = setTimeout(function() {
-      res.send([])
-    }, 1000);
+    statusTimeouts[req.sessionID] = function() { 
+      res.send([]); 
+      delete statusTimeouts[req.sessionID];
+    }
+    setTimeout(statusTimeouts[req.sessionID], 10000);
   }
 });
 
