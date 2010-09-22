@@ -8,36 +8,51 @@ var app = module.exports = express.createServer();
 // Configuration
 
 app.configure(function(){
-    app.set('views', __dirname + '/views');
-    app.use(connect.cookieDecoder());
-    app.use(connect.session());
-    app.use(connect.bodyDecoder());
-    app.use(connect.methodOverride());
-    app.use(connect.compiler({ src: __dirname + '/public', enable: ['less'] }));
-    app.use(app.router);
-    app.use(connect.staticProvider(__dirname + '/public'));
+  app.set('views', __dirname + '/views');
+  app.use(connect.cookieDecoder());
+  app.use(connect.session());
+  app.use(connect.bodyDecoder());
+  app.use(connect.methodOverride());
+  app.use(connect.compiler({ src: __dirname + '/public', enable: ['less'] }));
+  app.use(app.router);
+  app.use(connect.staticProvider(__dirname + '/public'));
 });
 
 app.configure('development', function(){
-    app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
+  app.use(connect.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('production', function(){
-   app.use(connect.errorHandler());
+ app.use(connect.errorHandler());
 });
 
 // Routes
 
 app.get('/', function(req, res){
-    res.render('index.jade', {
-        locals: {
-            title: 'Battlefield'
-        }
+  res.render('index.jade', {
+    locals: {
+      title: 'Battlefield'
+    }
+  });
+});
+
+app.post('/state', function(req, res) {
+  if (req.session && req.session.client) {
+    res.send({
+      name:      req.session.client.name,
+      board:     { width:req.session.client.board.width, height:req.session.client.board.height },
+      position:  req.session.client.position,
+      direction: req.session.client.direction,
+      size:      req.session.client.size,
+      clients:   req.session.client.clients
     });
+  } else {
+    res.send(403);
+  }
 });
 
 app.post('/login', function(req, res) {
-  
+
   req.session.statuses = [];
   var id = req.session.id;
 
@@ -53,7 +68,7 @@ app.post('/login', function(req, res) {
   // Setup server events
   server.on('connected', function () {
     client.login(req.param('name'), function(err, response) {
-      res.send(err ? 503 : response);
+      res.send(err || response);
     });
   });
   server.on('error', function(err) {
@@ -95,7 +110,7 @@ app.post('/fire', function(req, res) {
         x: req.param('x'),
         y: req.param('y')
       }, function(err, response) {
-        res.send(err ? 503 : response);
+        res.send(err ? 500 : response);
       }
     );
   } else {
@@ -107,7 +122,7 @@ app.post('/move', function(req, res) {
   if (req.session && req.session.client) {
     req.session.client.move(req.param('direction'),
       function(err, response) {
-        res.send(err ? 503 : response);
+        res.send(err ? 500 : response);
       });
   } else {
     res.send(403);
@@ -117,7 +132,7 @@ app.post('/move', function(req, res) {
 app.post('/logout', function(req, res) {
   if (req.session && req.session.client) {
     req.session.client.logout(function(err, response) {
-        res.send(err ? 503 : response);
+        res.send(err ? 500 : response);
       });
   } else {
     res.send(403);
@@ -127,7 +142,7 @@ app.post('/logout', function(req, res) {
 app.post('/taunt', function(req, res) {
   if (req.session && req.session.client) {
     req.session.client.taunt(req.param('name'), req.param('insult'), function(err, response) {
-      res.send(err ? 503 : response);
+      res.send(err ? 500 : response);
     });
   } else {
     res.send(403);
