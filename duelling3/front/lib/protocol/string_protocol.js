@@ -205,16 +205,17 @@ StringProtocol.prototype.unpackMoveResponse = function(message) {
 
 StringProtocol.prototype.packShootResponse = function(data) {
   if (data && data.length > 0) {
-    return 'kill,' + data.join(',');
+    return 'kill:' + data.join(',');
   }
   return 'miss'
 }
 
 StringProtocol.prototype.unpackShootResponse = function(message) {
-  var parts = message.split(/,/),
-      status = parts.shift();
+  var parts  = message.split(/:/),
+      status = parts.shift(),
+      rest   = parts.join(':');
   if (status === 'kill') {
-    return parts.filter(function(part) { return part; });
+    return rest.split(/,/).filter(function(part) { return part; });
   } else {
     return [];
   }
