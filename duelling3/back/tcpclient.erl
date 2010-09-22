@@ -121,15 +121,15 @@ recv_loop(ServerPID, Socket, SoFar) ->
 	    gen_tcp:send(Socket, Response),
 	    recv_loop(ServerPID, Socket, SoFar);
 	{user_login, Name} ->
-	    Response=encode_update(["update", "userlogin", Name]),
+	    Response=encode_update(["userlogin", Name]),
 	    gen_tcp:send(Socket, Response),
 	    recv_loop(ServerPID, Socket, SoFar);
 	{user_logout, Name} ->
-	    Response=encode_update(["update", "userlogout", Name]),
+	    Response=encode_update(["userlogout", Name]),
 	    gen_tcp:send(Socket, Response),
 	    recv_loop(ServerPID, Socket, SoFar);
 	{user_killed, Name} ->
-	    Response=encode_update(["update", "userkilled", Name]),
+	    Response=encode_update(["userkilled", Name]),
 	    gen_tcp:send(Socket, Response),
 	    recv_loop(ServerPID, Socket, SoFar);
 	
@@ -232,4 +232,4 @@ encode_response(ReqId, Info) ->
 		 Info], ":") ++ "\r\n".
 
 encode_update(Args) ->
-    string:join(Args, ":") ++ "\r\n".
+    string:join(["update"] ++ Args, ":") ++ "\r\n".
