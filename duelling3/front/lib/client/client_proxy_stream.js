@@ -26,10 +26,10 @@ var ClientProxyStream = module.exports = function(client, stream) {
   client.on('taunted',    this.taunted.bind(this));
   client.on('killed',     this.killed.bind(this));
 
-  // Setup stream events
-  stream.on('message', this.streamMessage.bind(this));
-  stream.on('error',   this.streamError.bind(this));
-  stream.on('closed',  this.streamClosed.bind(this));
+  // Setup message stream events
+  this.stream.on('message', this.streamMessage.bind(this));
+  this.stream.on('error',   this.streamError.bind(this));
+  this.stream.on('closed',  this.streamClosed.bind(this));
 
   this._trace("setup complete");
 };

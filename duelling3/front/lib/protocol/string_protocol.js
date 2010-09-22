@@ -6,8 +6,9 @@
  *    between two messages
  *
  */
-var StringProtocol = module.exports = function(separator) {
-  this.messageSeparator = separator || '\n';
+var StringProtocol = module.exports = function() {
+  this.messageSepString = '\n';
+  this.messageSepRegExp = /\r?\n/;
 }
 
 /*
@@ -148,10 +149,10 @@ StringProtocol.prototype.unpackLoginResponse = function(message) {
     position: {
       x:     parseInt(parts.shift(), 10),
       y:     parseInt(parts.shift(), 10),
-      dir:   parts.shift()
     },
-    size:    parseInt(parts.shift(), 10),
-    clients: parts.filter(function(part) { return part; })
+    direction: parts.shift(),
+    size:      parseInt(parts.shift(), 10),
+    clients:   parts.filter(function(part) { return part; })
   };
 }
 

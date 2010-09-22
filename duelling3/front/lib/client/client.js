@@ -54,20 +54,21 @@ Client.prototype.login = function(name, callback) {
       self._trace('successful login to server with name %s: %j', name, response);
 
       // Setup internal state
-      self.key = response.key;
-      self.loggedIn = true;
-      self.alive = true;
-      self.board = new Board(response.board.width, response.board.height);
-      self.position = response.position;
+      self.key       = response.key;
+      self.loggedIn  = true;
+      self.alive     = true;
+      self.board     = new Board(response.board.width, response.board.height);
+      self.position  = response.position;
       self.direction = response.direction;
-      self.size = response.size;
+      self.size      = response.size;
 
       // Invoke callback
       callback(null, {
-        board:    self.board,
-        position: self.position,
-        size:     self.size,
-        clients:  response.otherClients
+        board:     self.board,
+        position:  self.position,
+        direction: self.direction,
+        size:      self.size,
+        clients:   response.otherClients
       });
     });
   };
@@ -109,10 +110,10 @@ Client.prototype.move = function(direction, callback) {
 
   var self = this;
 
-  this.server.move(this.key, this.state.dir, function(err, result) {
+  this.server.move(this.key, direction, function(err, result) {
     if (err) return callback(err);
     self._trace('move response from server: %j', result);
-    self.position = result.position;
+    self.position  = result.position;
     self.direction = result.direction;
     callback(null, { 
       position:  self.position, 
