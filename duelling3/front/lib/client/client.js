@@ -33,6 +33,7 @@ var Client = module.exports = function(server) {
   this.position = undefined;
   this.direction = undefined;
   this.size  = 0;
+  this.clients = [];
 }
 sys.inherits(Client, events.EventEmitter);
 
@@ -60,6 +61,7 @@ Client.prototype.login = function(name, callback) {
       self.position  = response.position;
       self.direction = response.direction;
       self.size      = response.size;
+      self.clients   = response.clients;
 
       // Invoke callback
       callback(null, {
@@ -67,7 +69,7 @@ Client.prototype.login = function(name, callback) {
         position:  self.position,
         direction: self.direction,
         size:      self.size,
-        clients:   response.otherClients
+        clients:   self.clients
       });
     });
   };
@@ -157,11 +159,14 @@ Client.prototype.taunt = function(name, message, callback) {
 
 Client.prototype.userLogin = function(name) {
   this._trace('userLogin(%s)', name);
+  this.clients.push(name);
   this.emit('userLogin', name);
 };
 
 Client.prototype.userLogout = function(name) {
   this._trace('userLogout(%s)', name);
+  var index = this.clients.indexOf(name);
+  if (index >= 0) this.clients.splice(index, 1);
   this.emit('userLogout', name);    
 };
 

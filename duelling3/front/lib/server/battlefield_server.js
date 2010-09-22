@@ -47,12 +47,12 @@ BattlefieldServer.prototype.login = function(clients, board, client, name, callb
 
   // Response with successful login
   callback(null, {
-    key:          key, 
-    board:        { width:board.width, height:board.height },
-    position:     { x:client.position.x, y:client.position.y },
-    direction:    client.direction,
-    size:         client.size,
-    otherClients: clients.map(function(c) { return c.name; }).filter(function(n) { return n !== name; })
+    key:       key, 
+    board:     { width:board.width, height:board.height },
+    position:  { x:client.position.x, y:client.position.y },
+    direction: client.direction,
+    size:      client.size,
+    clients:   clients.map(function(c) { return c.name; }).filter(function(n) { return n !== name; })
   });
 }
 
