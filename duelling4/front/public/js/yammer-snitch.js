@@ -164,7 +164,7 @@ var snitch = function($) {
           '</a>',
         '</div>',
       '</li>'
-    ].join('');
+    ].join(''); 
   }
 
   function _createRankList(newList, oldList, classPrefix, colours) {
