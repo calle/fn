@@ -1,6 +1,10 @@
 body {
 	background: #F9F9F9;
 }
+.top-header {
+	background: #C0DEED url(http://a3.twimg.com/a/1290206336/images/bg-clouds.png) repeat-x scroll 0;
+}
+
 .page-content {
 	margin-top: 20px;
 	overflow: hidden;
@@ -39,7 +43,8 @@ body {
 }
 
 .bolshevik li {
-	background: #ECF3FE;
+	background: #ffffff; --#C0DEED; --#ECF3FE;
+	border-bottom: 1px solid #cccccc;
 }
 
 .menshevik .nav-title {
@@ -47,7 +52,8 @@ body {
 }
 
 .menshevik li {
-	background: #D6A3A3;
+	background: #ffffff; --#F88677; --#D6A3A3;
+	border-bottom: 1px solid #cccccc;
 }
 
 .nav-list li {
@@ -69,4 +75,8 @@ body {
 
 .anim-hide {
 	opacity: 0;
+}
+
+.emph {
+	font-weight: bold;
 }
