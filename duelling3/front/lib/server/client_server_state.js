@@ -97,20 +97,16 @@ ClientServerState.prototype.occupies = function(board, position) {
  * Updates
  */
 
-ClientServerState.prototype.userLogin = function(name, position, direction) {
-  this.target.userLogin(name, position, direction);
+ClientServerState.prototype.userLogin = function(name) {
+  this.target.userLogin(name);
 };
 
 ClientServerState.prototype.userLogout = function(name) {
   this.target.userLogout(name);    
 };
 
-ClientServerState.prototype.userMoved = function(name, position, direction) {
-  this.target.userMoved(name, position, direction);
-};
-
-ClientServerState.prototype.userKilled = function(name, by, position) {
-  this.target.userKilled(name, by, position);
+ClientServerState.prototype.userKilled = function(name) {
+  this.target.userKilled(name);
 };
 
 ClientServerState.prototype.killed = function(by, position) {

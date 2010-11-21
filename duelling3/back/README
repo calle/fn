@@ -1,0 +1,18 @@
+Right grabbar.
+
+Jag har inte riktigt fått till att köra servern från ett shell-script, men har iaf ett make script för att kompilera grejerna.
+
+För att köra hela klabbet gör man följande:
+
+
+1. Starta erlang
+2. Starta servern
+
+$> erl
+1> main:start(32, 32).
+
+De två argumenten är brädesstorleken. Glöm inte punkten i slutet.
+
+Det verkar vara en bugg nånstans om man forcar ner en uppkoppling genom att stänga telnet eller nått. Har inte orkat leta upp den än..
+
+Mats

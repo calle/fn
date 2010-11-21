@@ -7,10 +7,9 @@ var events = require('events'),
  * The Client object, holder for one client connection.
  *  
  * Extends EventEmitter with the following events:
- *  - userLogin(name, position, direction) 
+ *  - userLogin(name) 
  *  - userLogout(name)
- *  - userMoved(name, position, direction)
- *  - userKilled(name, by, position)
+ *  - userKilled(name)
  *  - killed(by, position)
  *  - taunted(by, message)
  *
@@ -30,10 +29,12 @@ var Client = module.exports = function(server) {
   this.key = undefined;
   this.loggedIn = false;
   this.alive = false; // We become alive when we login
+  this.name = undefined;
   this.board = undefined;
   this.position = undefined;
   this.direction = undefined;
   this.size  = 0;
+  this.clients = [];
 }
 sys.inherits(Client, events.EventEmitter);
 
@@ -54,20 +55,23 @@ Client.prototype.login = function(name, callback) {
       self._trace('successful login to server with name %s: %j', name, response);
 
       // Setup internal state
-      self.key = response.key;
-      self.loggedIn = true;
-      self.alive = true;
-      self.board = new Board(response.board.width, response.board.height);
-      self.position = response.position;
+      self.key       = response.key;
+      self.loggedIn  = true;
+      self.alive     = true;
+      self.name      = name;
+      self.board     = new Board(response.board.width, response.board.height);
+      self.position  = response.position;
       self.direction = response.direction;
-      self.size = response.size;
+      self.size      = response.size;
+      self.clients   = response.clients;
 
       // Invoke callback
       callback(null, {
-        board:    self.board,
-        position: self.position,
-        size:     self.size,
-        clients:  response.otherClients
+        board:     self.board,
+        position:  self.position,
+        direction: self.direction,
+        size:      self.size,
+        clients:   self.clients
       });
     });
   };
@@ -109,10 +113,10 @@ Client.prototype.move = function(direction, callback) {
 
   var self = this;
 
-  this.server.move(this.key, this.state.dir, function(err, result) {
+  this.server.move(this.key, direction, function(err, result) {
     if (err) return callback(err);
     self._trace('move response from server: %j', result);
-    self.position = result.position;
+    self.position  = result.position;
     self.direction = result.direction;
     callback(null, { 
       position:  self.position, 
@@ -132,7 +136,9 @@ Client.prototype.shoot = function(position, callback) {
     return callback({ message:'Cannot shoot outside board' });
   }
 
+  var self = this;
   this.server.shoot(this.key, position, function(err, result) {
+    self._trace('shoot: response is (%j, %j)', err, result);
     if (err) return callback(err);
     callback(null, { kills:(result || []) });
   });
@@ -155,24 +161,22 @@ Client.prototype.taunt = function(name, message, callback) {
  * Server interface methods
  */
 
-Client.prototype.userLogin = function(name, position, direction) {
-  this._trace('userLogin(%s, %d,%d, %d)', name, position.x, position.y, direction);
-  this.emit('userLogin', name, position, direction);
+Client.prototype.userLogin = function(name) {
+  this._trace('userLogin(%s)', name);
+  this.clients.push(name);
+  this.emit('userLogin', name);
 };
 
 Client.prototype.userLogout = function(name) {
   this._trace('userLogout(%s)', name);
+  var index = this.clients.indexOf(name);
+  if (index >= 0) this.clients.splice(index, 1);
   this.emit('userLogout', name);    
 };
 
-Client.prototype.userMoved = function(name, position, direction) {
-  this._trace('userMoved(%s, %d,%d, %d)', name, position.x, position.y, direction);
-  this.emit('userMoved', name, position, direction);
-};
-
-Client.prototype.userKilled = function(name, by, position) {
-  this._trace('userKilled(%s, %s, %d,%d)', name, by, position.x, position.y);
-  this.emit('userKilled', name, by, position);
+Client.prototype.userKilled = function(name) {
+  this._trace('userKilled(%s)', name);
+  this.emit('userKilled', name);
 };
 
 Client.prototype.killed = function(by, position) {

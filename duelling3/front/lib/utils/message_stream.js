@@ -45,12 +45,17 @@ MessageStream.prototype.send = function(data) {
     return false;
   }
   
-  this._trace('send: %s', data);
+  this._trace('send: %j', data);
   this.stream.write(data);
   this.stream.flush();
 
   return true;
 }
+
+MessageStream.prototype.close = function() {
+  this._trace('close stream');
+  this.stream.end();
+};
 
 MessageStream.prototype.request = function(id, type, data) {
   // Serialize message
@@ -59,7 +64,7 @@ MessageStream.prototype.request = function(id, type, data) {
 
   // Send request
   this._trace("request: sending %s request with id %d: %s", type, id, args);
-  return this.send(id + ':' + type + ':' + args + this.protocol.messageSeparator);
+  return this.send(id + ':' + type + (args.length > 0 ? ':' + args : '') + this.protocol.messageSepString);
 };
 
 MessageStream.prototype.reply = function(id, type, data) {
@@ -69,7 +74,7 @@ MessageStream.prototype.reply = function(id, type, data) {
 
   // Send reply
   this._trace('reply: sending %s reply with id %d: %s', type, id, args);
-  return this.send("response:" + id + ":" + args + this.protocol.messageSeparator);
+  return this.send("response:" + id + ":" + args + this.protocol.messageSepString);
 };
 
 MessageStream.prototype.update = function(type, data) {
@@ -78,7 +83,7 @@ MessageStream.prototype.update = function(type, data) {
   var args = this.protocol.packUpdate(type, data);
 
   this._trace('update: sending %s update: %s', type, args);
-  return this.send("update:" + type + ":" + args + this.protocol.messageSeparator);
+  return this.send("update:" + type + ":" + args + this.protocol.messageSepString);
 };
 
 /*
@@ -86,12 +91,16 @@ MessageStream.prototype.update = function(type, data) {
  */
 
 MessageStream.prototype.receivedData = function(data) {
+  this._trace('receivedData: %j', data)
+
   // Append data to buffer
   this.buffer += data;
   
   // Split buffer at \n
-  var parts = this.buffer.split(this.protocol.messageSeparator);
+  var parts = this.buffer.split(this.protocol.messageSepRegExp);
 
+  this._trace('receivedData: split data on %s: %j', this.protocol.messageSepRegExp, parts)
+  
   // Emit message for each part but the last
   while (parts.length > 1) this.emit('message', parts.shift());
 

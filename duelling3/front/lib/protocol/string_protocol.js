@@ -6,8 +6,9 @@
  *    between two messages
  *
  */
-var StringProtocol = module.exports = function(separator) {
-  this.messageSeparator = separator || '\n';
+var StringProtocol = module.exports = function() {
+  this.messageSepString = '\n';
+  this.messageSepRegExp = /\r?\n/;
 }
 
 /*
@@ -42,6 +43,30 @@ StringProtocol.prototype.unpackResponse = function(type, message) {
  * Updates
  */
 
+StringProtocol.prototype.packUserloginUpdate = function(data) {
+  return format('{name}', data);
+}
+
+StringProtocol.prototype.unpackUserloginUpdate = function(message) {
+  return { name:message };
+}
+
+StringProtocol.prototype.packUserlogoutUpdate = function(data) {
+  return format('{name}', data);
+}
+
+StringProtocol.prototype.unpackUserlogoutUpdate = function(message) {
+  return { name:message };
+}
+
+StringProtocol.prototype.packUserkilledUpdate = function(data) {
+  return format('{name}', data);
+}
+
+StringProtocol.prototype.unpackUserkilledUpdate = function(message) {
+  return { name:message };
+}
+
 StringProtocol.prototype.packTauntedUpdate = function(data) {
   return format('{from}:{message}', data);
 }
@@ -58,7 +83,7 @@ StringProtocol.prototype.packKilledUpdate = function(data) {
   return format('{by}:{position.x},{position.y}', data);
 }
 
-StringProtocol.prototype.unpackKilledUpdate = function(data) {
+StringProtocol.prototype.unpackKilledUpdate = function(message) {
   var parts = message.split(/:/),
       by = parts.shift(),
       positions = parts.shift().split(/,/);
@@ -148,10 +173,10 @@ StringProtocol.prototype.unpackLoginResponse = function(message) {
     position: {
       x:     parseInt(parts.shift(), 10),
       y:     parseInt(parts.shift(), 10),
-      dir:   parts.shift()
     },
-    size:    parseInt(parts.shift(), 10),
-    clients: parts.filter(function(part) { return part; })
+    direction: parts.shift(),
+    size:      parseInt(parts.shift(), 10),
+    clients:   parts.filter(function(part) { return part; })
   };
 }
 
@@ -180,16 +205,17 @@ StringProtocol.prototype.unpackMoveResponse = function(message) {
 
 StringProtocol.prototype.packShootResponse = function(data) {
   if (data && data.length > 0) {
-    return 'kill,' + data.join(',');
+    return 'kill:' + data.join(',');
   }
   return 'miss'
 }
 
 StringProtocol.prototype.unpackShootResponse = function(message) {
-  var parts = message.split(/,/),
-      status = parts.shift();
+  var parts  = message.split(/:/),
+      status = parts.shift(),
+      rest   = parts.join(':');
   if (status === 'kill') {
-    return parts.filter(function(part) { return part; });
+    return rest.split(/,/).filter(function(part) { return part; });
   } else {
     return [];
   }

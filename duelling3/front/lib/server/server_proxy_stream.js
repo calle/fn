@@ -27,11 +27,10 @@ var ServerProxyStream = module.exports = function(stream) {
   this.lastRequestId = 0;
   this.requests = {};
   
-  // Setup stream events
-  stream.setEncoding('ascii');
-  stream.on('message', this.streamMessage.bind(this));
-  stream.on('error',   this.streamError.bind(this));
-  stream.on('closed',  this.streamClosed.bind(this));
+  // Setup message stream events
+  this.stream.on('message', this.streamMessage.bind(this));
+  this.stream.on('error',   this.streamError.bind(this));
+  this.stream.on('closed',  this.streamClosed.bind(this));
 }
 sys.inherits(ServerProxyStream, events.EventEmitter);
 
@@ -39,34 +38,30 @@ sys.inherits(ServerProxyStream, events.EventEmitter);
  * Server methods
  */
 
-ServerProxyStream.prototype.register = function(client) {
-  if (this.client) throw new Error('Can only have one client connected at the time to a ServerProxyStream');
-  this.client = client;  
-}
-
-ServerProxyStream.prototype.unregister = function(client) {
-  if (this.client === client) {
-    this.client = null;
-  }
-}
-
 ServerProxyStream.prototype.login = function(client, name, callback) {
+  this.client = client;
   this.request('login', { name:name }, callback);
 }
 
-ServerProxyStream.prototype.logout = function(client, callback) {
-  this.request('logout', {}, callback);
+ServerProxyStream.prototype.logout = function(key, callback) {
+  var self = this;
+  this.request('logout', {}, function(err) {
+    if (err) return callback(err);
+    // Also kill stream towards server
+    self.stream.close();
+    callback(null);
+  });
 }
 
-ServerProxyStream.prototype.move = function(client, direction, callback) {
+ServerProxyStream.prototype.move = function(key, direction, callback) {
   this.request('move',  { direction:direction }, callback);
 }
 
-ServerProxyStream.prototype.shoot = function(client, position, callback) {
+ServerProxyStream.prototype.shoot = function(key, position, callback) {
   this.request('shoot', { position:position }, callback);
 }
 
-ServerProxyStream.prototype.taunt = function(client, name, message, callback) {
+ServerProxyStream.prototype.taunt = function(key, name, message, callback) {
   this.request('taunt', { name:name, message:message }, callback);
 }
 
@@ -86,7 +81,7 @@ ServerProxyStream.prototype.streamMessage = function(message) {
   } else if (type === "update") {
     this.streamUpdate(rest);
   } else {
-    this._trace('streamMessage: unknown message type: ' + command)
+    this._trace('streamMessage: unknown message type: %s', type)
   }
 }
 
@@ -148,6 +143,7 @@ ServerProxyStream.prototype.streamResponse = function(message) {
     } else {
       // Parse data for command
       var data = this.protocol.unpackResponse(request.type, rest)
+      this._trace("streamResponse: unpack %s response %j to %j", request.type, rest, data);
       request.callback(null, data);
     }
 
@@ -171,13 +167,17 @@ ServerProxyStream.prototype.streamUpdate = function(message) {
 
   var data = this.protocol.unpackUpdate(type, rest);
 
-  switch (type) {
+  switch (type.toLowerCase()) {
+    case 'userlogin':
+      return this.client.userLogin(data.name);
+    case 'userlogout':
+      return this.client.userLogout(data.name);
+    case 'userkilled':
+      return this.client.userKilled(data.name);
     case 'taunted':
-      this.client.taunted(data.from, data.message);
-      break;
+      return this.client.taunted(data.by, data.message);
     case 'killed':
-      this.client.killed(data.by, data.position);
-      break;
+      return this.client.killed(data.by, data.position);
     default:
       this._trace("streamUpdate: unknown update type %s", type);
   }

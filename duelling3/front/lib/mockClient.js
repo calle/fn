@@ -54,7 +54,7 @@ var output = function() {
 }
 
 // Create server
-var server = new ServerProxySocket('localhost', 3001);
+var server = new ServerProxySocket('localhost', 9000);
 
 // Create and register client
 var client = new Client(server);
