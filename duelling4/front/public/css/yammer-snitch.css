@@ -1,0 +1,72 @@
+body {
+	background: #F9F9F9;
+}
+.page-content {
+	margin-top: 20px;
+	overflow: hidden;
+}
+
+.three-column-layout {
+	background: #FFFFFF url(../images/grey_double_border.gif) repeat-y scroll 0 0;
+}
+
+.three-column-layout #column-one {
+	padding-left: 0px;
+	padding-right: 15px;
+	width: 180px;
+}
+
+.three-column-layout #column-two {
+	padding-right: 46px;
+}
+
+.three-column-layout #column-three {
+	width: 179px;
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.nav-title {
+	padding-left: 15px;
+}
+
+.bolshevik, .menshevik {
+	background: #EBEBEB;
+}
+
+.bolshevik .nav-title {
+	color: #416FC3;
+}
+
+.bolshevik li {
+	background: #ECF3FE;
+}
+
+.menshevik .nav-title {
+	color: #D60000;
+}
+
+.menshevik li {
+	background: #D6A3A3;
+}
+
+.nav-list li {
+	width: auto;
+	padding-top: 4px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	line-height: 15px;
+}
+
+.nav-list {
+	margin-left: 0;
+}
+
+.points {
+	float: right;
+	padding-right: 4px;
+}
+
+.anim-hide {
+	opacity: 0;
+}
