@@ -3,6 +3,8 @@ var snitch = function($) {
     good: [],
     bad: []
   };
+
+  var initLists;
   
   var developerMode = window.location.search.match("dev=true") !== null;
   
@@ -16,27 +18,27 @@ var snitch = function($) {
   var mockUsers = [
     {
       name: 'Calle Wester',
-			username: 'calle-wester',
+      username: 'calle-wester',
       avatar: 'https://assets2.yammer.com/user_uploaded/photos/p1/0124/5698/train_small.jpg'
     }, 
     {
       name: 'Tom Andersson',
-			username: 'tom-andersson',
+      username: 'tom-andersson',
       avatar: 'https://assets1.yammer.com/user_uploaded/photos/p1/0094/4546/catbagel_small.jpg'
     }, 
     {
       name: 'Magnus Wideberg',
-			username: 'magnus-wideberg',
+      username: 'magnus-wideberg',
       avatar: 'https://assets3.yammer.com/user_uploaded/photos/p1/0115/4413/T167228_Steve-McQueen-Posters_small.jpg'
     }, 
     {
       name: 'Ulf Liedberg',
-			username: 'ulf-liedberg',
+      username: 'ulf-liedberg',
       avatar: 'https://assets1.yammer.com/user_uploaded/photos/p1/0202/5809/uffe.boat_small.jpg'
     }, 
     {
       name: 'Mårten Sjöstrand',
-			username: 'marten-sjostrand',
+      username: 'marten-sjostrand',
       avatar: 'https://assets3.yammer.com/user_uploaded/photos/p1/0138/2718/bild_small.jpg'
     }];
   var mockTags = ['fnnl', 'elakt', 'mendurå', 'some-tag', 'blabla'];
@@ -61,6 +63,7 @@ var snitch = function($) {
     };    
   }
   
+  var mockStore = {good: [], bad: []};
   function generateMockLists() {
     var goodList = [];
     var badList = [];
@@ -70,13 +73,13 @@ var snitch = function($) {
         
     for (var i = 0, n = 10; i < n; i++) {
       user = (mockUsers[Math.round(Math.random() * (mockUsers.length - 1))]);
-			
-			name = user.name
+      
+      name = user.name
       seenGood[name] =  (seenGood[name] >= 0) ? ++seenGood[name] : 0;
       seenBad[name] =  (seenBad[name] >= 0) ? ++seenBad[name] : 0;
-			
-			goodUser 	= $.extend({}, user, {name: name + seenGood[name]});
-			badUser		=	$.extend({}, user, {name: name + seenBad[name]});
+      
+      goodUser  = $.extend({}, user, {name: name + seenGood[name]});
+      badUser   = $.extend({}, user, {name: name + seenBad[name]});
 
       goodList.push({
         user: goodUser,
@@ -87,12 +90,20 @@ var snitch = function($) {
         user: badUser,
         points: Math.round(100 - Math.random() * 500)
       });
-    } 
+    }
+ 
+    if (mockStore.good.length === 0) {
+      mockStore.good = goodList;
+      mockStore.bad  = badList;
+    } else {
+      mockStore.good = Math.random() > 0.9 ? goodList : mockStore.good;
+      mockStore.bad = Math.random() > 0.3 ? badList : mockStore.bad;
+    }
     
     return {
       score: {
-        good: goodList,
-        bad: badList
+        good: mockStore.good,
+        bad: mockStore.bad
       }
     };
   }
@@ -134,7 +145,7 @@ var snitch = function($) {
             '</p>',
           '</div>',
         '</div>',
-				(tags.length > 0 ? [
+        (tags.length > 0 ? [
         '<div class="thread-replies-container">',
           '<div class="thread-replies-pointer"><!--wsb--></div>',
           '<div class="thread-topics yj-component">',
@@ -147,7 +158,9 @@ var snitch = function($) {
         '</div>'].join('') : ''),
       '</li>'
     ].join(''));
-    
+
+    $('#spinner-container').hide(); 
+
     listNode.prepend(newItem);
     newItem.siblings().first().removeClass('first-message');
     newItem.animate({
@@ -165,13 +178,13 @@ var snitch = function($) {
     return [
       '<li class="fix-hover feed-navigator-list-item" id="', id, '">',       
         '<div class="feed-list-item-container user-container">',
-				  '<img src="', data.user.avatar, '" class="user-thumb image" alt="', data.user.name, '">',
+          '<img src="', data.user.avatar, '" class="user-thumb image" alt="', data.user.name, '">',
           '<div class="user ', colour ? 'changed' : '', '">',
-	          '<a title="', data.user.name, '" href="https://www.yammer.com/netlight.se/users/', data.user.username, '" class="nav-list-link" style="color: ', colour, '">',
-	            '<span class="name">', data.user.name, '</span><br />',
-	          '</a>',
+            '<a title="', data.user.name, '" href="https://www.yammer.com/netlight.se/users/', data.user.username, '" class="nav-list-link" style="color: ', colour, '">',
+              '<span class="name">', data.user.name, '</span><br />',
+            '</a>',
             '<span class="points">', data.points, " points.</span>",
-						'<span class="points-diff anim-hide"></span>',
+            '<span class="points-diff anim-hide"></span>',
           '</div>',
         '</div>',
       '</li>'
@@ -179,34 +192,34 @@ var snitch = function($) {
   }
 
   function _createRankList(newList, oldList, classPrefix, colours) {
-	  var listData = currentLists[oldList];
-		
-		currentLists[oldList] = [];
-	
-		var newItems = [];
-		var id, currNode, diff, currUser, changedColour,
+    var listData = currentLists[oldList];
+    
+    currentLists[oldList] = {};
+  
+    var newItems = [];
+    var id, currNode, diff, currUser, changedColour,
         newItems    = [],
-				// Always update the lists on create, else only do so if we have new data
-        hasChanged = listData.length === 0;
+        // Always update the lists on create, else only do so if we have new data
+        hasChanged = initLists || false;
     for (var i = 0, n = newList.length; i < n; i++) {
       currUser = newList[i];
       prevData = listData[currUser.user.name];
       id = classPrefix + '-item-' + i; 
-			changedColour = undefined;
+      changedColour = undefined;
       
       if (prevData && i !== prevData.pos) {
-				changedColour = (i < prevData.pos) ? colours.climb : colours.fall;
-				currNode = $('#' + prevData.elementId);
+        changedColour = (i < prevData.pos) ? colours.climb : colours.fall;
+        currNode = $('#' + prevData.elementId);
         currNode.find('span.name').animate({
           color: changedColour
         }, 1000);
-				currNode.find('span.points-diff').animate({
-					opacity: 1
-				}, 1000);
+        currNode.find('span.points-diff').animate({
+          opacity: 1
+        }, 1000);
 
-				diff = currUser.points - prevData.points;
-				currNode.find('span.points-diff').append(diff > 0 ? '+' + diff : diff);
-				hasChanged = true;
+        diff = currUser.points - prevData.points;
+        currNode.find('span.points-diff').append(diff > 0 ? '+' + diff : diff);
+        hasChanged = true;
       } 
       newItems.push(_createListItem(currUser, id, changedColour));
       
@@ -217,52 +230,54 @@ var snitch = function($) {
       };
     }
     return hasChanged ? 
-			$(['<ul class="feed-list hover-menu nav-list anim-hide" id="', classPrefix, '-list">',
-	      newItems.join(''),
-	    '</ul>'].join('')) : null;
-	}
+      $(['<ul class="feed-list hover-menu nav-list anim-hide" id="', classPrefix, '-list">',
+        newItems.join(''),
+      '</ul>'].join('')) : null;
+  }
 
   function updateLists(message) {
     var goodList  = message.score.good;
     var badList   = message.score.bad;
 
     var newBolshevikList = _createRankList(goodList, 'good', 'bolsheviks', {climb: '#416FC3', fall: '#D60000' });
-		var newMenshevikList = _createRankList(badList, 'bad', 'mensheviks', {climb: '#D60000', fall: '#416FC3' });
+    var newMenshevikList = _createRankList(badList, 'bad', 'mensheviks', {climb: '#D60000', fall: '#416FC3' });
 
-		var cleanupFunction = function() {
-			var defaultColor = $('.user').not('.changed').find('a').css('color');
-			var nodes = $('.user.changed a')
-			nodes.animate({
-				color: defaultColor
-			}, 500);
-		};
-		
+    initLists = false;
+    
+    var cleanupFunction = function() {
+      var defaultColor = $('.user').not('.changed').find('a').css('color');
+      var nodes = $('.user.changed a')
+      nodes.animate({
+        color: defaultColor
+      }, 500);
+    };
+    
     var updateFunction = function() {
-			if (newBolshevikList) {
-				$('#bolsheviks-list').animate({
-	        opacity: 0
-	      }, 200, function() {
-	        $(this).replaceWith(newBolshevikList);
-	        newBolshevikList.animate({
-	          opacity: 1
-	        }, 400, function() {
-						setTimeout(cleanupFunction, 1000);
-					});
-	      });
-			}
+      if (newBolshevikList) {
+        $('#bolsheviks-list').animate({
+          opacity: 0
+        }, 200, function() {
+          $(this).replaceWith(newBolshevikList);
+          newBolshevikList.animate({
+            opacity: 1
+          }, 400, function() {
+            setTimeout(cleanupFunction, 1000);
+          });
+        });
+      }
       
       if (newMenshevikList) {
-				$('#mensheviks-list').animate({
-	        opacity: 0
-	      }, 200, function() {
-	        $(this).replaceWith(newMenshevikList);
-	        newMenshevikList.animate({
-	          opacity: 1
-	        }, 400, function() {
-						setTimeout(cleanupFunction, 1000);
-					});
-	      });
-			};
+        $('#mensheviks-list').animate({
+          opacity: 0
+        }, 200, function() {
+          $(this).replaceWith(newMenshevikList);
+          newMenshevikList.animate({
+            opacity: 1
+          }, 400, function() {
+            setTimeout(cleanupFunction, 1000);
+          });
+        });
+      };
     };
     
     setTimeout(updateFunction, 5000);
@@ -270,7 +285,10 @@ var snitch = function($) {
   
   return {
     init: function() {
-			// Use mock data if in dev mode
+      // Ensure we update the user lists
+      initLists = true;
+      
+      // Use mock data if in dev mode
       if (developerMode) {
         var timeoutFunction = function() {
           appendMessage(generateMockMessage());
@@ -301,9 +319,9 @@ var snitch = function($) {
         socket.on('disconnect', function() {
           console.log('disconnected')
         });
-	}
+  }
     }
-		
+    
   };
 }(jQuery);
 
