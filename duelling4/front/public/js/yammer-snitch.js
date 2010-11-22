@@ -114,7 +114,7 @@ var snitch = function($) {
     }
     
     var newItem = $([
-      '<li class="thread-list-item thread-replies-hidden yj-component first-message anim-hide">',
+      '<li class="thread-list-item thread-replies-hidden yj-component first-message anim-hide" message-id="', message.id, '">',
         '<div class="thread-starter yj-component">',
           '<div class="message-container">',
             '<div class="avatar yj-component">',
@@ -284,8 +284,24 @@ var snitch = function($) {
         };
         setTimeout(listTimeoutFunction, 1000);
       } else {
-	      // TODO: Attach event handlers to Socket.IO events
-			}
+        var socket = new io.Socket();
+        socket.connect()
+        socket.on('connect', function() {
+          console.log('connected')
+        });
+        socket.on('message', function(data) {
+          if (data.message) {
+            appendMessage(data);
+          } else if (data.score) {
+            updateLists(data);
+          } else {
+            console.log('unknown message')
+          }
+        });
+        socket.on('disconnect', function() {
+          console.log('disconnected')
+        });
+	}
     }
 		
   };
