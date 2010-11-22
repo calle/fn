@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta content="text/html;charset=UTF-8" http-equiv="content-type">
+     
+  <title>Functional Netlight's Yammer Snitch</title>
+  <link type="text/css" rel="stylesheet" media="screen, projection" href="https://assets3.yammer.com/stylesheets/message_feed_packaged.css?1290222571">
+	<link type="text/css" rel="stylesheet" media="screen, projection" href="stylesheets/yammer-snitch.css">
+	<script type="text/javascript" src="javascripts/jquery-1.4.3.min.js"></script>
+	<script type="text/javascript" src="javascripts/jquery.color.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="javascripts/yammer-snitch.js"></script>
+</head>
+<body class="home-controller not-ie yam-js yj-component">
+	<div class="page-content rounded-bottom three-column-layout">
+		<div id="network-header" class="top-header"> 
+      <h1 id="network-logo">
+      	<a tooltip-content-id="network-stats" position="right" id="home-link" class="enhanced-tooltip" href="/netlight.se">Functional Netlight's Yammer Snitch</a>
+      </h1>
+		  <div class="clearing"></div>  
+		</div>
+	  <div class="column" id="column-one">
+			<div id="feed-navigator-container">
+				<div class="yj-component bolshevik">
+					<h4 class="nav-title">BOLSHEVIKS</h4>
+					<ul class="feed-list hover-menu nav-list" id="bolsheviks-list">
+						<li></li>
+					</ul>
+				</div>
+			</div>
+	  </div>
+	  <div class="column" id="column-two">
+			<div id="main-content">
+				<div class="list-wrapper yj-component">
+	      	<div id="feed-title-container">
+						<h3 class="home-feed-title yj-component">
+							<span class="feed-name">Snitches</span>
+							<span style="display: none;" class="new-message-count"></span>
+						</h3>
+					</div>
+					<div id="message-form-container">
+						<div class="message-form-container yj-component" id="main-message-form-container">
+						</div>
+					</div>
+					<div id="list-container">
+						<div id="notices-container">
+							<div id="spinner-container" class="yj-component" style="display: none;">
+								<div id="spinner">Loading...</div>
+							</div>
+							<div class="message-list-notice yj-component" style="display: none;"></div>
+							<div class="message-list-notice yj-component" id="new-messages-notice" style="display: none;">
+								<a href="javascript://" class="new-messages-link">
+									<span class="refresh-messages-indicator">&nbsp;&nbsp;&nbsp;</span>
+									<span class="notice-text"></span>
+								</a>
+							</div>
+						</div>
+						<ul class="feed-messages" id="thread-list" style="display: block;">
+							<li></li>
+	  				</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="column" id="column-three">
+			<div id="feed-navigator-container">
+				<div class="yj-component menshevik">
+					<h4 class="nav-title">MENSHEVIKS</h4>
+					<ul class="feed-list hover-menu nav-list" id="mensheviks-list">
+						<li></li>
+					</ul>
+				</div>
+			</div>
+	  </div>
+	</div>
+</body>
+</html>	
+		

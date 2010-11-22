@@ -1,0 +1,82 @@
+body {
+	background: #F9F9F9;
+}
+.top-header {
+	background: #C0DEED url(http://a3.twimg.com/a/1290206336/images/bg-clouds.png) repeat-x scroll 0;
+}
+
+.page-content {
+	margin-top: 20px;
+	overflow: hidden;
+}
+
+.three-column-layout {
+	background: #FFFFFF url(../images/grey_double_border.gif) repeat-y scroll 0 0;
+}
+
+.three-column-layout #column-one {
+	padding-left: 0px;
+	padding-right: 15px;
+	width: 180px;
+}
+
+.three-column-layout #column-two {
+	padding-right: 46px;
+}
+
+.three-column-layout #column-three {
+	width: 179px;
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.nav-title {
+	padding-left: 15px;
+}
+
+.bolshevik, .menshevik {
+	background: #EBEBEB;
+} 
+
+.bolshevik .nav-title {
+	color: #416FC3;
+}
+
+.bolshevik li {
+	background: #ffffff; --#C0DEED; --#ECF3FE;
+	border-bottom: 1px solid #cccccc;
+}
+
+.menshevik .nav-title {
+	color: #D60000;
+}
+
+.menshevik li {
+	background: #ffffff; --#F88677; --#D6A3A3;
+	border-bottom: 1px solid #cccccc;
+}
+
+.nav-list li {
+	width: auto;
+	padding-top: 4px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	line-height: 15px;
+}
+
+.nav-list {
+	margin-left: 0;
+}
+
+.points {
+	float: right;
+	padding-right: 4px;
+}
+
+.anim-hide {
+	opacity: 0;
+}
+
+.emph {
+	font-weight: bold;
+}
