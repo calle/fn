@@ -26,17 +26,19 @@ Processor.prototype.processMessages = function(messages, callback) {
   });
 
   // points = seen
-  var users = Object.keys(users).map(function(user_id) { 
+  var result = Object.keys(users).map(function(user_id) {
     var user = users[user_id];
-    user.points = user.seen
-    return user
+    return {
+      user: user,
+      points: user.seen
+    }
   });
 
   // Sort by points
-  users.sort(function(a, b) { return a.points - b.points; })
+  result.sort(function(a, b) { return a.points - b.points; })
 
-  var good = users.slice(-10)
-  var bad  = users.slice(0, 10)
+  var good = result.slice(-10).reverse()
+  var bad  = result.slice(0, 10)
 
   setTimeout(function() {
     callback(null, { good:good, bad:bad });
