@@ -68,15 +68,39 @@ body {
 	margin-left: 0;
 }
 
-.points {
-	float: right;
-	padding-right: 4px;
-}
-
 .anim-hide {
 	opacity: 0;
 }
 
 .emph {
 	font-weight: bold;
+	font-size: 12px;
 }
+
+.user-container {
+	height: 35px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.user-container .name {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.user-container .image {
+	margin-right: 6px;
+	float: left;
+}
+
+.user-container .points-diff {
+	float: right;
+	font-weight: bold;
+	padding-right: 2px;
+}
+
+.user-thumb {
+	height: 33px;
+	width: 33px;
+}
+
