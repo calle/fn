@@ -60,7 +60,7 @@ module.exports = function(app) {
   var processMessages = function() {
     logger.debug('processing %d messages', messages.length)
     processor.processMessages(messages, function(err, score) {
-      if (err) return logger.error('error: %o', error);
+      if (err) return logger.error('processing error: %o', err);
 
       lastScore = score;
 
@@ -73,10 +73,10 @@ module.exports = function(app) {
   // Setup database and load initial data
 
   db.setup(function() {
-    db.messages(function(err, result) {
+    db.messages(67753442, function(err, result) {
       if (err) return logger.err('error: %o', err);
 
-      logger.info('got %d messages from database', result.total)
+      logger.info('got %d (of %d) messages from database', result.messages.length, result.total)
       if (result.messages.length > 0) {
         messages.unshift.apply(messages, result.messages);
         logger.info('max id is: ' + result.messages[result.messages.length - 1].id);
