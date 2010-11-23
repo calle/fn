@@ -67,6 +67,7 @@ Yammer.prototype._convertMessage = function(message, callback) {
 
     var result = {
       id: message.id,
+      time: message.created_at,
       from: user,
       content: message.body.plain,
       tags: message.body.plain.match(/#\w+/g) || []

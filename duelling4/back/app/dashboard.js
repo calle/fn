@@ -3,34 +3,39 @@ var logger = require('node-logger').logger('dashboard'),
 
 module.exports = function(app) {
 
-  // Holder for messages
-  var messages = [];
-
-  // Epoc when we start counting messages
-  var fromId = 0;
+  // Cache messages and score
+  var messages = [],
+      lastScore;
 
   var db = app.set('db'),
-      socket = app.set('socket'),
+      socket = app.set('socket.server'),
       yammer = app.set('yammer'),
       processor = app.set('processor');
 
   // Setup events
 
-  socket.on('connection', function(client) {
-    logger.info('client %s connected', client.sessionId);
-
-    // Send latest 7 messages
-    messages.slice(-7).forEach(function(message) {
-      client.send({ message:message })
-    })
-
+  socket.on('connection', function(clientId, client) {
     client.on('message', function(message) {
-      logger.debug('client %s message: %j', client.sessionId, message)
-      // Ignore all incoming messages
-    })
+      if (message.login) {
+        if (message.login !== 'blodpudding') {
+          client.send({ login:'fail' })
+        } else {
+          // Send login response
+          client.send({ login:'ok' })
 
-    client.on('disconnect', function() {
-      logger.info('client %s disconnected', client.sessionId)
+          // Add to server socket to receive broadcasts
+          socket.add(clientId, client)
+
+          // Send latest 7 messages
+          messages.slice(-7).forEach(function(message) {
+            client.send({ message:message })
+          })
+
+          // Send latest score
+          if (lastScore) client.send({ score:lastScore });
+        }
+      }
+      // Ignore other incoming messages
     })
   })
 
@@ -52,15 +57,18 @@ module.exports = function(app) {
 
   // Setup processor
 
-  
-  setInterval(function() {
-    logger.info('processing %d messages', messages.length)
+  var processMessages = function() {
+    logger.debug('processing %d messages', messages.length)
     processor.processMessages(messages, function(err, score) {
       if (err) return logger.error('error: %o', error);
-      logger.info('broadcasting score')
+
+      lastScore = score;
+
+      logger.debug('broadcasting score')
       socket.broadcast({ score:score });
     })
-  }, 10000)
+  };
+  setInterval(processMessages, 10000);
 
   // Setup database and load initial data
 
@@ -73,6 +81,7 @@ module.exports = function(app) {
         messages.unshift.apply(messages, result.messages);
         logger.info('max id is: ' + result.messages[result.messages.length - 1].id);
         yammer.listen(result.messages[result.messages.length - 1].id)
+        processMessages();
       } else {
         yammer.listen(0)
       }
