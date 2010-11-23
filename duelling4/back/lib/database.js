@@ -28,9 +28,11 @@ Database.prototype = {
     setup.setupDatabase(this.db, this.env, callback || function() {})
   },
 
-  messages: function(callback) {
-    logger.trace('messages(...)');
-    this.db.view('data', 'messages-by-id', {}, function(err, data) {
+  messages: function(from, callback) {
+    logger.trace('messages(%s, ...)', from);
+    var options = {}
+    if (from) options.startkey = from
+    this.db.view('data', 'messages-by-id', options, function(err, data) {
       if (err) return callback(err);
       callback(null, {
         start: data.offset || 0,
