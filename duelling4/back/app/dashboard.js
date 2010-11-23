@@ -60,7 +60,7 @@ module.exports = function(app) {
   var processMessages = function() {
     logger.debug('processing %d messages', messages.length)
     processor.processMessages(messages, function(err, score) {
-      if (err) return logger.error('error: %o', error);
+      if (err) return logger.error('processing error: %o', err);
 
       lastScore = score;
 
