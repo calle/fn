@@ -5,14 +5,21 @@
      
   <title>Functional Netlight's Yammer Snitch</title>
   <link type="text/css" rel="stylesheet" media="screen, projection" href="https://assets3.yammer.com/stylesheets/message_feed_packaged.css?1290222571">
-  <link type="text/css" rel="stylesheet" media="screen, projection" href="css/yammer-snitch.css">
+  <link type="text/css" rel="stylesheet" media="screen, projection" href="stylesheets/russki-red.css" title="Russki Red">
+  <link type="text/css" rel="Alternate Stylesheet" media="screen, projection" href="stylesheets/yammer-snitch.css" title="Bolshevik Blue">
   <script type="text/javascript" src="javascripts/jquery-1.4.3.min.js"></script>
   <script type="text/javascript" src="javascripts/jquery.color.js"></script>
   <script type="text/javascript" src="/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="javascripts/yammer-snitch.js"></script>
 </head>
 <body class="home-controller not-ie yam-js yj-component">
-  <div class="page-content rounded-bottom three-column-layout">
+  <div id="authentication">
+    <form id="authentication-form" autocomplete="off">
+      <input class="token" type="text" name="token" />
+      <input class="submit" type="submit" value="login" />
+	  </form>
+  </div>
+  <div id="content" class="page-content rounded-bottom three-column-layout" style="display: none">
     <div id="network-header" class="top-header"> 
       <h1 id="network-logo">
         <a tooltip-content-id="network-stats" position="right" id="home-link" class="enhanced-tooltip" href="/netlight.se">Functional Netlight's Yammer Snitch</a>
@@ -74,5 +81,4 @@
     </div>
   </div>
 </body>
-</html> 
-    
+</html>   

@@ -46,14 +46,9 @@
 (defn start-server [port]
 	; Starts the jetty server at port port
 	(println "Starting server at port: " port)
-	(run-jetty #'kgb-app {:port port}))
+	(run-jetty #'kgb-app {:port port :host "127.0.0.1"}))
 
 (defn start [& [port]]
 	(if port 
 		(start-server (Integer/parseInt port))
 		(start-server 8080)))
-		
-
-
-
-

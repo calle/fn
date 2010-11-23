@@ -1,0 +1,177 @@
+body {
+	background: #F9F9F9;
+}
+
+body, h1, h2, h3, h4, h5, h6 {
+	font-family: "Lucida Sans", "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
+}
+
+#authentication {
+  width: 80%;
+  margin: 50px auto;
+}
+#authentication form label {
+  display: block;
+  margin-top: 1.5em;
+}
+#authentication form input {
+  font-size: 2em;
+  border: 1px solid black;
+  padding: 0.2em;
+}
+#authentication form input.token {
+  width: 80%;
+}
+#authentication form input.submit {
+  font-size: 1.5em;
+  display: inline;
+  margin: 1em;
+}
+
+.top-header {
+}
+
+#network-header {
+	background: #EBEBEB url(../images/soviet.robot.banner.2.png) no-repeat 0 0; 
+	height: 115px;
+	border: 1px solid #b22222;
+}
+
+h1#network-logo {
+	padding-left: 225px;
+	padding-top: 60px;
+	width: 700px;	
+}
+
+#network-logo #home-link {
+	color: #b22222;
+	text-transform: uppercase;
+	font-size: 27px;	
+}
+
+.page-content {
+	margin-top: 20px;
+	overflow: hidden;
+}
+
+.three-column-layout {
+	background: #FFFFFF url(../images/grey_double_border.gif) repeat-y scroll 0 0;
+	
+}
+
+.three-column-layout #column-one {
+	padding-left: 0px;
+	padding-right: 15px;
+	width: 180px; 
+}
+
+.three-column-layout #column-two {
+	padding-top: 25px;
+	padding-right: 46px;
+}
+
+.three-column-layout #column-three {
+	width: 179px;
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.feed-name {
+	 text-transform: uppercase;
+	 font-size: 16px;
+}
+
+h4.nav-title {
+	font-weight: normal;
+	font-size: 16px;
+}
+
+.nav-title {
+	padding-left: 15px;
+}
+
+.bolshevik, .menshevik {
+	background: #EBEBEB;
+} 
+
+.bolshevik .nav-title {
+	color: #d22222;
+}
+.bolshevik a {
+	color: #b22222;
+	font-weight: normal;
+}
+.bolshevik a:focus, .bolshevik a:hover{
+	color: #d22222;
+}
+
+.bolshevik li {
+	background: #ffffff;
+	border-bottom: 1px solid #cccccc;
+}
+
+.menshevik .nav-title {
+	color: #416FC3;
+}
+
+.menshevik li {
+	background: #ffffff;
+	border-bottom: 1px solid #cccccc;
+}
+
+.byline a {
+	color: #b22222;
+}
+
+.byline a:focus, .byline a:hover {
+	color: #d22222;
+}
+
+.nav-list li {
+	width: auto;
+	padding-top: 4px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	line-height: 15px;
+}
+
+.nav-list {
+	margin-left: 0;
+}
+
+.anim-hide {
+	opacity: 0;
+}
+
+.emph {
+	font-weight: bold;
+	font-size: 12px;
+}
+
+.user-container {
+	height: 35px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.user-container .name {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.user-container .image {
+	margin-right: 6px;
+	float: left;
+}
+
+.user-container .points-diff {
+	float: right;
+	font-weight: bold;
+	padding-right: 2px;
+}
+
+.user-thumb {
+	height: 33px;
+	width: 33px;
+}
+
