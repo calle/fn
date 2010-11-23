@@ -239,8 +239,11 @@ var snitch = function($) {
     var goodList  = message.score.good;
     var badList   = message.score.bad;
 
-    var newBolshevikList = _createRankList(goodList, 'good', 'bolsheviks', {climb: '#416FC3', fall: '#D60000' });
-    var newMenshevikList = _createRankList(badList, 'bad', 'mensheviks', {climb: '#D60000', fall: '#416FC3' });
+		var goodColor = $('.bolshevik .nav-title').css('color');
+		var badColor 	= $('.menshevik .nav-title').css('color');
+
+    var newBolshevikList = _createRankList(goodList, 'good', 'bolsheviks', {climb: goodColor, fall: badColor });
+    var newMenshevikList = _createRankList(badList, 'bad', 'mensheviks', {climb: badColor, fall: goodColor });
 
     initLists = false;
     

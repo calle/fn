@@ -1,1 +1,1 @@
-../../../front/public/js/yammer-snitch.js
+../../../front/public/javascripts/yammer-snitch.js
