@@ -1,0 +1,36 @@
+# kgb-service
+
+A service that implements KGB.
+
+## Usage
+Start server by:
+~>lein run start-server
+
+## To verify
+To see used tags:
+~>curl http://localhost:8080/kgb/tags
+{"hej":1,"hopp":2,"ange":100,"kapitalist":-100,"kaviar":-100,"blodpudding":100}
+
+To calculate score:
+Post the following data
+{"messages":
+  [
+	{"from":1, "to":2, "text":"Hej! Hopp! Ange alla!", "time":600, "tags" : []}, 
+    {"from":2, "to":1, "text":"Nu får du allt ta och lugna dig...", "time":60, "tags" : []},
+	{"from":3, "to":1, "text":"Ät kaviar! Fattiglapp", "time":30, "tags" : []},
+	{"from":1, "to":3, "text":"Kapitalist! Jag äter hellre blodpudding!", "time":5, "tags" : []}
+  ]
+}
+~>curl -X POST -H "Content-Type: application/json" --data [THE JSON DATA ABOVE] http://localhost:8080/kgb/score
+{"3":-98.34714538216176,"2":-73.8027249891003,"1":172.14987037126207}
+
+If you wish to use another port use:
+~>lein run start-server [portnr]
+
+## Installation
+1. Install leinningen. See https://github.com/technomancy/leiningen
+2. In same dir as project.clj, run: lein deps to update project dependencies.
+
+## License
+Copyright (C) 2010 FIXME
+Distributed under the Eclipse Public License, the same as Clojure.
