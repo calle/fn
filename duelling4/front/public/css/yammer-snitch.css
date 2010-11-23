@@ -1,6 +1,29 @@
 body {
 	background: #F9F9F9;
 }
+
+#authentication {
+  width: 80%;
+  margin: 50px auto;
+}
+#authentication form label {
+  display: block;
+  margin-top: 1.5em;
+}
+#authentication form input {
+  font-size: 2em;
+  border: 1px solid black;
+  padding: 0.2em;
+}
+#authentication form input.token {
+  width: 80%;
+}
+#authentication form input.submit {
+  font-size: 1.5em;
+  display: inline;
+  margin: 1em;
+}
+
 .top-header {
 	background: #C0DEED url(http://a3.twimg.com/a/1290206336/images/bg-clouds.png) repeat-x scroll 0;
 }

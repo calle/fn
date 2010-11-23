@@ -111,7 +111,7 @@ var snitch = function($) {
   function appendMessage(message) {
     var message = message.message;
     var listNode = $('#thread-list');
-    var time = new Date();
+    var time = new Date(message.time);
     
     var tags = [];
     var currTag;
@@ -301,25 +301,55 @@ var snitch = function($) {
           setTimeout(listTimeoutFunction,  10000);
         };
         setTimeout(listTimeoutFunction, 1000);
+
+        // Hide login and display page
+        $('#authentication').hide();
+        $('#content').show();
+
       } else {
         var socket = new io.Socket();
-        socket.connect()
-        socket.on('connect', function() {
-          console.log('connected')
+        var form = $('#authentication form'),
+            submit = $('input[type=submit]', form);
+
+        form.submit(function() {
+          if (socket.connected) {
+            socket.send({ login:$('input[name=token]', form).val() });
+            submit.attr('disabled', true);
+          }
+          return false;
         });
+
+        submit.attr('disabled', true);
+        socket.connect();
+
+        socket.on('connect', function() {
+          submit.attr('disabled', false);
+        });
+
         socket.on('message', function(data) {
-          if (data.message) {
+          if (data.login === 'ok') {
+            $('#authentication').hide();
+            $('#content').show();
+          } else if (data.login) {
+            $('input[name=token]', form).val('');
+            submit.attr('disabled', false);
+          } else if (data.message) {
+            console.log('got message')
             appendMessage(data);
           } else if (data.score) {
+            console.log('got score')
             updateLists(data);
           } else {
-            console.log('unknown message')
+            // unknown message
           }
         });
+
         socket.on('disconnect', function() {
-          console.log('disconnected')
+          $('#content').hide();
+          $('#authentication').show();
+          submit.attr('disabled', true);
         });
-  }
+      }
     }
     
   };
