@@ -8,6 +8,7 @@
 
 ; Tiden det tar för ett värde att minska med en faktor 1/e (till ca 37%)
 (def decay-time 1800)
+(def self-reply-punishment -30)
 
 (defn tags []
 	tags-score)
@@ -32,7 +33,9 @@
 (defn message-score [message]
 	(let [decay (decay-factor (message "time"))
 		  msg-score (* decay (score-by-content message))]
-		{(str (message "from")) msg-score (str (message "to")) (- msg-score)}))
+		(if (= (message "from") (message "to"))
+			{(str (message "from")) (* decay self-reply-punishment)}
+			{(str (message "from")) msg-score (str (message "to")) (- msg-score)})))
 
 (defn update-score [score message]
 	(merge-with + score (message-score message)))
