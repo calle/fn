@@ -47,7 +47,8 @@ Processor.prototype.processMessages = function(messages, callback) {
         // Non-replies get user '0' and destination
         to:   message.inReplyTo ? message.inReplyTo.id : 0,
         text: message.content,
-        time: (now - new Date(message.time).getTime()),
+        // Time is number of seconds since now
+        time: Math.max(0, Math.round((now - new Date(message.time).getTime()) / 1000)),
         tags: message.tags.map(function(tag) { return tag.replace(/^#/, '') })
       }
     })
