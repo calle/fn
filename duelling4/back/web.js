@@ -15,6 +15,15 @@ require('./app/dashboard')(app);
 
 // Only listen on $ node app.js
 if (!module.parent) {
+  process.on('uncaughtException', function (err) {
+    console.error('Caught exception: ' + err);
+    if (err) {
+      console.error(err);
+      console.error(err.message);
+      console.error(err.stack);
+    }
+  });
+
   Logger.setLevel(Logger.DEBUG);
   app.listen(process.argv[2] || 3000);
   console.log("Express server listening on port %d", app.address().port)
