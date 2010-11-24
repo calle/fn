@@ -43,6 +43,7 @@
 		score
 		(recur (update-score score (first msgs)) (next msgs)))))
 		
-		
 (defn calculate-message-score [messages]
-	(calculate-scores messages))
+	(if (empty? messages)
+	{}
+	(calculate-scores messages)))
