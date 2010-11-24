@@ -2,12 +2,18 @@
 
 (def tags-score 
 	{"spion" 73 "ange" 87 "kapitalist" -74 "kaviar" -114
-	"blodpudding" 122 "film" -20 "brain" -78 "fuck" -21 
-	"armod" 45 "kreml" 56 "softa" -123 "duelling" 34 "club" 54 
-	"menshevik" -132 "bolshevik" 150})
+	 "blodpudding" 60 "film" -20 "brain" -78 "fuck" -21
+	 "armod" 45 "kreml" 56 "softa" -123 "duelling" 34 "club" 54
+	 "menshevik" -132 "bolshevik" 150 "fnnl" 108 "pengar" -20
+	 "tjäna" -50 "röd" 45 "moskva" 100  "markus" -88 "1337" -30 
+	 "aktie" -32 "depå" -21 "vp-konto" -42 "fack" 12 
+	 "fackförening" 45 "arbete" 63 "jobb" 63 "arbetare" 34 
+	 "förena" 17 "idg" -82 "kaffe" 91 "och" 100 "som" -75 
+	})
+
 
 ; Tiden det tar för ett värde att minska med en faktor 1/e (till ca 37%)
-(def decay-time 1800)
+(def decay-time 28800) ; 8h = 28800, 30 min = 1800
 
 (defn tags []
 	tags-score)
