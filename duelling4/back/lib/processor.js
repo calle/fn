@@ -57,6 +57,9 @@ Processor.prototype.processMessages = function(messages, callback) {
   this._invokeProcessor(request, function(err, response) {
     if (err) return callback(err);
 
+    // Remove user '0' from result added above for non-replies
+    delete response["0"];
+
     // Convert response from kgb-server format
     //  {"3":-98.34714538216176,"2":-73.8027249891003,"1":172.14987037126207}
     var result = Object.keys(response).map(function(userId) {
