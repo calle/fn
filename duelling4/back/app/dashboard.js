@@ -73,7 +73,8 @@ module.exports = function(app) {
   // Setup database and load initial data
 
   db.setup(function() {
-    db.messages(67753442, function(err, result) {
+    var firstMessage = 67753442;
+    db.messages(firstMessage, function(err, result) {
       if (err) return logger.err('error: %o', err);
 
       logger.info('got %d (of %d) messages from database', result.messages.length, result.total)
@@ -83,7 +84,7 @@ module.exports = function(app) {
         yammer.listen(result.messages[result.messages.length - 1].id)
         processMessages();
       } else {
-        yammer.listen(0)
+        yammer.listen(firstMessage)
       }
     })
   });
