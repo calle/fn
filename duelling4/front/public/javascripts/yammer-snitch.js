@@ -83,12 +83,12 @@ var snitch = function($) {
 
       goodList.push({
         user: goodUser,
-        points: Math.round(100 + Math.random() * 500)
+        points: 100 + Math.random() * 500
       });
 
       badList.push({
         user: badUser,
-        points: Math.round(100 - Math.random() * 500)
+        points: 100 - Math.random() * 500
       });
     }
  
@@ -183,7 +183,7 @@ var snitch = function($) {
             '<a title="', data.user.name, '" href="https://www.yammer.com/netlight.se/users/', data.user.username, '" class="nav-list-link" style="color: ', colour, '">',
               '<span class="name">', data.user.name, '</span><br />',
             '</a>',
-            '<span class="points">', data.points, " points.</span>",
+            '<span class="points">', data.points ? parseFloat(data.points).toFixed(1) : 0, " points.</span>",
             '<span class="points-diff anim-hide"></span>',
           '</div>',
         '</div>',
@@ -217,7 +217,7 @@ var snitch = function($) {
           opacity: 1
         }, 1000);
 
-        diff = currUser.points - prevData.points;
+        diff = parseFloat(currUser.points - prevData.points).toFixed(1);
         currNode.find('span.points-diff').append(diff > 0 ? '+' + diff : diff);
         hasChanged = true;
       } 
