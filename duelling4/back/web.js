@@ -18,12 +18,13 @@ require('./app/dashboard')(app);
 if (!module.parent) {
 
   process.on('uncaughtException', function (err) {
-    console.error('Caught exception: ' + err);
+    console.log('Caught exception: ' + err);
     if (err) {
-      console.error(err);
-      console.error(err.message);
-      console.error(err.stack);
+      console.log(err);
+      console.log(err.message);
+      console.log(err.stack);
     }
+    process.exit(1);
   });
 
   Logger.setLevel(Logger.DEBUG);
