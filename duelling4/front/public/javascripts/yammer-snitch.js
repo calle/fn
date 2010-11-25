@@ -58,7 +58,8 @@ var snitch = function($) {
         from: user,
         content: message,
         tags: Math.random() > 0.7 ? [] : [tags],
-        inReplyTo: inReplyTo ? inReplyTo : null
+        inReplyTo: inReplyTo ? inReplyTo : null,
+        time: new Date().getTime()
       }
     };    
   }
@@ -203,6 +204,7 @@ var snitch = function($) {
         hasChanged = initLists || false;
     for (var i = 0, n = newList.length; i < n; i++) {
       currUser = newList[i];
+      currUser.points = currUser.points * 100;
       prevData = listData[currUser.user.name];
       id = classPrefix + '-item-' + i; 
       changedColour = undefined;
