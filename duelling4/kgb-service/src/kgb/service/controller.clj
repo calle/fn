@@ -29,7 +29,7 @@
 	})
 
 ; Tiden det tar för ett värde att minska med en faktor 1/e (till ca 37%)
-(def decay-time 1800)
+(def decay-time 14400)
 (def self-reply-punishment -30)
 
 (defn tags []
