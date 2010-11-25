@@ -16,12 +16,12 @@ module.exports = function(app) {
   // Setup yubikey
   app.set('yubikey', new Yubikey({ mock:!!app.set('yubikey-mock') }));
 
-}    
+}
 
 var Yubikey = function(options) {
   this.mock = options.mock
   if (this.mock) { return }
- 
+
   var remote = url.parse(options.server || config.server)
     , proxyConfig = options.proxy || process.env['http_proxy']
     , proxy = (proxyConfig) ? url.parse(proxyConfig) : null
@@ -63,7 +63,7 @@ Yubikey.prototype.verify = function(otp, callback) {
         response[parts[0]] = parts[1]
       })
       // Validate response
-      var valid = 
+      var valid =
         response.otp == otp &&
         response.nonce == nonce &&
         response.status == "OK"
