@@ -6,20 +6,20 @@
   (:require [clj-json.core :as json])
   (:import org.codehaus.jackson.JsonParseException)
   (:import clojure.contrib.condition.Condition)
+  (:use clojure.contrib.logging)
   )
 
 (defn json-response [data & [status]]
-  (println "data:" data)
   {:status (or status 200)
    :headers {"Content-Type" "application/json"}
    :body (json/generate-string data)})
    
 (defroutes handler
   (GET "/kgb/tags" []
-	(println "GET tags")
+	(debug "GET tags")
     (json-response (controller/tags)))
   (POST "/kgb/score" {params :params}
-	(println "POST data" params)
+	(debug (str "POST data: " params))
   	(json-response (controller/calculate-message-score (params "messages")))))
 
 (def error-codes
@@ -45,7 +45,7 @@
 
 (defn start-server [port]
 	; Starts the jetty server at port port
-	(println "Starting server at port: " port)
+	(info (str "Starting server at port:" port))
 	(run-jetty #'kgb-app {:port port :host "127.0.0.1"}))
 
 (defn start [& [port]]

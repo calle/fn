@@ -11,14 +11,12 @@
 	 "förena" 17 "idg" -82 "kaffe" 91 "och" 100 "som" -75 
 	})
 
-
 ; Tiden det tar för ett värde att minska med en faktor 1/e (till ca 37%)
-(def decay-time 28800) ; 8h = 28800, 30 min = 1800
+(def decay-time 1800)
+(def self-reply-punishment -30)
 
 (defn tags []
 	tags-score)
-
-
 
 (defn list-words
   "Given a string, return a list of lower-case words with whitespace and
@@ -38,7 +36,9 @@
 (defn message-score [message]
 	(let [decay (decay-factor (message "time"))
 		  msg-score (* decay (score-by-content message))]
-		{(str (message "from")) msg-score (str (message "to")) (- msg-score)}))
+		(if (= (message "from") (message "to"))
+			{(str (message "from")) (* decay self-reply-punishment)}
+			{(str (message "from")) msg-score (str (message "to")) (- msg-score)})))
 
 (defn update-score [score message]
 	(merge-with + score (message-score message)))
@@ -49,6 +49,7 @@
 		score
 		(recur (update-score score (first msgs)) (next msgs)))))
 		
-		
 (defn calculate-message-score [messages]
-	(calculate-scores messages))
+	(if (empty? messages)
+	{}
+	(calculate-scores messages)))
