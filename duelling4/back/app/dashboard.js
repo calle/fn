@@ -17,6 +17,8 @@ module.exports = function(app) {
 
   var login = {
       success: function(clientId, client) {
+        logger.info('client %s login success')
+
         // Send login response
         client.send({ login:'ok' })
 
@@ -32,6 +34,7 @@ module.exports = function(app) {
         if (lastScore) client.send({ score:lastScore });
       },
       fail: function(clientId, client) {
+        logger.info('client %s login fail')
         client.send({ login:'fail' })
       }
   }
@@ -40,12 +43,15 @@ module.exports = function(app) {
     client.on('message', function(message) {
       if (message.login) {
         var password = message.login;
+        logger.info('login attempt by %s, password: %s', clientId, password)
 
         if (password === 'blodpudding') {
           login.success(clientId, client)
-        } else if (password >= 32){
+        } else if (password.length >= 32){
           // Try yubikey verification
-          yubikey.verify(password, function(err, valid, status) {
+          logger.debug('yubikey attempt by %s', clientId, password)
+          yubikey.verify(password, function(err, valid, status, response) {
+            logger.debug('yubikey result: err=%j, valid=%j, status=%j, response=%s', err, valid, status, response)
             if (valid) {
               var id = password.length > 32 ? password.substring(0, password.length - 32) : password;
               logger.info('yubikey login: %s', id)

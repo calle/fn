@@ -11,10 +11,12 @@ require('./lib/database')(app);
 require('./lib/yammer')(app);
 require('./lib/processor')(app);
 require('./lib/socket.io')(app);
+require('./lib/yubikey')(app);
 require('./app/dashboard')(app);
 
 // Only listen on $ node app.js
 if (!module.parent) {
+
   process.on('uncaughtException', function (err) {
     console.error('Caught exception: ' + err);
     if (err) {

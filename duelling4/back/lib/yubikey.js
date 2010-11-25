@@ -5,7 +5,6 @@
 var sys = require('sys'),
     http = require('http'),
     url = require('url'),
-    sprintf = require('./sprintf'),
     crypto = require('crypto')
 
 var config = {
@@ -15,7 +14,7 @@ var config = {
 module.exports = function(app) {
 
   // Setup yubikey
-  app.set('yubikey', new Yubikey({ mock:app.set('env') === 'development' }));
+  app.set('yubikey', new Yubikey({ mock:!!app.set('yubikey-mock') }));
 
 }    
 
@@ -48,7 +47,7 @@ Yubikey.prototype.verify = function(otp, callback) {
   }
 
   var nonce = crypto.createHash('md5').update(new Date().getTime().toString()).digest('hex')
-  var path = sprintf('%s?id=1&nonce=%s&otp=%s', this.path, nonce, otp)
+  var path = this.path + '?id=1&nonce=' + nonce + '&otp=' + otp
   var req = this.client.request('GET', path, this.headers)
 
   req.on('response', function (res) {
