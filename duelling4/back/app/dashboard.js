@@ -8,42 +8,72 @@ module.exports = function(app) {
       lastScore;
 
   var db = app.set('db'),
-      socket = app.set('socket.server'),
+      socketIO = app.set('socket.server'),
       yammer = app.set('yammer'),
-      processor = app.set('processor');
+      processor = app.set('processor'),
+      yubikey = app.set('yubikey');
 
-  // Setup events
+  // Setup socketIO
 
-  socket.on('connection', function(clientId, client) {
+  var login = {
+      success: function(clientId, client) {
+        logger.info('client %s login success')
+
+        // Send login response
+        client.send({ login:'ok' })
+
+        // Add to socketIO so clients receives broadcasts
+        socketIO.add(clientId, client)
+
+        // Send latest 7 messages
+        messages.slice(-7).forEach(function(message) {
+          client.send({ message:message })
+        })
+
+        // Send latest score
+        if (lastScore) client.send({ score:lastScore });
+      },
+      fail: function(clientId, client) {
+        logger.info('client %s login fail')
+        client.send({ login:'fail' })
+      }
+  }
+
+  socketIO.on('connection', function(clientId, client) {
     client.on('message', function(message) {
       if (message.login) {
-        if (message.login !== 'blodpudding') {
-          client.send({ login:'fail' })
-        } else {
-          // Send login response
-          client.send({ login:'ok' })
+        var password = message.login;
+        logger.info('login attempt by %s, password: %s', clientId, password)
 
-          // Add to server socket to receive broadcasts
-          socket.add(clientId, client)
-
-          // Send latest 7 messages
-          messages.slice(-7).forEach(function(message) {
-            client.send({ message:message })
+        if (password === 'blodpudding') {
+          login.success(clientId, client)
+        } else if (password.length >= 32){
+          // Try yubikey verification
+          logger.debug('yubikey attempt by %s', clientId, password)
+          yubikey.verify(password, function(err, valid, status, response) {
+            logger.debug('yubikey result: err=%j, valid=%j, status=%j, response=%s', err, valid, status, response)
+            if (valid) {
+              var id = password.length > 32 ? password.substring(0, password.length - 32) : password;
+              logger.info('yubikey login: %s', id)
+              login.success(clientId, client)
+            } else {
+              login.fail(clientId, client);
+            }
           })
-
-          // Send latest score
-          if (lastScore) client.send({ score:lastScore });
+        } else {
+          login.fail(clientId, client);
         }
       }
-      // Ignore other incoming messages
     })
   })
+
+  // Setup yammer
 
   yammer.on('message', function(message) {
     logger.info('got message %s', message.id)
     db.save(message, function() {
       messages.push(message);
-      socket.broadcast({ message:message }); 
+      socketIO.broadcast({ message:message });
     })
   })
 
@@ -65,7 +95,7 @@ module.exports = function(app) {
       lastScore = score;
 
       logger.debug('broadcasting score')
-      socket.broadcast({ score:score });
+      socketIO.broadcast({ score:score });
     })
   };
   setInterval(processMessages, 10000);
@@ -73,7 +103,8 @@ module.exports = function(app) {
   // Setup database and load initial data
 
   db.setup(function() {
-    db.messages(67753442, function(err, result) {
+    var firstMessage = 67753442;
+    db.messages(firstMessage, function(err, result) {
       if (err) return logger.err('error: %o', err);
 
       logger.info('got %d (of %d) messages from database', result.messages.length, result.total)
@@ -83,7 +114,7 @@ module.exports = function(app) {
         yammer.listen(result.messages[result.messages.length - 1].id)
         processMessages();
       } else {
-        yammer.listen(0)
+        yammer.listen(firstMessage)
       }
     })
   });

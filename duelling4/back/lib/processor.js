@@ -47,7 +47,8 @@ Processor.prototype.processMessages = function(messages, callback) {
         // Non-replies get user '0' and destination
         to:   message.inReplyTo ? message.inReplyTo.id : 0,
         text: message.content,
-        time: (now - new Date(message.time).getTime()),
+        // Time is number of seconds since now
+        time: Math.max(0, Math.round((now - new Date(message.time).getTime()) / 1000)),
         tags: message.tags.map(function(tag) { return tag.replace(/^#/, '') })
       }
     })
@@ -56,6 +57,9 @@ Processor.prototype.processMessages = function(messages, callback) {
   // Invoke external service
   this._invokeProcessor(request, function(err, response) {
     if (err) return callback(err);
+
+    // Remove user '0' from result added above for non-replies
+    delete response["0"];
 
     // Convert response from kgb-server format
     //  {"3":-98.34714538216176,"2":-73.8027249891003,"1":172.14987037126207}

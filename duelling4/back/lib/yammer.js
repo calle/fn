@@ -4,7 +4,7 @@
 var Store = require('node-yammer-store'),
     EventEmitter = require('events').EventEmitter,
     logger = require('node-logger').logger('yammer'),
-    Serial = require('node-wrappers').Serial,
+    Wrappers = require('node-wrappers'),
     fs = require('fs'),
     spawn = require('child_process').spawn;
 
@@ -21,7 +21,7 @@ var Yammer = function(store) {
   EventEmitter.call(this);
 
   this.store = store;
-  this.queue = new Serial({ delay: 0 });
+  this.wrapper = Wrappers.Serial.create(this);
 
   // Caches
   this.messages = {}
@@ -39,7 +39,9 @@ Yammer.prototype.listen = function(from, callback) {
     // Listen for events on stream
     stream.on('message', function(message) {
       logger.info('got message %s', message.id)
-      self._convertMessage(message, function(err, message) {
+
+      // Invoke convertMessage over wrapper to serialize invocations
+      self.wrapper._convertMessage(message, function(err, message) {
         if (err) return logger.error('error: %o', err);
         self.emit('message', message)
       })
@@ -74,25 +76,22 @@ Yammer.prototype._convertMessage = function(message, callback) {
     }
     
     if (message.replied_to_id) {
-      self.queue.invoke(function() {
+      var next = function(replied_to) {
+        self._loadUser(replied_to.sender_id, function(err, replied_to_user) {
+          if (err) return callback(err);
+          result.inReplyTo = replied_to_user
+          callback(null, result);
+        })
+      }
 
-        var next = function(replied_to) {
-          self._loadUser(replied_to.sender_id, function(err, replied_to_user) {
-            if (err) return callback(err);
-            result.inReplyTo = replied_to_user
-            callback(null, result);
-          })
-        }
-
-        if (message.replied_to_id in self.messages) {
-          next(self.messages[message.replied_to_id]);
-        } else {
-          self.store.message(message.replied_to_id, function(err, replied_to) {
-            if (err) return callback(err);
-            next(replied_to)
-          })
-        }
-      })
+      if (message.replied_to_id in self.messages) {
+        next(self.messages[message.replied_to_id]);
+      } else {
+        self.store.message(message.replied_to_id, function(err, replied_to) {
+          if (err) return callback(err);
+          next(replied_to)
+        })
+      }
     } else {
       callback(null, result);
     }
@@ -103,41 +102,39 @@ Yammer.prototype._loadUser = function(user_id, callback) {
   var self = this,
       users = this.users;
 
-  this.queue.invoke(function() {
-    if (user_id in users) return callback(null, users[user_id]);
+  if (user_id in users) return callback(null, users[user_id]);
 
-    self.store.user(user_id, function(err, user) {
+  self.store.user(user_id, function(err, user) {
+    if (err) return callback(err);
+
+    var suffix = user.mugshot_url.replace(/.*\.([^.]+)$/, '$1').toLowerCase();
+    var filename = 'public/images/users/' + user.id + '.'  + suffix;
+    var avatar_url = '/images/users/' + user.id + '.'  + suffix;
+
+    var result = {
+      id: user.id,
+      username: user.name,
+      name: user.full_name,
+      avatar: avatar_url
+    };
+
+    var next = function(err) {
       if (err) return callback(err);
 
-      var suffix = user.mugshot_url.replace(/.*\.([^.]+)$/, '$1').toLowerCase();
-      var filename = 'public/images/users/' + user.id + '.'  + suffix;
-      var avatar_url = '/images/users/' + user.id + '.'  + suffix;
+      // Cache it
+      users[user_id] = result;
+      callback(null, result);
+    }
 
-      var result = {
-        id: user.id,
-        username: user.name,
-        name: user.full_name,
-        avatar: avatar_url
-      };
-
-      var next = function(err) {
-        if (err) return callback(err);
-
-        // Cache it
-        users[user_id] = result;
-        callback(null, result);
+    // Check for image
+    fs.stat(filename, function(err, stat) {
+      if (err || !stat || !stat.isFile()) {
+        logger.info('User %s has no image, will download', user.full_name)
+        self._downloadImage(filename, user.mugshot_url, next);
+      } else {
+        logger.debug('User %s already has image', user.full_name)
+        next();
       }
-
-      // Check for image
-      fs.stat(filename, function(err, stat) {
-        if (err || !stat || !stat.isFile()) {
-          logger.info('User %s has no image, will download', user.full_name)
-          self._downloadImage(filename, user.mugshot_url, next);
-        } else {
-          logger.debug('User %s already has image', user.full_name)
-          next();
-        }
-      })
     })
   })
 }
