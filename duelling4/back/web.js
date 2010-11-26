@@ -13,6 +13,7 @@ require('./lib/processor')(app);
 require('./lib/socket.io')(app);
 require('./lib/yubikey')(app);
 require('./app/dashboard')(app);
+require('./app/burner')(app);
 
 // Only listen on $ node app.js
 if (!module.parent) {
