@@ -184,7 +184,7 @@ var snitch = function($) {
             '<a title="', data.user.name, '" href="https://www.yammer.com/netlight.se/users/', data.user.username, '" class="nav-list-link" style="color: ', colour, '">',
               '<span class="name">', data.user.name, '</span><br />',
             '</a>',
-            '<span class="points">', data.points ? parseFloat(data.points).toFixed(1) : 0, " points.</span>",
+            '<span class="points">', data.points ? parseFloat(data.points).toFixed(0) : 0, " points.</span>",
             '<span class="points-diff anim-hide"></span>',
           '</div>',
         '</div>',
@@ -204,7 +204,7 @@ var snitch = function($) {
         hasChanged = initLists || false;
     for (var i = 0, n = newList.length; i < n; i++) {
       currUser = newList[i];
-      currUser.points = currUser.points * 100;
+      currUser.points = currUser.points * 1000;
       prevData = listData[currUser.user.name];
       id = classPrefix + '-item-' + i; 
       changedColour = undefined;
