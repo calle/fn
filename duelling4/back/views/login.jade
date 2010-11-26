@@ -1,0 +1,14 @@
+#login
+  h1 Yammer snitch
+
+  form(action="/admin/login", method="post")
+    -if (error)
+      span.error= error
+    .username
+      label Användarnamn
+      input#username(type="text", name="username", value="", size=20)
+    .password
+      label Lösenord
+      input#password(type="password", name="password", value="", size=20)
+    .submit
+      input#submit(type="submit", value="logga in")

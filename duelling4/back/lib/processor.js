@@ -66,19 +66,13 @@ Processor.prototype.processMessages = function(messages, callback) {
     var result = Object.keys(response).map(function(userId) {
       return {
         user:   users[userId],
-        points: response[userId]
+        // Normalize points by multiplying by 1000 and rounding
+        points: Math.round(response[userId] * 1000)
       }
     })
 
-    // Sort by points
-    result.sort(function(a, b) { return a.points - b.points; })
-
-    // Divide in good / bad lists
-    var good = result.slice(-10).reverse()
-    var bad  = result.slice(0, 10)
-
     // Invoke callback
-    callback(null, { good:good, bad:bad });
+    callback(null, result);
   })
 }
 

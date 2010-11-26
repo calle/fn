@@ -1,0 +1,12 @@
+#admin
+  h2 Users
+  ul.users
+    - each user in users
+      li
+        span.name= user.name
+        = " | "
+        a.block(href="/admin/user/block", user=user.id)= user.blocked ? "unblock" : "block"
+        = " | "
+        a.adjustment(href="/admin/user/adjust", user=user.id)= user.adjustment ? user.adjustment + " points." : "no adjustment"
+
+script(type='text/javascript', charset='utf-8', src='/javascripts/admin.js')

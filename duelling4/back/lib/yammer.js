@@ -69,6 +69,7 @@ Yammer.prototype._convertMessage = function(message, callback) {
 
     var result = {
       id: message.id,
+      thread_id: message.thread_id,
       time: message.created_at,
       from: user,
       content: message.body.plain,

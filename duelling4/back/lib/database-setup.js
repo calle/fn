@@ -64,6 +64,16 @@ var createDesigns = function(db, next) {
             if (doc.type !== 'message') return;
             emit(doc.id, doc)
           }
+        },
+        'users-by-id': {
+          map: function(doc) {
+            if (doc.type !== 'message') return;
+
+            if (doc.from && doc.from.id)
+              emit(doc.from.id, doc.from)
+            if (doc.inReplyTo && doc.inReplyTo.id)
+              emit(doc.inReplyTo.id, doc.inReplyTo)
+          }
         }
       }
     })

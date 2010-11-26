@@ -142,7 +142,7 @@ var snitch = function($) {
               message.content,
             '</div>',
             '<p class="attributes">',
-              '<a class="message-time" title="', time.toString(), '" href="#">', time.toString(), '</a>',
+              '<a class="message-time" title="', time.toString(), '" href="https://www.yammer.com/netlight.se#/Threads/show?threadId=', message.thread_id, '">', time.toString(), '</a>',
             '</p>',
           '</div>',
         '</div>',
@@ -184,7 +184,7 @@ var snitch = function($) {
             '<a title="', data.user.name, '" href="https://www.yammer.com/netlight.se/users/', data.user.username, '" class="nav-list-link" style="color: ', colour, '">',
               '<span class="name">', data.user.name, '</span><br />',
             '</a>',
-            '<span class="points">', data.points ? parseFloat(data.points).toFixed(0) : 0, " points.</span>",
+            '<span class="points">', data.points ? data.points : 0, " points.</span>",
             '<span class="points-diff anim-hide"></span>',
           '</div>',
         '</div>',
@@ -204,9 +204,9 @@ var snitch = function($) {
         hasChanged = initLists || false;
     for (var i = 0, n = newList.length; i < n; i++) {
       currUser = newList[i];
-      currUser.points = currUser.points * 1000;
-      prevData = listData[currUser.user.name];
-      id = classPrefix + '-item-' + i; 
+      var prevData = listData[currUser.user.name];
+
+      id = classPrefix + '-user-' + currUser.user.id; 
       changedColour = undefined;
       
       if (prevData && i !== prevData.pos) {
@@ -215,12 +215,16 @@ var snitch = function($) {
         currNode.find('span.name').animate({
           color: changedColour
         }, 1000);
+        hasChanged = true;
+      }
+      if (prevData && currUser.points !== prevData.points) {
+        currNode = $('#' + prevData.elementId);
         currNode.find('span.points-diff').animate({
           opacity: 1
         }, 1000);
 
-        diff = parseFloat(currUser.points - prevData.points).toFixed(1);
-        currNode.find('span.points-diff').append(diff > 0 ? '+' + diff : diff);
+        diff = currUser.points - prevData.points;
+        currNode.find('span.points-diff').text(diff > 0 ? '+' + diff : diff);
         hasChanged = true;
       } 
       newItems.push(_createListItem(currUser, id, changedColour));
@@ -285,7 +289,7 @@ var snitch = function($) {
       };
     };
     
-    setTimeout(updateFunction, 5000);
+    setTimeout(updateFunction, 2000);
   }
   
   return {

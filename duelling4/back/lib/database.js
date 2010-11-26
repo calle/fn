@@ -42,6 +42,27 @@ Database.prototype = {
     });
   },
 
+  users: function(callback) {
+    logger.trace('users(...)');
+    var options = {}
+    this.db.view('data', 'users-by-id', options, function(err, data) {
+      if (err) return callback(err);
+
+      logger.trace('users() fetched %d users', data.rows.length);
+
+      var users = {}
+      // Make list of users unique per userId
+      data.rows.forEach(function(row) { users[row.value.id] = row.value; });
+      // Create users list sorted by userId
+      users = Object.keys(users).sort().map(function(userId) { return users[userId] })
+
+      logger.trace('users() returning %d users', users.length);
+
+      // Invoke callback
+      callback(null, users)
+    });
+  },
+
   save: function(message, callback) {
     logger.trace('save(%j)', message);
 

@@ -1,0 +1,42 @@
+#login {
+  padding: 50px;
+  font-size: 1.4em;
+}
+#login form {
+  width: 800px;
+  margin: 0 auto;
+}
+#login form .username, #login form .password {
+  width: 45%;
+}
+#login form .username input, #login form .password input {
+  width: 90%;
+  font-size: 1.5em;
+  border: 1px solid black;
+  padding: 0.2em;
+}
+#login form .username label, #login form .password label {
+  display: block;
+  margin-top: 1.5em;
+}
+#login form .username {
+  float: left;
+}
+#login form .password {
+  float: right;
+}
+#login form span.error {
+  display: block;
+  margin: 0.5em 0;
+  color: red;
+}
+#login form .submit {
+  width: 100%;
+  float: left;
+}
+#login form .submit input {
+  margin: 0 auto;
+  display: block;
+  margin-top: 1em;
+  font-size: 1.5em;
+}
