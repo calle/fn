@@ -100,10 +100,8 @@ module.exports = function(app) {
   var processMessages = function() {
     logger.debug('processing %d messages', messages.length)
     serialProcessor.processMessages(messages, function(err, result) {
-      if (err) {
-        logger.error('processing error: %o', err)
-        return next(err)
-      }
+      if (err)
+        return logger.error('processing error: %o', err)
       processorResult = result;
       recalculateScore();
     })
