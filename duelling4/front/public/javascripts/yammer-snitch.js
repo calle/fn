@@ -253,11 +253,11 @@ var snitch = function($) {
 
     initLists = false;
     
-    var cleanupFunction = function() {
+    var cleanupFunction = function(color) {
       var defaultColor = $('.user').not('.changed').find('a').css('color');
       var nodes = $('.user.changed a')
       nodes.animate({
-        color: defaultColor
+        color: color
       }, 500);
     };
     
@@ -270,7 +270,7 @@ var snitch = function($) {
           newBolshevikList.animate({
             opacity: 1
           }, 400, function() {
-            setTimeout(cleanupFunction, 1000);
+            setTimeout(function() {cleanupFunction(goodColor);}, 1000);
           });
         });
       }
@@ -283,7 +283,7 @@ var snitch = function($) {
           newMenshevikList.animate({
             opacity: 1
           }, 400, function() {
-            setTimeout(cleanupFunction, 1000);
+            setTimeout(function(){cleanupFunction(badColor);}, 1000);
           });
         });
       };

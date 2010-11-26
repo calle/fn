@@ -107,6 +107,9 @@ module.exports = function(app) {
     })
   }
 
+  // Invoke processing messages at least every 10 s
+  setInterval(processMessages, 10000)
+
   var recalculateScore = function() {
     if (!processorResult) return;
 
