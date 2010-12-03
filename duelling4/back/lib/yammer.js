@@ -52,7 +52,7 @@ Yammer.prototype.listen = function(from, callback) {
     })
 
     stream.on('end', function() {
-      self.emit('end', error);
+      self.emit('end');
     })
 
     // Invoke callback
