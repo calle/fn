@@ -72,16 +72,6 @@ module.exports = function(app) {
   yammer.on('message', function(message) {
     logger.info('got message %s', message.id)
 
-    if (/alert/.test(message.content)) {
-      var burner = app.set('Burner')
-      if (burner) {
-        logger.info('invoking burner')
-        burner.alert(function(err, done) {
-          logger.info('burner result: %j %j', err, done)
-        })
-      }
-    }
-
     db.save(message, function() {
       messages.push(message);
       socketIO.broadcast({ message:message });
