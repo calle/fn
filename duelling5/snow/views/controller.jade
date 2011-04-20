@@ -1,0 +1,129 @@
+#control
+  - messages = []
+  //- messages.push('#fnnl fisk')
+  //- messages.push('#fnnl snow on (vinter)')
+  //- messages.push('#fnnl snow off (sommar)')
+  //- messages.push('#fnnl primes on (functional)')
+  //- messages.push('#fnnl primes off (java)')
+  - messages.push('#fnnl julkrubba')
+
+  - images = []
+  - images.push({ name:'Philip Wadler', value:'people/haskell.jpeg' })
+  - images.push({ name:'skägg',   value:'people/beard.jpeg' })
+  - images.push({ name:'medlemmar' })
+  - images.push({ name:'calle',   value:'people/calle.jpg' })
+  - images.push({ name:'magnus',  value:'people/magnus.jpg' })
+  - images.push({ name:'thomas',  value:'people/thomas.jpg' })
+  - images.push({ name:'ulf',     value:'people/ulf.jpg' })
+  - images.push({ name:'mats',    value:'people/mats.jpg' })
+  - images.push({ name:'eva',     value:'people/eva.jpg' })
+  - images.push({ name:'marten',  value:'people/marten.jpg' })
+  - images.push({ name:'fredrik', value:'people/fredrik.jpg' })
+  - images.push({ name:'erik',    value:'people/erik.jpg' })
+  - images.push({ name:'anders',  value:'people/anders.jpg' })
+  - images.push({ name:'bilder' })
+  - images.push({ name:'snowman',        value:'snowman.png' })
+  - images.push({ name:'gul fisk',       value:'fish2-left.png' })
+  - images.push({ name:'gul fisk bakåt', value:'fish2.png' })
+  - images.push({ name:'blå fisk',       value:'fish1-left.png' })
+  - images.push({ name:'blå fisk bakåt', value:'fish1.png' })
+  - images.push({ name:'sjöhäst',        value:'fish3-left.png' })
+  - images.push({ name:'sjöhäst bakåt',  value:'fish3.png' })
+  - images.push({ name:'edge',           value:'edge.jpg' })
+  - images.push({ name:'fnnl',           value:'fnnl.jpg' })
+  - images.push({ name:'mette marit',    value:'mette_marit.jpg' })
+  - images.push({ name:'netlight',       value:'netlight.gif' })
+
+  - actions = []
+  - actions.push({ name:'Backgrounds' })
+  - actions.push({ name:'background fnnl',  value:'{ "type":"background", "url":"images/fnnl.jpg" }' })
+  - actions.push({ name:'background tree',  value:'{ "type":"background", "url":"images/backdrop4.jpg" }' })
+  - actions.push({ name:'background white', value:'{ "type":"background", "url":"images/white.gif" }' })
+
+  - actions.push({ name:'Modes' })
+  - actions.push({ name:'primes', values:[{ name:'on', value:'{ "type":"primes", "value":"on" }' }, { name:'off', value:'{ "type":"primes", "value":"off" }' }] })
+  - actions.push({ name:'snow', values:[{ name:'on', value:'{ "type":"snow", "value":"on" }' }, { name:'off', value:'{ "type":"snow", "value":"off" }' }] })
+  - actions.push({ name:'background music', values:[{ name:'on', value:'{ "type":"music", "value":"on" }' }, { name:'off', value:'{ "type":"music", "value":"off" }' }] })
+  - actions.push({ name:'spin', values:[{ name:'on', value:'{ "type":"spin", "value":"on" }' }, { name:'off', value:'{ "type":"spin", "value":"off" }' }] })
+
+  - actions.push({ name:'Actions' })
+  - actions.push({ name:'Fisk',   value:'{ "type":"fish" }' })
+  - actions.push({ name:'Larsa',  value:'{ "type":"slow" }' })
+  - actions.push({ name:'Alarm',  value:'{ "type":"lightbulb" }' })
+
+  - actions.push({ name:'Sound' })
+  - actions.push({ name:'Föräldraledig',  value:'{ "type":"sound", "value":"sounds/ursakt.mp3" }' })
+  - actions.push({ name:'Evighetsmaskin', value:'{ "type":"sound", "value":"sounds/evighetsmaskinen.mp3" }' })
+  - actions.push({ name:'surfinbird',     value:'{ "type":"sound", "value":"sounds/surfinbird.mp3" }' })
+  - actions.push({ name:'bohemian',       value:'{ "type":"sound", "value":"sounds/bohemian.mp3" }' })
+  - actions.push({ name:'Mute sound',     value:'{ "type":"sound" }' })
+
+
+  #messages
+    h2 Send messages
+    ul
+      - each msg in messages
+        li
+          form(action="/control/message", method="post")
+            input(type="hidden", name="message", value=msg)
+            input#submit(type="submit", value=msg)
+
+      li
+        form(action="/control/message", method="post")
+          input(id="messageinput", type="text", name="message", value="", size="30")
+          input#submit(type="submit", value="Skicka")
+
+      li
+        form(action="/control/action", method="post", style="background:red")
+          - var action = '{ "type":"remove-search" }'
+          input(type="hidden", name="action", value=action, size="30")
+          input#submit(type="submit", value="Ta bort sökbild")
+
+  #images
+    h2 Send images
+    ul
+      - each image in images
+        li
+          - if (image.value) 
+            - var action = '{ "type":"image", "url":"images/' + image.value + '" }'
+              form(action="/control/action", method="post")
+                input(type="hidden", name="action", value=action)
+                input#submit(type="submit", value=image.name)
+          - else 
+            span= image.name
+
+  #actions
+    h2 Send actions
+    ul
+      - each action in actions
+        - if (action.value)
+          li
+            form(action="/control/action", method="post")
+              input(type="hidden", name="action", value=action.value)
+              input#submit(type="submit", value=action.name)
+        - else if (action.values)
+          li
+            span= action.name
+            - each action_value in action.values
+              form(action="/control/action", method="post")
+                input(type="hidden", name="action", value=action_value.value)
+                input#submit(type="submit", value=action_value.name)
+        - else
+          span= action.name
+
+      li
+        form(action="/control/action", method="post")
+          - var value = '{ "type":"music", "value":"off" }';
+          textarea(name="action", rows="3", cols="30")= value
+          br
+          input#submit(type="submit", value="Skicka")
+
+script(type='text/javascript')
+  | jQuery(function($) {
+  |   $('#messageinput').focus();
+  |   $('form').submit(function() {
+  |		$.post($(this).attr('action'), $(this).serialize());
+  |		$('#messageinput', this).val('');
+  |		return false;
+  |   });
+  |  });

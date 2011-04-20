@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <title>Christmas by #fnnl&#8482;</title>
+    <meta charset="utf-8">
+    <!-- <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/> -->
+    <style type="text/css">
+      body {
+        background: #FFF;
+        margin: 0px;
+        overflow: hidden;
+      }
+      #backdrop {
+        width: 100%;
+        height: 100%;
+      }
+      #container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="backdrop" src="images/white.gif" />
+    <div id="container"></div>
+
+    <script type="text/javascript">
+      // Safari fix
+      if (!('bind' in Function.prototype)) {
+        console.log('redefine bind');
+        Function.prototype.bind = function() {
+          var func = this,
+              args = Array.prototype.slice.call(arguments, 0),
+              that = args.shift();
+          return function() {
+            return func.apply(that, args.concat.apply(args, arguments))
+          }
+        }
+      }
+    </script>
+    <script src="https://www.google.com/jsapi?key=ABQIAAAAInwVmutF_WmvnwSqUDrdvRR9XCJKAYBLpAZqRPcpKJ0DMW4Q5RSm5Oc2k0h88OHH3g3rWxUkxy8bGA" type="text/javascript"></script>
+    <script type="text/javascript" src="javascripts/ext/jquery-1.4.3.min.js"></script>
+    <script type="text/javascript" src="javascripts/ext/three-extras.js"></script>
+    <script type="text/javascript" src="javascripts/ext/stats.js"></script>
+    <script type="text/javascript" src="socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="javascripts/scene.js"></script>
+    <script type="text/javascript" src="javascripts/animation.js"></script>
+    <script type="text/javascript" src="javascripts/snowglobe.js"></script>
+    <script type="text/javascript" src="javascripts/sound.js"></script>
+    <script type="text/javascript" src="javascripts/search.js"></script>
+    <script type="text/javascript" src="javascripts/main.js"></script>
+    <script type="text/javascript">
+      var preloaded = []
+
+      function preloadImages() {
+	return;
+        for (i = 0; i < arguments.length; i++) {
+          var image = new Image()
+          image.src = arguments[i]
+          preloaded.push(image);
+        }
+      }
+
+      function preloadAudio() {
+	return;
+        for (i = 0; i < arguments.length; i++) {
+          var audio = new Audio(arguments[i]);
+          preloaded.push(audio);
+        }
+
+      }
+
+      // Preload images and sound
+      preloadImages(
+        'images/people/ulf.jpg',
+        'images/people/magnus.jpg',
+        'images/people/mats.jpg',
+        'images/people/beard.jpeg',
+        'images/people/haskell.jpeg',
+        'images/people/marten.jpg',
+        'images/people/anders.jpg',
+        'images/people/thomas.jpg',
+        'images/people/fredrik.jpg',
+        'images/people/eva.jpg',
+        'images/people/erik.jpg',
+        'images/people/calle.jpg',
+
+        'images/backdrop4.jpg',
+        'images/edge.jpg',
+        'images/fish1-left.png',
+        'images/fish1.png',
+        'images/fish2-left.png',
+        'images/fish2.png',
+        'images/fish3-left.png',
+        'images/fish3.png',
+        'images/fnnl.jpg',
+        'images/lampa-light.png',
+        'images/lampa.png',
+        'images/larsa.png',
+        'images/mette_marit.jpg',
+        'images/netlight.gif',
+
+        'images/smoke.png',
+        'images/snowman.png',
+        'images/white.gif'
+         );
+
+      preloadAudio(
+        'sounds/bohemian.mp3',
+        'sounds/evighetsmaskinen.mp3',
+        'sounds/jaws-music.mp3',
+        'sounds/slow1.mp3',
+        'sounds/slow2.mp3',
+        'sounds/starwars-short.mp3',
+        'sounds/surfinbird.mp3',
+        'sounds/ursakt.mp3',
+        'sounds/whitechristmas.mp3'
+      );
+
+    </script>
+  </body>
+</html>
