@@ -1,0 +1,42 @@
+DB:
+Questions
+    Input:
+POST:
+data={questions: [
+{haircolor: "yellow"},
+{eycolor: "blue"},
+{name: "Magnus"}
+}
+
+
+    Output:
+{question: "haircolor",
+	candidates:[
+  {name: "Kevin",
+	  url: "foo.com/foo"},
+  {name: "Moritz"},
+  {}
+  ]}
+}
+
+
+
+
+
+    Haskell:
+	Inputs:
+haircolor
+yellow
+eycolor
+blue
+name
+Magnus
+
+
+Output
+question
+name1
+name2
+nam3
+..
+..
