@@ -1,29 +1,50 @@
 var sys = require('sys');
-var exec = require('child_process').exec;var http = require('http');
+//var exec = require('child_process').exec;
+var http = require('http');
+var be = require('./lib/backend.js')();
 
+var myurl = "http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg";
 
+function create_json_response(data){
+	var json_names =
+		data.names.map(function(d){
+			return {
+				name: d,
+				url: myurl
+			}
+	});
 
-http.createServer(function (req, res) {
-//		      var result = execSync("./cmd.sh");
+	var json = {'question' : data.question,
+				'candidates' : json_names };
 
-//		      query_backend()
-		      exec("./cmd.sh", function(error, stdout, stderr){
-			       console.log(stdout);
-			   });
-//		      console.log(sys);
-		      var foo = {question : "haircolor",
-				 candidates: [
-				     {
-    					 name: "Magnus",
-					 url: "foo.com/url"
-				     },
-				     {
-					 name: "Moritz",
-					 url: "foo.bar/moritz"
-				     }
-				 ]};
+	return json;
+}
+
+var server = http.createServer(function (req, res) {
+
+	be.query_backend(function(data){
+		var json = create_json_response(data);
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.end(JSON.stringify(json));
+	});
+
+//		      var foo = {question : "haircolor",
+//				 candidates: [
+//				     {
+//   					 name: "Magnus",
+//					 url: "foo.com/url"
+//				     },
+//				     {
+//					 name: "Moritz",
+//					 url: "foo.bar/moritz"
+//				     }
+//				 ]};
 		      
-		      res.writeHead(200, {'Content-Type': 'text/plain'});
-		      res.end(JSON.stringify(foo));
-		  }).listen(8124, "127.0.0.1");
-console.log('Server running at http://127.0.0.1:8124/');
+		  });
+
+var host = "localhost";
+var port = 8001;
+server.listen(port, host);
+
+console.log('Server running at http://' + host + ':' + port + '/');
+
