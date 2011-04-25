@@ -1,0 +1,39 @@
+DROP TABLE IF EXISTS Answers;
+DROP TABLE IF EXISTS Netlighters;
+DROP TABLE IF EXISTS Questions;
+
+DROP SEQUENCE IF EXISTS netlighters_seq;
+
+CREATE SEQUENCE netlighters_seq;
+
+CREATE TABLE Netlighters (
+       id integer PRIMARY KEY DEFAULT nextval('netlighters_seq'),
+       name varchar(128) NOT NULL,
+       login varchar(16) NOT NULL
+);
+
+CREATE TABLE Questions (
+       id integer PRIMARY KEY,
+       name varchar(128) NOT NULL,
+       content text NOT NULL
+);
+
+CREATE TABLE Answers (
+       question_id integer references Questions(id),
+       netlighter_id integer references Netlighters(id),
+       content varchar(128)
+);
+
+GRANT ALL ON TABLE Netlighters TO nl;
+GRANT ALL ON TABLE Questions TO nl;
+GRANT ALL ON TABLE Answers TO nl;
+
+INSERT INTO Questions (id, name, content) VALUES (1, 'workLocation', 'In which office does this person work?');
+INSERT INTO Questions (id, name, content) VALUES (2, 'gender', 'Is this person female or male?');
+INSERT INTO Questions (id, name, content) VALUES (3, 'haircolor', 'What hair color does this person have?');
+INSERT INTO Questions (id, name, content) VALUES (4, 'eyecolor', 'What eyecolor does this person have?');
+INSERT INTO Questions (id, name, content) VALUES (5, 'speaksGerman', 'Does this person speak German?');
+INSERT INTO Questions (id, name, content) VALUES (6, 'glasses', 'Does this person wear glasses?');
+INSERT INTO Questions (id, name, content) VALUES (7, 'competence', 'Is this person competent?');
+INSERT INTO Questions (id, name, content) VALUES (8, 'creativity', 'Is this person creative?');
+INSERT INTO Questions (id, name, content) VALUES (9, 'businessSense', 'Does this person have business sense?');
