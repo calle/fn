@@ -33,10 +33,15 @@ name
 Magnus
 
 
-Output
-question
-name1
-name2
-nam3
-..
-..
+Output:
+{nextQuestion: {name: haircolor, content: "What's your hair color?"},
+candidates: 235,
+suggestions: [
+	      {name: "Firstname Lastname",
+	     login: "fila"},
+	     {},
+	     {},
+	     ...
+	     ]
+}
+

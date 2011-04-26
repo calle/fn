@@ -1,0 +1,3 @@
+UPDATE Answers SET content='GER' FROM Netlighters n WHERE n.id = netlighter_id AND n.name IN ('Moritz Tränkner', 'Felix Sprick', 'Johan Byttner');
+INSERT INTO Answers SELECT 5, p.id, 'YES' FROM Netlighters p WHERE p.name IN ('Moritz Tränkner', 'Felix Sprick', 'Moritz Hammer', 'David Born', 'Niklas Skaar', 'Erik Ringertz', 'Karin Sigge');
+INSERT INTO Answers SELECT q.id, p.id, 'YES' FROM Netlighters p, Questions q WHERE q.name IN ('creativity', 'competence', 'businessSense');

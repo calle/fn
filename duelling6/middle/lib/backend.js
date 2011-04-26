@@ -7,7 +7,7 @@ module.exports = function() {
 };
 
 Backend = function(){
-    var connectionString = "pg://magnus:foobar@localhost:5432/netlighters";
+    var connectionString = "pg://nl:nl@localhost:5432/netlighters";
     var self = this;
     pg.connect(connectionString,
 	       function(err, client) {
@@ -59,7 +59,7 @@ Backend.prototype.parse = function(data){
 Backend.prototype.query_backend = function(callback){
     
     var self = this;
-    exec("./cmd.sh", function(error, stdout, stderr){
+    exec("../backend/discriminator ''", function(error, stdout, stderr){
 	     var r = self.parse(stdout);
 	     callback(r);
 	 });
