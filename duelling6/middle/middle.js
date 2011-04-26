@@ -24,9 +24,9 @@ function create_json_response(data){
 var app = express.createServer();
 
 var send_response = function(res, data){
-    var json = create_json_response(data);
+//    var json = create_json_response(data);
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.end(JSON.stringify(json));
+    res.end(JSON.stringify(data));
 };
 
 app.configure(function(){
@@ -38,26 +38,56 @@ app.configure(function(){
 
 
 app.get("/question", function(req,res){
- 	    be.query_backend(
+	    var questions = [];
+	    be.query_backend(questions, function(data){
+				 handle_backend_response(res,data);
+			     });
+
+//	    console.log(req);
+	    var data = req.query;
+	    var questions = data['questions'];
+	    console.log(data);
+ 	    be.query_backend(questions,
 		function(data){
 		    send_response(res,data);
  		});
 	    
 	});
 
+var handle_backend_response = function(res,data){
+    if(data['result'] == 'QUESTION'){
+	send_response(res,data);
+    }
+    else{
+	console.log("Unexpected discriminator response: " + data['result']);
+    }
+};
+
 app.post('/answer',
 	 function(req, res){
-	     var question_id = req.body.question_id;
-	     var netlighters_id = req.body.netlighters_id;
-	     var answer = req.body.answer;
-	     be.answer(question_id, netlighters_id, answer,
-		       function(){
-			   
- 			   be.query_backend(
-			       function(data){
-				   send_response(res,data);
- 			       });
-		       });
+	     var data = req.body.data;
+	     var json = JSON.parse(data);
+	     console.log(json);
+	     var questions = json['questions'];
+	     console.log(questions);
+
+	     if(json['name']){
+		 var question_id = req.body.question_id;
+		 var netlighters_id = req.body.netlighters_id;
+		 var answer = req.body.answer;
+		 be.answer(question_id, netlighters_id, answer,
+			   function(){
+			       
+ 			       be.query_backend(
+);
+			   });
+		 
+	     }
+	     else{
+		 be.query_backend(questions, function(data){
+				      handle_backend_response(res,data);
+				  });
+	     }
 	 });
 
 var port = 8001;

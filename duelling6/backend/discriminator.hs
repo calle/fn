@@ -205,9 +205,9 @@ resultGenerator :: ([Question] -> [Person] -> Answermap -> Question)
                    -> StdGen -> [Person] -> [Question] 
                    -> [(String, String)] -> Answermap 
                    -> String
-resultGenerator qc pc rand [] questions args am = "{result:\"NO PERSON FOUND\"}\n" 
-resultGenerator qc pc rand (p:[]) questions args am = "{result:\"PERSON FOUND\", person : " ++ (show p) ++ "\n"
-resultGenerator qc pc rand _ [] args am = "{result:\"NO QUESTION LEFT\"}\n"
+resultGenerator qc pc rand [] questions args am = "{\"result\":\"NO PERSON FOUND\"}\n" 
+resultGenerator qc pc rand (p:[]) questions args am = "{\"result\":\"PERSON FOUND\", \"person\" : " ++ (show p) ++ "\n"
+resultGenerator qc pc rand _ [] args am = "{\"result\":\"NO QUESTION LEFT\"}\n"
 resultGenerator qc pc rand cand questions args am = "{ \"result\": \"QUESTION\", \"question\": " ++ (show (qc (shuffle questions rand) cand am))
                                       ++ "," 
                                       ++ "\"candidate_count\": " ++ (show (length cand))
