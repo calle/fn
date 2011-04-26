@@ -81,12 +81,12 @@ connectstr = "host=localhost dbname=netlighters user=nl password=nl"
 data Person = Person Integer String String
 
 instance Show (Person) where
-     show (Person id name login) = name ++ "/" ++ login
+     show (Person id name login) = "{name: \"" ++ name ++ "\", login: \"" ++ login ++ "\"}"
 
 data Question = Question Integer String String
 
 instance Show (Question) where
-     show (Question id name content) = name ++ "/" ++ content
+     show (Question id name content) = "{name: \"" ++ name ++ "\", fulltext: \"" ++ content ++ "\"}"
 
 type Answermap = Map String (Map String String)
 
@@ -196,15 +196,15 @@ resultGenerator :: ([Question] -> [Person] -> Answermap -> Question)
                    -> StdGen -> [Person] -> [Question] 
                    -> [(String, String)] -> Answermap 
                    -> String
-resultGenerator qc pc rand [] questions args am = "NO PERSON FOUND\n" 
-resultGenerator qc pc rand (p:[]) questions args am = "FOUND " ++ (show p) ++ "\n"
-resultGenerator qc pc rand _ [] args am = "NO QUESTION LEFT\n"
-resultGenerator qc pc rand cand questions args am = "QUESTION " ++ (show (qc (shuffle questions rand) cand am))
-                                      ++ "\n" 
-                                      ++ "CANDIDATES " ++ (show (length cand))
-                                      ++ "\n" 
-                                      ++ "SUGGESTIONS " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
-                                      ++ "\n" 
+resultGenerator qc pc rand [] questions args am = "{result:\"NO PERSON FOUND\"}\n" 
+resultGenerator qc pc rand (p:[]) questions args am = "{result:\"PERSON FOUND\", person : " ++ (show p) ++ "\n"
+resultGenerator qc pc rand _ [] args am = "{result:\"NO QUESTION LEFT\"}\n"
+resultGenerator qc pc rand cand questions args am = "{ result: \"QUESTION\", question: " ++ (show (qc (shuffle questions rand) cand am))
+                                      ++ "," 
+                                      ++ "candidate_count: " ++ (show (length cand))
+                                      ++ "," 
+                                      ++ "candidates:[ " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
+                                      ++ "]}\n" 
 
 -- startup code
 runDiscriminator args = getCandidates args (resultGenerator findQuestionNaive (\ pl -> (headn pl 5)))
