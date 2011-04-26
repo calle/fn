@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Identilight</title>
+</head>
+<body>
+
+  <div>
+    <div id="questionLabel"></div>
+    <div>
+      <input type="text" id="answerText">
+    </div>
+    <div>
+      <button id="submitButton">Submit</button>
+    </div>
+  </div>
+
+  <script type="text/coffeescript"> 
+ 
+
+    middlewareUrl = 'http://middle.wideberg.com/question'
+
+    $('#submitButton').click ->
+        submitAnswer()
+
+    submitAnswer = ->
+        $.ajax {
+            type: 'POST',
+            url: middlewareUrl,
+            dataType: 'json',
+            # data: getData(),
+            success: submissionResponse
+        }
+
+    submissionResponse = (data) ->
+        alert data
+        # stringData = JSON.stringify data
+        # $('#questionLabel').text stringData
+
+    getData = ->
+        {
+            questions: [
+                {haircolor: "yellow"},
+                {eycolor: "blue"},
+                {name: "Magnus"}
+            ]
+        }
+            
+		
+ 
+  </script>
+
+  <script src="scripts/jquery.js"></script>
+  <script src="scripts/coffee-script.js"></script>
+
+</body>
+</html>
