@@ -24,9 +24,9 @@ function create_json_response(data){
 var app = express.createServer();
 
 var send_response = function(res, data){
-    var json = create_json_response(data);
+//    var json = create_json_response(data);
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.end(JSON.stringify(json));
+    res.end(JSON.stringify(data));
 };
 
 app.configure(function(){
@@ -55,7 +55,12 @@ app.post('/answer',
 			   
  			   be.query_backend(
 			       function(data){
-				   send_response(res,data);
+				   if(data['result'] == 'QUESTION'){
+				       send_response(res,data);
+				   }
+				   else{
+				       console.log("Unexpected discriminator response: " + data['result']);
+				   }
  			       });
 		       });
 	 });

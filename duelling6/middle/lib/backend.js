@@ -59,8 +59,10 @@ Backend.prototype.parse = function(data){
 Backend.prototype.query_backend = function(callback){
     
     var self = this;
-    exec("../backend/discriminator ''", function(error, stdout, stderr){
-	     var r = self.parse(stdout);
-	     callback(r);
+    exec("../backend/discriminator \"\"", function(error, stdout, stderr){
+	     console.log(stdout);
+	     var json = JSON.parse(stdout);
+//	     console.log(json);
+	     callback(json);
 	 });
 };
