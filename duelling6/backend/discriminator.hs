@@ -181,6 +181,15 @@ findQuestionNaive l cand map = (head l)
 --- candidates best, i.e., that - regardless of the answer given -
 --- will (recursively) lead to the smallest group given. Group size is
 --- hence the evaluation function in a minimax algorithm.
+getAnswers :: Answermap -> [Person] -> String -> [String]
+getAnswers amap [] question = []
+getAnswers amap ((Person id name login):l) question = case Map.lookup name amap of
+                                                           Just x -> case Map.lookup question x of
+                                                             Just y-> (y : (getAnswers amap l question))
+                                                             Nothing -> (getAnswers amap l question)
+                                                           Nothing -> (getAnswers amap l question)  
+
+
 findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
 findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (maxv cand map) quest))
                                     in q
