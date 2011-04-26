@@ -31,11 +31,14 @@ var send_response = function(res, data){
 
 app.configure(function(){
     app.use(connect.compiler({ src: __dirname + '/public', enable: ['less'] }));
-    app.use(connect.staticProvider(__dirname + '/public'));
+    app.use(connect.staticProvider(__dirname + '/../front'));
     app.use(express.bodyDecoder());    // Needed for POST parameters
     app.set('views', __dirname + '/views');
 });
 
+app.get("/", function(req, res){
+	    res.render("index.html");
+});
 
 app.get("/question", function(req,res){
 	    var questions = [];
