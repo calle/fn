@@ -72,7 +72,7 @@ Backend.prototype.query_backend = function(old_questions, callback){
     console.log("Input: " + input);
 
     var self = this;
-    exec("../backend/discriminator \"" + input + "\"", function(error, stdout, stderr){
+    exec("backend/discriminator \"" + input + "\"", function(error, stdout, stderr){
 	     console.log(stdout);
 	     var json = JSON.parse(stdout);
 //	     console.log(json);
