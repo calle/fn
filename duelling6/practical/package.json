@@ -1,0 +1,11 @@
+{ "name" : "fnnl-oracle"
+, "version" : "1.0.0"
+, "author" : "Calle Wester"
+, "dependencies" :
+  { "express" : ">= 1.4.7"
+  , "jade" : "0.5.4"
+  , "less" : "1.0.36"
+  , "socket.io" : ">= 0.6.1"
+  , "node-logger" : ">= 1.0.0"
+  }
+}
