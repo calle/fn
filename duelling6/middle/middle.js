@@ -38,6 +38,11 @@ app.configure(function(){
 
 
 app.get("/question", function(req,res){
+	    var questions = [];
+	    be.query_backend(questions, function(data){
+				 handle_backend_response(res,data);
+			     });
+
 //	    console.log(req);
 	    var data = req.query;
 	    var questions = data['questions'];
