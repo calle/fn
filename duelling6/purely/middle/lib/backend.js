@@ -56,11 +56,26 @@ Backend.prototype.parse = function(data){
     return result;
 };
 
-Backend.prototype.query_backend = function(callback){
+Backend.prototype.query_backend = function(old_questions, callback){
     
+    var pairs = [];
+    for(var i in old_questions){
+	var q = old_questions[i];
+	for(k in q){
+	    console.log(k);
+	    var p = k + "=" + q[k];
+	    pairs.push(p);
+	}
+    }
+    var input = pairs.join(",");
+
+    console.log("Input: " + input);
+
     var self = this;
-    exec("../backend/discriminator ''", function(error, stdout, stderr){
-	     var r = self.parse(stdout);
-	     callback(r);
+    exec("backend/discriminator \"" + input + "\"", function(error, stdout, stderr){
+	     console.log(stdout);
+	     var json = JSON.parse(stdout);
+//	     console.log(json);
+	     callback(json);
 	 });
 };
