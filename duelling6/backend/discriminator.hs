@@ -81,12 +81,12 @@ connectstr = "host=localhost dbname=netlighters user=nl password=nl"
 data Person = Person Integer String String
 
 instance Show (Person) where
-     show (Person id name login) = "{\"name\": \"" ++ name ++ "\", \"login\": \"" ++ login ++ "\"}"
+     show (Person id name login) = "{name: \"" ++ name ++ "\", login: \"" ++ login ++ "\"}"
 
 data Question = Question Integer String String
 
 instance Show (Question) where
-     show (Question id name content) = "{\"name\": \"" ++ name ++ "\", \"fulltext\": \"" ++ content ++ "\"}"
+     show (Question id name content) = "{name: \"" ++ name ++ "\", fulltext: \"" ++ content ++ "\"}"
 
 type Answermap = Map String (Map String String)
 
@@ -107,6 +107,9 @@ buildRemainingQuestionsQuery l = "SELECT id, name, content FROM Questions WHERE 
                                  ++ (implode (map ( \ (q,a) -> "'" ++ q ++ "'") l) ",") ++ ")"                                 
 
 buildCandidatesAnswersMap :: [Person] -> [Question] -> String
+buildCandidatesAnswersMap [] quest = "SELECT p.name, q.name, a.content FROM Netlighters p "
+                                       ++ "INNER JOIN Answers a ON a.netlighter_id = p.id INNER JOIN Questions q " 
+                                       ++ " ON a.question_id = q.id WHERE 1=2"
 buildCandidatesAnswersMap cand quest = "SELECT p.name, q.name, a.content FROM Netlighters p "
                                        ++ "INNER JOIN Answers a ON a.netlighter_id = p.id INNER JOIN Questions q " 
                                        ++ " ON a.question_id = q.id WHERE p.id IN (" 
@@ -208,11 +211,11 @@ resultGenerator :: ([Question] -> [Person] -> Answermap -> Question)
 resultGenerator qc pc rand [] questions args am = "{result:\"NO PERSON FOUND\"}\n" 
 resultGenerator qc pc rand (p:[]) questions args am = "{result:\"PERSON FOUND\", person : " ++ (show p) ++ "\n"
 resultGenerator qc pc rand _ [] args am = "{result:\"NO QUESTION LEFT\"}\n"
-resultGenerator qc pc rand cand questions args am = "{ \"result\": \"QUESTION\", \"question\": " ++ (show (qc (shuffle questions rand) cand am))
+resultGenerator qc pc rand cand questions args am = "{ result: \"QUESTION\", question: " ++ (show (qc (shuffle questions rand) cand am))
                                       ++ "," 
-                                      ++ "\"candidate_count\": " ++ (show (length cand))
+                                      ++ "candidate_count: " ++ (show (length cand))
                                       ++ "," 
-                                      ++ "\"candidates\":[ " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
+                                      ++ "candidates:[ " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
                                       ++ "]}\n" 
 
 -- startup code
