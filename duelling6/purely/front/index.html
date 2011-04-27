@@ -6,36 +6,49 @@
 <body>
 
   <div>
-    <div id="questionLabel"></div>
+    <div id="question"></div>
     <div>
       <input type="text" id="answerText">
     </div>
     <div>
-      <button id="submitButton">Submit</button>
+      <button id="submitButton">Submit (POST)</button>
+      <button id="fakeSubmitButton">Submit (Fake Test)</button>
     </div>
+    <div id="candidates"></div>
+    <div id="debugging"></div>
   </div>
 
   <script type="text/coffeescript"> 
- 
 
     middlewareUrl = 'http://middle.wideberg.com/question'
 
     $('#submitButton').click ->
         submitAnswer()
 
+    $('#fakeSubmitButton').click ->
+        exampleResponse = JSON.parse '{"question":"eyecolor","candidates":[{"name":"Calle","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Thomas","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Erik","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Lina","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Johan","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"}]}'
+        processResponse exampleResponse
+
     submitAnswer = ->
         $.ajax {
             type: 'POST',
             url: middlewareUrl,
             dataType: 'json',
-            # data: getData(),
-            success: submissionResponse
+            data: getData(),
+            success: processResponse
         }
 
-    submissionResponse = (data) ->
-        alert data
-        # stringData = JSON.stringify data
-        # $('#questionLabel').text stringData
+    processResponse = (data) ->
+        $('#debugging').text JSON.stringify data
+        displayQuestion data.question
+        displayCandidates data.candidates
+
+    displayQuestion = (questionCode) ->
+        $('#question').text questionCode # TODO
+
+    displayCandidates = (candidates) ->
+        for c in candidates
+            $('#candidates').append('<div class="candidate"><img src="' + c.url + '"><b>' + c.name + '</b></div>')
 
     getData = ->
         {
@@ -45,8 +58,6 @@
                 {name: "Magnus"}
             ]
         }
-            
-		
  
   </script>
 
