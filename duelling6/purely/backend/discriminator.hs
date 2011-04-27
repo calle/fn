@@ -17,7 +17,7 @@ implode (x:[]) t = x
 implode (x:xl) t = x ++ t ++ (implode xl t)
 
 -- get the max(cnt, length(l)) head elements of a list l
-headn :: [a] -> Integer -> [a]
+headn :: [a] -> Int -> [a]
 headn [] cnt = []
 headn xl 0 = []
 headn (x:xl) cnt = x : (headn xl (cnt-1)) 
@@ -78,12 +78,12 @@ parseArgs args = map (pairify "=") (split' "," args)
 connectstr = "host=localhost dbname=netlighters user=nl password=nl"
         
 -- datatypes used to capture the database contents
-data Person = Person Integer String String
+data Person = Person Int String String
 
 instance Show (Person) where
      show (Person id name login) = "{name: \"" ++ name ++ "\", login: \"" ++ login ++ "\"}"
 
-data Question = Question Integer String String
+data Question = Question Int String String
 
 instance Show (Question) where
      show (Question id name content) = "{name: \"" ++ name ++ "\", fulltext: \"" ++ content ++ "\"}"
@@ -137,9 +137,9 @@ getCandidates :: String -> (StdGen -> [Person] -> [Question] -> [(String, String
 getCandidates arg consumer = 
   do
     -- init random generator (code from http://hackage.haskell.org/trac/ghc/attachment/ticket/3575/random-seed.hs)
-    f <- openBinaryFile "/dev/urandom" ReadMode
-    xs <- replicateM 4 $ hGetChar f
-    let seed = sum $ zipWith (*) (iterate (* 256) 1) (map fromEnum xs)
+    -- f <- openBinaryFile "/dev/urandom" ReadMode
+    -- xs <- replicateM 4 $ hGetChar f
+    let seed = 5 -- sum $ zipWith (*) (iterate (* 256) 1) (map fromEnum xs)
   
     -- parse the arguments
     let args = (parseArgs arg)
@@ -189,10 +189,15 @@ lookupAnswer amap (Person id name login) question = case Map.lookup name amap of
                                                            Just x -> Map.lookup question x 
                                                            Nothing -> Nothing
 
+containedIn :: Eq a => [a] -> a -> Bool
+containedIn [] e = False
+containedIn (e1:l) e2 = if (e1 == e2) then True else (containedIn l e2)
+
 getAnswers :: Answermap -> [Person] -> Question -> [String]
 getAnswers amap [] question = []
 getAnswers amap (p:l) (Question id name text) = case (lookupAnswer amap p name) of
-                                                           Just x -> (x : (getAnswers amap l (Question id name text)))
+                                                           Just x -> let res = (getAnswers amap l (Question id name text))
+                                                                               in if (containedIn res x) then res else (x:res)
                                                            Nothing -> (getAnswers amap l (Question id name text))  
 
 
@@ -208,20 +213,28 @@ pruneCandidateSetForAnswer (p:pl) map (Question id qname text) answer = case (lo
 			   	      		   	       	      	Just x -> if x == answer then (p : (pruneCandidateSetForAnswer pl map (Question id qname text) answer)) 
 									          else (pruneCandidateSetForAnswer pl map (Question id qname text) answer)
 
-executeQuestion :: [Person] -> Answermap -> Question -> [Question] -> Integer
-executeQuestion cands map q ql = (findMinAnswer (pruneCandidateSetForQuestion cands map q) ql map q)
+executeQuestion :: Int -> [Person] -> Answermap -> Question -> [Question] -> Int
+executeQuestion depth cands map q ql = findMinAnswer depth (pruneCandidateSetForQuestion cands map q) ql map q
 
-findMaxQuestion :: [Person] -> [Question] -> Answermap -> Integer
-findMaxQuestion p q map = getBest ( \v -> v ) (maprotate (executeQuestion p map) q) -- find the best question
+findMaxQuestion :: Int -> [Person] -> [Question] -> Answermap -> Int
+findMaxQuestion depth [] _ _ = -1000
+findMaxQuestion depth [p] _ _ = 10000
+findMaxQuestion 0 pl _ _  = 100 - (length pl)
+findMaxQuestion depth pl [] _ = 200 - (length pl)
+findMaxQuestion depth p q map = getBest ( \v -> v ) (maprotate (executeQuestion (depth - 1) p map) q) -- find the best question
 
-executeAnswer :: String -> [Person] -> [Question] -> Question -> Answermap -> Integer
-executeAnswer answer cands ql q map = findMaxQuestion (pruneCandidateSetForAnswer cands map q answer) ql map 
+executeAnswer :: Int -> String -> [Person] -> [Question] -> Question -> Answermap -> Int
+executeAnswer depth answer cands ql q map = findMaxQuestion depth (pruneCandidateSetForAnswer cands map q answer) ql map 
 
-findMinAnswer :: [Person] -> [Question] -> Answermap -> Question -> Integer 
-findMinAnswer cands ql amap q = getBest ( \v -> 0-v) (map (\a -> executeAnswer a cands ql q amap)  (getAnswers amap cands q)) -- find the worst answer
+findMinAnswer :: Int -> [Person] -> [Question] -> Answermap -> Question -> Int 
+findMinAnswer depth [] _ _ _ = -1000
+findMinAnswer depth [p] _ _ _ = 10000
+findMinAnswer 0 pl _ _ _ = 100 - (length pl)
+findMinAnswer depth pl [] _ _ = 200 - (length pl)
+findMinAnswer depth cands ql amap q = getBest ( \v -> 0-v) (map (\a -> executeAnswer (depth - 1) a cands ql q amap)  (getAnswers amap cands q)) -- find the worst answer
 
 findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
-findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion cand map q ql)) quest)) in q
+findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion 1 cand map q ql)) quest)) in q
 
 -- function acting as a toString method for a person
 resultGenerator :: ([Question] -> [Person] -> Answermap -> Question) 
@@ -240,7 +253,7 @@ resultGenerator qc pc rand cand questions args am = "{ result: \"QUESTION\", que
                                       ++ "]}\n" 
 
 -- startup code
-runDiscriminator args = getCandidates args (resultGenerator findQuestionNaive (\ pl -> (headn pl 5)))
+runDiscriminator args = getCandidates args (resultGenerator findQuestionMinMax (\ pl -> (headn pl 5)))
 
 -- main method assumes one argument
 main = do
