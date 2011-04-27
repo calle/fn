@@ -189,11 +189,11 @@ lookupAnswer amap (Person id name login) question = case Map.lookup name amap of
                                                            Just x -> Map.lookup question x 
                                                            Nothing -> Nothing
 
-getAnswers :: Answermap -> [Person] -> String -> [String]
+getAnswers :: Answermap -> [Person] -> Question -> [String]
 getAnswers amap [] question = []
-getAnswers amap (p:l) question = case (lookupAnswer amap p question) of
-                                                           Just x -> (x : (getAnswers amap l question))
-                                                           Nothing -> (getAnswers amap l question)  
+getAnswers amap (p:l) (Question id name text) = case (lookupAnswer amap p name) of
+                                                           Just x -> (x : (getAnswers amap l (Question id name text)))
+                                                           Nothing -> (getAnswers amap l (Question id name text))  
 
 
 pruneCandidateSetForQuestion :: [Person] -> Answermap -> Question -> [Person]
@@ -208,20 +208,20 @@ pruneCandidateSetForAnswer (p:pl) map (Question id qname text) answer = case (lo
 			   	      		   	       	      	Just x -> if x == answer then (p : (pruneCandidateSetForAnswer pl map (Question id qname text) answer)) 
 									          else (pruneCandidateSetForAnswer pl map (Question id qname text) answer)
 
---findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
---findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (maxv cand map) quest))
---                                    in q
---                                    where
---                                      minv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
---                                      
---                                      maxv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
---                                      maxv [] map question questions = (q, 0)
---                                      maxv [p] map question questions = (q, 10000)
---                                      maxv pl map (Question id name text) questions = getBest 
---                                                                                      (\ (q, val) -> (0-val)) 
---                                                                                      (maprotate (minv cand (getAnswers map pl name) map) questions)
+executeQuestion :: [Person] -> Answermap -> Question -> [Question] -> Integer
+executeQuestion cands map q ql = (findMinAnswer (pruneCandidateSetForQuestion cands map q) ql map q)
 
+findMaxQuestion :: [Person] -> [Question] -> Answermap -> Integer
+findMaxQuestion p q map = getBest ( \v -> v ) (maprotate (executeQuestion p map) q) -- find the best question
 
+executeAnswer :: String -> [Person] -> [Question] -> Question -> Answermap -> Integer
+executeAnswer answer cands ql q map = findMaxQuestion (pruneCandidateSetForAnswer cands map q answer) ql map 
+
+findMinAnswer :: [Person] -> [Question] -> Answermap -> Question -> Integer 
+findMinAnswer cands ql amap q = getBest ( \v -> 0-v) (map (\a -> executeAnswer a cands ql q amap)  (getAnswers amap cands q)) -- find the worst answer
+
+findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
+findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion cand map q ql)) quest)) in q
 
 -- function acting as a toString method for a person
 resultGenerator :: ([Question] -> [Person] -> Answermap -> Question) 
