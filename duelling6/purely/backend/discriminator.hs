@@ -109,7 +109,7 @@ buildRemainingQuestionsQuery l = "SELECT id, name, content FROM Questions WHERE 
 buildCandidatesAnswersMap :: [Person] -> [Question] -> String
 buildCandidatesAnswersMap [] quest = "SELECT p.name, q.name, a.content FROM Netlighters p "
                                        ++ "INNER JOIN Answers a ON a.netlighter_id = p.id INNER JOIN Questions q " 
-                                       ++ " ON a.question_id = q.id WHERE 1=2"
+                                       ++ " ON a.question_id = q.id WHERE 1=2" -- what a hack
 buildCandidatesAnswersMap cand quest = "SELECT p.name, q.name, a.content FROM Netlighters p "
                                        ++ "INNER JOIN Answers a ON a.netlighter_id = p.id INNER JOIN Questions q " 
                                        ++ " ON a.question_id = q.id WHERE p.id IN (" 
@@ -197,8 +197,14 @@ findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
 findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (maxv cand map) quest))
                                     in q
                                     where
+                                      minv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
+                                      
                                       maxv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
-                                      maxv _ _ q _ = (q, 0)
+                                      maxv [] map question questions = (q, 0)
+                                      maxv [p] map question questions = (q, 10000)
+                                      maxv pl map (Question id name text) questions = getBest 
+                                                                                      (\ (q, val) -> (0-val)) 
+                                                                                      (maprotate (minv cand (getAnswers map pl name) map) questions)
 
 
 
