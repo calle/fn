@@ -22,7 +22,11 @@
 
     middlewareUrl = 'http://middle.wideberg.com/question'
 
+    questionsArray = []
+    currentQuestionCode = 'initial';
+
     $('#submitButton').click ->
+        questionsArray.push getQuestionAnswerPair()
         submitAnswer()
 
     $('#fakeSubmitButton').click ->
@@ -40,24 +44,29 @@
 
     processResponse = (data) ->
         $('#debugging').text JSON.stringify data
-        displayQuestion data.question
-        displayCandidates data.candidates
+        processQuestion data.question
+        processCandidates data.candidates
 
-    displayQuestion = (questionCode) ->
+    processQuestion = (questionCode) ->
+        currentQuestionCode = questionCode
         $('#question').text questionCode # TODO
 
-    displayCandidates = (candidates) ->
+    processCandidates = (candidates) ->
         for c in candidates
             $('#candidates').append('<div class="candidate"><img src="' + c.url + '"><b>' + c.name + '</b></div>')
 
+    getQuestionAnswerPair = ->
+        pair = {}
+        pair[currentQuestionCode] = $('#answerText').val()
+        pair
+
     getData = ->
-        {
-            questions: [
-                {haircolor: "yellow"},
-                {eycolor: "blue"},
-                {name: "Magnus"}
-            ]
-        }
+        questionsObject = {}
+        questionsObject["questions"] = questionsArray
+        questionsJSON = JSON.stringify questionsObject
+        dataObject = {}
+        dataObject["data"] = questionsJSON
+        dataObject
  
   </script>
 
