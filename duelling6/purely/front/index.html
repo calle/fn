@@ -21,9 +21,8 @@
   <script type="text/coffeescript"> 
 
     middlewareUrl = 'http://middle.wideberg.com/question'
-
     questionsArray = []
-    currentQuestionCode = 'initial';
+    currentQuestionCode = '';
 
     $('#submitButton').click ->
         questionsArray.push getQuestionAnswerPair()
@@ -67,6 +66,10 @@
         dataObject = {}
         dataObject["data"] = questionsJSON
         dataObject
+
+    # initialize
+
+    submitAnswer()
  
   </script>
 
