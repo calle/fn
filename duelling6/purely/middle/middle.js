@@ -40,7 +40,7 @@ app.get("/", function(req, res){
 	    res.render("index.html");
 });
 
-app.get("/question", function(req,res){
+app.get("/foo", function(req,res){
 	    var questions = [];
 	    be.query_backend(questions, function(data){
 				 handle_backend_response(res,data);
@@ -66,7 +66,7 @@ var handle_backend_response = function(res,data){
     }
 };
 
-app.post('/answer',
+app.post('/question',
 	 function(req, res){
 	     var data = req.body.data;
 	     var json = JSON.parse(data);
