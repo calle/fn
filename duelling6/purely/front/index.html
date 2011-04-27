@@ -29,7 +29,7 @@
         submitAnswer()
 
     $('#fakeSubmitButton').click ->
-        exampleResponse = JSON.parse '{"question":"eyecolor","candidates":[{"name":"Calle","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Thomas","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Erik","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Lina","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"},{"name":"Johan","url":"http://profile.ak.fbcdn.net/hprofile-ak-snc4/23128_525938623_7208_n.jpg"}]}'
+        exampleResponse = JSON.parse '{"result":"QUESTION","question":{"name":"businessSense","fulltext":"Does this person have business sense?"},"candidate_count":235,"candidates":[{"name":"Fredrik Jirhede","login":"frji"},{"name":"Kim Bredesen","login":"kibr"},{"name":"Johan Bylund","login":"johb"},{"name":"Patrik Persson","login":"pape"},{"name":"Dario Vodopivec","login":"davo"}]}'
         processResponse exampleResponse
 
     submitAnswer = ->
@@ -46,13 +46,21 @@
         processQuestion data.question
         processCandidates data.candidates
 
-    processQuestion = (questionCode) ->
-        currentQuestionCode = questionCode
-        $('#question').text questionCode # TODO
+    processQuestion = (q) ->
+        currentQuestionCode = q.name
+        $('#question').text q.fulltext
 
     processCandidates = (candidates) ->
+
+        $('#candidates').empty()
+
         for c in candidates
-            $('#candidates').append('<div class="candidate"><img src="' + c.url + '"><b>' + c.name + '</b></div>')
+
+            imageElement = ''
+            if c.url
+                imageElement = '<img src="' + c.url + '">'
+
+            $('#candidates').append('<div class="candidate">' + imageElement + '<b>' + c.name + '</b></div>')
 
     getQuestionAnswerPair = ->
         pair = {}
