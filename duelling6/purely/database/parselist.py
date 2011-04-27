@@ -28,7 +28,7 @@ def buildRebelFileProcessor(consumer):
         function definition. The resulting function will thus work on
         the proper regular expression and use the provided processor.
     """
-    regexp = re.compile(r'\|\|\[\"([^\"]*)\".*?(\w+)</span>\)\]\]\|\|.*?(\w+)</span>\)\]\]\|\|$')
+    regexp = re.compile(r'([mf\?])\|\|\[\"([^\"]*)\".*?(\w+)</span>\)\]\]\|\|.*?(\w+)</span>\)\]\]\|\|$')
 
     def rebelParser(l):
         """ This method more or less acts as a currying: it binds two of three 
@@ -47,8 +47,12 @@ def sqlOutputConsumer(groups):
     """A processor that will output the received groups as an SQL insert string
        fitting for our Netlighters database """
     if groups:
-        print "INSERT INTO Netlighters (name, login) VALUES ('%s', '%s');"%(groups[0], groups[2])
-        print "INSERT INTO Answers (question_id, netlighter_id, content) VALUES (1, currval('netlighters_seq'), '%s');"%(groups[1])
+        print "INSERT INTO Netlighters (name, login) VALUES ('%s', '%s');"%(groups[1], groups[3])
+        print "INSERT INTO Answers (question_id, netlighter_id, content) VALUES (1, currval('netlighters_seq'), '%s');"%(groups[2])
+        if groups[0] == 'm':
+            print "INSERT INTO Answers (question_id, netlighter_id, content) VALUES (2, currval('netlighters_seq'), 'male');"
+        if groups[0] == 'f':
+            print "INSERT INTO Answers (question_id, netlighter_id, content) VALUES (2, currval('netlighters_seq'), 'female');"
 
 """ This is the main call, consuming the file provided by the user with a 
     rebel file processor that uses a sqlOutputConsumer to consume the tokens
