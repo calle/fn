@@ -99,7 +99,7 @@ buildCandidateSQL l = implode (map (
                                              ++ ".id AND q_" ++ q ++ ".name = '" ++ q ++ "'") l) " "
 
 buildCandidateQuery :: [(String,String)] -> String
-buildCandidateQuery arg = "SELECT p.id, p.name, p.login FROM Netlighters p " ++ buildCandidateSQL(arg)
+buildCandidateQuery arg = "SELECT DISTINCT p.id, p.name, p.login FROM Netlighters p " ++ buildCandidateSQL(arg)
 
 buildRemainingQuestionsQuery :: [(String, String)] -> String
 buildRemainingQuestionsQuery [] = "SELECT id, name, content FROM Questions"
@@ -107,7 +107,7 @@ buildRemainingQuestionsQuery l = "SELECT id, name, content FROM Questions WHERE 
                                  ++ (implode (map ( \ (q,a) -> "'" ++ q ++ "'") l) ",") ++ ")"                                 
 
 buildCandidatesAnswersMap :: [Person] -> [Question] -> String
-buildCandidatesAnswersMap [] quest = "SELECT p.name, q.name, a.content FROM Netlighters p "
+buildCandidatesAnswersMap [] quest = "SELECT DISTINCT p.name, q.name, a.content FROM Netlighters p "
                                        ++ "INNER JOIN Answers a ON a.netlighter_id = p.id INNER JOIN Questions q " 
                                        ++ " ON a.question_id = q.id WHERE 1=2" -- what a hack
 buildCandidatesAnswersMap cand quest = "SELECT p.name, q.name, a.content FROM Netlighters p "
@@ -139,7 +139,7 @@ getCandidates arg consumer =
     -- init random generator (code from http://hackage.haskell.org/trac/ghc/attachment/ticket/3575/random-seed.hs)
     -- f <- openBinaryFile "/dev/urandom" ReadMode
     -- xs <- replicateM 4 $ hGetChar f
-    let seed = 5 -- sum $ zipWith (*) (iterate (* 256) 1) (map fromEnum xs)
+    let seed = 3 -- sum $ zipWith (*) (iterate (* 256) 1) (map fromEnum xs)
   
     -- parse the arguments
     let args = (parseArgs arg)
@@ -148,7 +148,9 @@ getCandidates arg consumer =
     conn <- (connectPostgreSQL connectstr)
     
     -- get the remaining candidates
-    candr <- quickQuery' conn (buildCandidateQuery args) []
+    let csql = buildCandidateQuery args
+
+    candr <- quickQuery' conn (csql) []
     let cands = map convPersonRow candr
     -- get the open questions
     remq <- quickQuery' conn (buildRemainingQuestionsQuery args) []
@@ -229,12 +231,12 @@ executeAnswer depth answer cands ql q map = findMaxQuestion depth (pruneCandidat
 findMinAnswer :: Int -> [Person] -> [Question] -> Answermap -> Question -> Int 
 findMinAnswer depth [] _ _ _ = -1000
 findMinAnswer depth [p] _ _ _ = 10000
-findMinAnswer 0 pl _ _ _ = 100 - (length pl)
+findMinAnswer 0 pl _ _ _ = 0 - (length pl)
 findMinAnswer depth pl [] _ _ = 200 - (length pl)
 findMinAnswer depth cands ql amap q = getBest ( \v -> 0-v) (map (\a -> executeAnswer (depth - 1) a cands ql q amap)  (getAnswers amap cands q)) -- find the worst answer
 
 findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
-findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion 3 cand map q ql)) quest)) in q
+findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion 4 cand map q ql)) quest)) in q
 
 -- function acting as a toString method for a person
 resultGenerator :: ([Question] -> [Person] -> Answermap -> Question) 
