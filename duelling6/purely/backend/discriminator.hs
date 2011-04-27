@@ -234,7 +234,7 @@ findMinAnswer depth pl [] _ _ = 200 - (length pl)
 findMinAnswer depth cands ql amap q = getBest ( \v -> 0-v) (map (\a -> executeAnswer (depth - 1) a cands ql q amap)  (getAnswers amap cands q)) -- find the worst answer
 
 findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
-findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion 1 cand map q ql)) quest)) in q
+findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (\q -> \ql -> (q, executeQuestion 3 cand map q ql)) quest)) in q
 
 -- function acting as a toString method for a person
 resultGenerator :: ([Question] -> [Person] -> Answermap -> Question) 
