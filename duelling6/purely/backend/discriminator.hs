@@ -81,12 +81,12 @@ connectstr = "host=localhost dbname=netlighters user=nl password=nl"
 data Person = Person Int String String
 
 instance Show (Person) where
-     show (Person id name login) = "{name: \"" ++ name ++ "\", login: \"" ++ login ++ "\"}"
+     show (Person id name login) = "{\"name\": \"" ++ name ++ "\", \"login\": \"" ++ login ++ "\"}"
 
 data Question = Question Int String String
 
 instance Show (Question) where
-     show (Question id name content) = "{name: \"" ++ name ++ "\", fulltext: \"" ++ content ++ "\"}"
+     show (Question id name content) = "{\"name\": \"" ++ name ++ "\", \"fulltext\": \"" ++ content ++ "\"}"
 
 type Answermap = Map String (Map String String)
 
@@ -244,14 +244,14 @@ resultGenerator :: ([Question] -> [Person] -> Answermap -> Question)
                    -> StdGen -> [Person] -> [Question] 
                    -> [(String, String)] -> Answermap 
                    -> String
-resultGenerator qc pc rand [] questions args am = "{result:\"NO PERSON FOUND\"}\n" 
-resultGenerator qc pc rand (p:[]) questions args am = "{result:\"PERSON FOUND\", person : " ++ (show p) ++ "\n"
-resultGenerator qc pc rand _ [] args am = "{result:\"NO QUESTION LEFT\"}\n"
-resultGenerator qc pc rand cand questions args am = "{ result: \"QUESTION\", question: " ++ (show (qc (shuffle questions rand) cand am))
+resultGenerator qc pc rand [] questions args am = "{\"result\":\"NO PERSON FOUND\"}\n" 
+resultGenerator qc pc rand (p:[]) questions args am = "{\"result\":\"PERSON FOUND\", \"person\" : " ++ (show p) ++ "\n"
+resultGenerator qc pc rand _ [] args am = "{\"result\":\"NO QUESTION LEFT\"}\n"
+resultGenerator qc pc rand cand questions args am = "{ \"result\": \"QUESTION\", \"question\": " ++ (show (qc (shuffle questions rand) cand am))
                                       ++ "," 
-                                      ++ "candidate_count: " ++ (show (length cand))
+                                      ++ "\"candidate_count\": " ++ (show (length cand))
                                       ++ "," 
-                                      ++ "candidates:[ " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
+                                      ++ "\"candidates\":[ " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
                                       ++ "]}\n" 
 
 -- startup code
