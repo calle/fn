@@ -5,7 +5,7 @@
 </head>
 <body>
 
-  <div>
+  <div id="interface">
     <div id="question"></div>
     <div>
       <input type="text" id="answerText">
@@ -17,6 +17,7 @@
     <div id="candidates"></div>
     <div id="debugging"></div>
   </div>
+  
 
   <script type="text/coffeescript"> 
 
@@ -62,6 +63,17 @@
 
             $('#candidates').append('<div class="candidate">' + imageElement + '<b>' + c.name + '</b></div>')
 
+    $('.candidate').live 'click', (event) ->
+        chosenPersonName = $(this).children('b').text();
+        questionsArray.push getPersonPair chosenPersonName
+        submitAnswer()
+        done chosenPersonName
+
+    getPersonPair = (name) ->
+        pair = {}
+        pair['person'] = name
+        pair
+
     getQuestionAnswerPair = ->
         pair = {}
         pair[currentQuestionCode] = $('#answerText').val()
@@ -74,6 +86,9 @@
         dataObject = {}
         dataObject["data"] = questionsJSON
         dataObject
+
+    done = (name) ->
+        $('#interface').empty().append('Congratulations, you are talking to ' + name)
 
     # initialize
 
