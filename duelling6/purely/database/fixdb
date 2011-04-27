@@ -1,6 +1,6 @@
 UPDATE Answers SET content='GER' FROM Netlighters n WHERE question_id = 1 and n.id = netlighter_id AND n.name IN ('Moritz Tränkner', 'Felix Sprick', 'Johan Byttner');
-INSERT INTO Answers SELECT 5, p.id, 'YES' FROM Netlighters p WHERE p.name IN ('Moritz Tränkner', 'Felix Sprick', 'Moritz Hammer', 'David Born', 'Niklas Skaar', 'Erik Ringertz', 'Karin Sigge');
-INSERT INTO Answers SELECT 5, p.id, 'NO' FROM Netlighters p WHERE p.name IN ('Johan Byttner');
-INSERT INTO Answers SELECT q.id, p.id, 'YES' FROM Netlighters p, Questions q WHERE q.name IN ('creativity', 'competence', 'businessSense');
+INSERT INTO Answers SELECT 5, p.id, 'yes' FROM Netlighters p WHERE p.name IN ('Moritz Tränkner', 'Felix Sprick', 'Moritz Hammer', 'David Born', 'Niklas Skaar', 'Erik Ringertz', 'Karin Sigge');
+INSERT INTO Answers SELECT 5, p.id, 'no' FROM Netlighters p WHERE p.name IN ('Johan Byttner');
+INSERT INTO Answers SELECT q.id, p.id, 'yes' FROM Netlighters p, Questions q WHERE q.name IN ('creativity', 'competence', 'businessSense');
 INSERT INTO Answers SELECT 3, p.id, 'blonde' FROM Netlighters p WHERE p.name IN ('Felix Sprick', 'Johan Byttner');
 INSERT INTO Answers SELECT 3, p.id, 'brown' FROM Netlighters p WHERE p.name IN ('Moritz Tränkner');
