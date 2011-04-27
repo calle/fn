@@ -184,27 +184,42 @@ findQuestionNaive l cand map = (head l)
 --- candidates best, i.e., that - regardless of the answer given -
 --- will (recursively) lead to the smallest group given. Group size is
 --- hence the evaluation function in a minimax algorithm.
+lookupAnswer :: Answermap -> Person -> String -> Maybe String
+lookupAnswer amap (Person id name login) question = case Map.lookup name amap of
+                                                           Just x -> Map.lookup question x 
+                                                           Nothing -> Nothing
+
 getAnswers :: Answermap -> [Person] -> String -> [String]
 getAnswers amap [] question = []
-getAnswers amap ((Person id name login):l) question = case Map.lookup name amap of
-                                                           Just x -> case Map.lookup question x of
-                                                             Just y-> (y : (getAnswers amap l question))
-                                                             Nothing -> (getAnswers amap l question)
+getAnswers amap (p:l) question = case (lookupAnswer amap p question) of
+                                                           Just x -> (x : (getAnswers amap l question))
                                                            Nothing -> (getAnswers amap l question)  
 
 
-findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
-findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (maxv cand map) quest))
-                                    in q
-                                    where
-                                      minv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
-                                      
-                                      maxv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
-                                      maxv [] map question questions = (q, 0)
-                                      maxv [p] map question questions = (q, 10000)
-                                      maxv pl map (Question id name text) questions = getBest 
-                                                                                      (\ (q, val) -> (0-val)) 
-                                                                                      (maprotate (minv cand (getAnswers map pl name) map) questions)
+pruneCandidateSetForQuestion :: [Person] -> Answermap -> Question -> [Person]
+pruneCandidateSetForQuestion [] _ _ = []
+pruneCandidateSetForQuestion (p:pl) map (Question id qname text) = case (lookupAnswer map p qname) of
+			     Just x -> (p : ((pruneCandidateSetForQuestion pl map (Question id qname text))))
+			     Nothing -> ((pruneCandidateSetForQuestion pl map (Question id qname text)))
+
+pruneCandidateSetForAnswer :: [Person] -> Answermap -> Question -> String -> [Person]
+pruneCandidateSetForAnswer [] _ _ _ = []
+pruneCandidateSetForAnswer (p:pl) map (Question id qname text) answer = case (lookupAnswer map p qname) of
+			   	      		   	       	      	Just x -> if x == answer then (p : (pruneCandidateSetForAnswer pl map (Question id qname text) answer)) 
+									          else (pruneCandidateSetForAnswer pl map (Question id qname text) answer)
+
+--findQuestionMinMax :: [Question] -> [Person] -> Answermap -> Question
+--findQuestionMinMax quest cand map = let (q, v) = (getBest ( \ (q, val) -> val ) (maprotate (maxv cand map) quest))
+--                                    in q
+--                                    where
+--                                      minv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
+--                                      
+--                                      maxv :: [Person] -> Answermap -> Question -> [Question] -> (Question, Integer)
+--                                      maxv [] map question questions = (q, 0)
+--                                      maxv [p] map question questions = (q, 10000)
+--                                      maxv pl map (Question id name text) questions = getBest 
+--                                                                                      (\ (q, val) -> (0-val)) 
+--                                                                                      (maprotate (minv cand (getAnswers map pl name) map) questions)
 
 
 
