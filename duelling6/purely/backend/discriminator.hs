@@ -291,6 +291,5 @@ runDiscriminator args = getCandidates args (resultGenerator findQuestionMinMax (
 -- main method assumes one argument
 main = do
   args <- getArgs
-  let mode = head args
-  let arg = head (tail args)
+  let arg = head args
   (runDiscriminator arg)
