@@ -90,7 +90,7 @@ app.post('/question',
 			     send_response(res, result);
 			 }
 			 else{
-			     var result = {'error' : msg};
+			     var result = {'result': 'ERROR', 'msg' : msg};
 			     send_response(res, result);
 			 }
 		     });
