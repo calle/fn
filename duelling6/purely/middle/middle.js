@@ -73,25 +73,22 @@ var handle_backend_response = function(res,data){
 app.post('/question',
 	 function(req, res){
 	     var data = req.body.data;
-	     console.log(data);
+	     console.log("POST data: " + data);
 	     var json = JSON.parse(data);
-	     console.log(json);
+	     //	     console.log(json);
 	     var questions = json['questions'];
-	     console.log(questions);
+	     //	     console.log(questions);
 
 	     if(json['name']){
-//		 var question_id = req.body.question_id;
-//		 var netlighters_id = req.body.netlighters_id;
-//		 var answer = req.body.answer;
 		 var name = json['name'];
-		 be.learn(questions, name, function(data){
+		 be.learn(questions, name, function(data, msg){
 			 if(data != -1){
 			     console.log("Learned about: " + name);
-			     var result = {'result': 'System learned about ' + name};
+			     var result = {'result': data};
 			     send_response(res, result);
 			 }
 			 else{
-			     var result = {'result' : "Server error"};
+			     var result = {'error' : msg};
 			     send_response(res, result);
 			 }
 		     });

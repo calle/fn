@@ -87,14 +87,14 @@ Backend.prototype._save_answer = function(q_name, q_answer, name, callback){
     this.client.query(sql, values,
 				function(err, result){
 				    if(err){
-					console.log("Error saving answer: " + err);
-					console.log(err);
-					callback(-1);
+					var msg = "Error saving answer: " + err;
+					console.log(msg);
+					callback(-1, msg);
 				    }
 				    else{
-					console.log("Successfully saved answer");
-					console.log(result);
-					callback("Success");
+					var msg = "Successfully saved new fact about " + name + ", " + q_name + "=" + q_answer;
+					console.log(msg);
+					callback(msg);
 				    }
 				});
 
@@ -115,14 +115,13 @@ Backend.prototype._answer_exists = function(question_name, question_answer, netl
  			 }
  			 else{
  			     console.log("Successfully retrieved answer");
- 			     console.log(result);
-			     console.log(result.rows[0].count);
 			     if(result.rows[0].count == 0){
 				 self._save_answer(question_name, question_answer, netlighter_name, callback);
 			     }
 			     else{
-				 console.log("Answer already in database for question: " + question_name + " for " + netlighter_name);
-				 callback(-1);
+				 var msg = "Answer already in database for question: " + question_name + " for " + netlighter_name;
+				 console.log(msg);
+				 callback(-1, msg);
 			     }
  			 }
 
@@ -130,10 +129,9 @@ Backend.prototype._answer_exists = function(question_name, question_answer, netl
 };
 
 Backend.prototype.learn = function(questions, name, callback){
-    console.log("Name: " + name);
+    // Only save the last question since we should have answers for the others
     var lastQuestion = questions[questions.length - 1];
     for(var k in lastQuestion){
-	console.log(k + ": " + lastQuestion[k]);
 	this._answer_exists(k, lastQuestion[k], name, callback);
 	return;
     }
