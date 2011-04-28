@@ -149,9 +149,9 @@ getCandidates arg consumer =
     
     -- get the remaining candidates
     let csql = buildCandidateQuery args
-
     candr <- quickQuery' conn (csql) []
     let cands = map convPersonRow candr
+
     -- get the open questions
     remq <- quickQuery' conn (buildRemainingQuestionsQuery args) []
     let quests = map convQuestionRow remq
@@ -250,7 +250,7 @@ resultGenerator :: ([Question] -> [Person] -> Answermap -> Question)
                    -> [(String, String)] -> Answermap 
                    -> String
 resultGenerator qc pc rand [] questions args am = "{\"result\":\"NO PERSON FOUND\"}\n" 
-resultGenerator qc pc rand (p:[]) questions args am = "{\"result\":\"PERSON FOUND\", \"person\" : " ++ (show p) ++ "\n"
+resultGenerator qc pc rand (p:[]) questions args am = "{\"result\":\"PERSON FOUND\", \"person\" : " ++ (show p) ++ "}\n"
 resultGenerator qc pc rand _ [] args am = "{\"result\":\"NO QUESTION LEFT\"}\n"
 resultGenerator qc pc rand cand questions args am = "{ \"result\": \"QUESTION\", \"question\": " ++ (show (qc (shuffle questions rand) cand am))
                                       ++ "," 
@@ -259,12 +259,38 @@ resultGenerator qc pc rand cand questions args am = "{ \"result\": \"QUESTION\",
                                       ++ "\"candidates\":[ " ++ (implode (map ( \ p -> (show p)) (headn (shuffle cand rand) 5)) ",")
                                       ++ "]}\n" 
 
+handlePersonInsert :: [Integer] -> [(String, String)] -> IO()
+handlePersonInsert []  _ = do 
+		   putStr "{result:\"ERROR\", message:\"PERSON NOT KNOWN\"}\n"
+handlePersonInsert [id] [] = do		   
+		   putStr "{result:\"SUCCESS\"}\n"
+handlePersonInsert [id] ((q,a):l) = do	
+		   -- add code here... or leave it to a proper language
+		   handlePersonInsert [id] l
+
+addPerson :: String -> String -> IO()
+addPerson arg name =  
+  do  
+    -- parse the arguments
+    let args = (parseArgs arg)
+        
+    -- connect to database    
+    conn <- (connectPostgreSQL connectstr)
+
+    pidr <- (quickQuery' conn "SELECT id FROM Netlighters WHERE name=?" [toSql name])
+    let ids = (map convPersonIdRow pidr)
+    handlePersonInsert ids args 
+    disconnect conn
+  where
+    convPersonIdRow [id] = fromSql id
+
+	      	
 -- startup code
 runDiscriminator args = getCandidates args (resultGenerator findQuestionMinMax (\ pl -> (headn pl 5)))
 
 -- main method assumes one argument
 main = do
   args <- getArgs
-  let arg = head args
-  runDiscriminator arg
-  
+  let mode = head args
+  let arg = head (tail args)
+  (runDiscriminator arg)
