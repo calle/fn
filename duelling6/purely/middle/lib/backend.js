@@ -79,3 +79,62 @@ Backend.prototype.query_backend = function(old_questions, callback){
 	     callback(json);
 	 });
 };
+
+Backend.prototype._save_answer = function(q_name, q_answer, name, callback){
+    var sql = "insert into answers (question_id, netlighter_id, content) values( (select id from questions where name = $1), (select id from netlighters where name = $2), $3)"
+
+    var values = [q_name, name, q_answer];
+    this.client.query(sql, values,
+				function(err, result){
+				    if(err){
+					console.log("Error saving answer: " + err);
+					console.log(err);
+					callback(-1);
+				    }
+				    else{
+					console.log("Successfully saved answer");
+					console.log(result);
+					callback("Success");
+				    }
+				});
+
+};
+
+Backend.prototype._answer_exists = function(question_name, question_answer, netlighter_name, callback){
+  
+    var sql = "select count(*) from answers where question_id = (select id from questions where name = $1) and netlighter_id = (select id from netlighters where name = $2)";
+
+    var values = [question_name, netlighter_name];
+    var self = this;
+    this.client.query(sql, values,
+ 		     function(err, result){
+ 			 if(err){
+ 			     console.log("Error checking if answer exists: " + err);
+			     console.log(err);
+			     callback(-1);
+ 			 }
+ 			 else{
+ 			     console.log("Successfully retrieved answer");
+ 			     console.log(result);
+			     console.log(result.rows[0].count);
+			     if(result.rows[0].count == 0){
+				 self._save_answer(question_name, question_answer, netlighter_name, callback);
+			     }
+			     else{
+				 console.log("Answer already in database for question: " + question_name + " for " + netlighter_name);
+				 callback(-1);
+			     }
+ 			 }
+
+ 		     });
+};
+
+Backend.prototype.learn = function(questions, name, callback){
+    console.log("Name: " + name);
+    var lastQuestion = questions[questions.length - 1];
+    for(var k in lastQuestion){
+	console.log(k + ": " + lastQuestion[k]);
+	this._answer_exists(k, lastQuestion[k], name, callback);
+	return;
+    }
+}
