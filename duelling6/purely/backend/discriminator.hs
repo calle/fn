@@ -203,20 +203,25 @@ getAnswers amap (p:l) (Question id name text) = case (lookupAnswer amap p name) 
                                                            Nothing -> (getAnswers amap l (Question id name text))  
 
 
-pruneCandidateSetForQuestion :: [Person] -> Answermap -> Question -> [Person]
-pruneCandidateSetForQuestion [] _ _ = []
-pruneCandidateSetForQuestion (p:pl) map (Question id qname text) = case (lookupAnswer map p qname) of
-			     Just x -> (p : ((pruneCandidateSetForQuestion pl map (Question id qname text))))
-			     Nothing -> ((pruneCandidateSetForQuestion pl map (Question id qname text)))
+pruneCandidateSetForQuestion :: [Person] -> Answermap -> Question -> ([Person], Int)
+pruneCandidateSetForQuestion [] _ _ = ([], 0)
+pruneCandidateSetForQuestion (p:pl) map (Question id qname text) = 
+			     let (res, cnt) = (pruneCandidateSetForQuestion pl map (Question id qname text)) in
+			     	 case (lookupAnswer map p qname) of
+			     	      Just x -> ((p : res), cnt)
+			     	      Nothing -> (res, (cnt+1))
 
-pruneCandidateSetForAnswer :: [Person] -> Answermap -> Question -> String -> [Person]
-pruneCandidateSetForAnswer [] _ _ _ = []
-pruneCandidateSetForAnswer (p:pl) map (Question id qname text) answer = case (lookupAnswer map p qname) of
-			   	      		   	       	      	Just x -> if x == answer then (p : (pruneCandidateSetForAnswer pl map (Question id qname text) answer)) 
-									          else (pruneCandidateSetForAnswer pl map (Question id qname text) answer)
+pruneCandidateSetForAnswer :: [Person] -> Answermap -> Question -> String -> ([Person], Int)
+pruneCandidateSetForAnswer [] _ _ _ = ([], 0)
+pruneCandidateSetForAnswer (p:pl) map (Question id qname text) answer = 
+			   let (res, v) = (pruneCandidateSetForAnswer pl map (Question id qname text) answer) in
+			   	  case (lookupAnswer map p qname) of
+			   	       Just x -> if x == answer then (p : res, v)
+				       	      	    else (res, v+1)
+				       -- no nothing should be possible here 
 
 executeQuestion :: Int -> [Person] -> Answermap -> Question -> [Question] -> Int
-executeQuestion depth cands map q ql = findMinAnswer depth (pruneCandidateSetForQuestion cands map q) ql map q
+executeQuestion depth cands map q ql = let (cand, pc) = (pruneCandidateSetForQuestion cands map q) in ((findMinAnswer depth cand ql map q) - (pc *  3))
 
 findMaxQuestion :: Int -> [Person] -> [Question] -> Answermap -> Int
 findMaxQuestion depth [] _ _ = -1000
@@ -226,7 +231,7 @@ findMaxQuestion depth pl [] _ = 200 - (length pl)
 findMaxQuestion depth p q map = getBest ( \v -> v ) (maprotate (executeQuestion (depth - 1) p map) q) -- find the best question
 
 executeAnswer :: Int -> String -> [Person] -> [Question] -> Question -> Answermap -> Int
-executeAnswer depth answer cands ql q map = findMaxQuestion depth (pruneCandidateSetForAnswer cands map q answer) ql map 
+executeAnswer depth answer cands ql q map = let (cand, pc) = (pruneCandidateSetForAnswer cands map q answer) in (findMaxQuestion depth cand ql map)-(pc*3)
 
 findMinAnswer :: Int -> [Person] -> [Question] -> Answermap -> Question -> Int 
 findMinAnswer depth [] _ _ _ = -1000
