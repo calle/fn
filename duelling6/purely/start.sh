@@ -1,2 +1,2 @@
 #!/bin/bash
-node middle/middle.js
+nohup node middle/middle.js
