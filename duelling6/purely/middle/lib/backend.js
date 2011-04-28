@@ -69,13 +69,12 @@ Backend.prototype.query_backend = function(old_questions, callback){
     }
     var input = pairs.join(",");
 
-    console.log("Input: " + input);
+    console.log("Discriminator input: " + input);
 
     var self = this;
     exec("backend/run_discriminator \"" + input + "\"", function(error, stdout, stderr){
-	     console.log(stdout);
+	     console.log("Discriminator response: " + stdout);
 	     var json = JSON.parse(stdout);
-//	     console.log(json);
 	     callback(json);
 	 });
 };
