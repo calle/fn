@@ -62,8 +62,10 @@ var handle_backend_response = function(res,data){
 	send_response(res,data);
     }
     else if(data['result'] == 'NO PERSON FOUND'){
-	var dontKnow = { "result": "DONTKNOW"};
-	send_response(res,dontKnow);
+	send_response(res,data);
+    }
+    else if(data['result'] == 'PERSON FOUND'){
+	send_response(res, data);
     }
     else {
 	console.log("Unexpected discriminator response: " + data['result']);
