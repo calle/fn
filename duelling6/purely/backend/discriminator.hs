@@ -231,7 +231,7 @@ findMaxQuestion depth pl [] _ = 200 - (length pl)
 findMaxQuestion depth p q map = getBest ( \v -> v ) (maprotate (executeQuestion (depth - 1) p map) q) -- find the best question
 
 executeAnswer :: Int -> String -> [Person] -> [Question] -> Question -> Answermap -> Int
-executeAnswer depth answer cands ql q map = let (cand, pc) = (pruneCandidateSetForAnswer cands map q answer) in (findMaxQuestion depth cand ql map)-(pc*3)
+executeAnswer depth answer cands ql q map = let (cand, pc) = (pruneCandidateSetForAnswer cands map q answer) in (findMaxQuestion depth cand ql map)
 
 findMinAnswer :: Int -> [Person] -> [Question] -> Answermap -> Question -> Int 
 findMinAnswer depth [] _ _ _ = -1000
