@@ -3,7 +3,7 @@ jQuery(function($) {
 	/**
 	 * Setup scene
 	 */
-  var people = ['Andreas_Brudin.jpg'];//,'Anna_Otto.jpg','PEROold.jpg','a-jansson.jpg','anbl.jpg','anbr.jpg','anda.jpg','anders.jpg','andl.jpg','anek.jpg','anfr.jpg','ange.jpg','anhe.jpg','anho.jpg','anka.jpg','anlu.jpg','anma.jpg','anoh.jpg','anot.jpg','anpe.jpg','anso.jpg','ansv.jpg','ante.jpg','anth.jpg','anwe.jpg','anwo.jpg','arsi.jpg','arsy.jpg','arta.jpg','bern.jpg','bjho.jpg','bjro.jpg','bosj.jpg','cale.jpg','calle.jpg','caoz.jpg','chda.jpg','chen.jpg','chhi.jpg','chle.jpg','chmo.jpg','chwi.jpg','cosa.jpg','dabo.jpg','dada.jpg','daer.jpg','daja.jpg','dalu.jpg','dana.jpg','dape.jpg','dast.jpg','davi.jpg','davo.jpg','djhe.jpg','edwi.jpg','er.jpg','ergu.jpg','erik.jpg','erlu.jpg','erol.jpg','ersk.jpg','eva.jpg','ey.jpg','fesp.jpg','fibo.jpg','frda.jpg','fredrik.jpg','frel.jpg','frjo.jpg','frlo.jpg','frme.jpg','guso.jpg','haca.jpg','hada.jpg','hala.jpg','hata.jpg','heed.jpg','hehe_melvin.jpeg','henu.jpg','heol.jpg','hesv.jpg','hhan.jpg','hjmo.jpg','ho.jpg','hoch.jpg','hs.jpg','inga.jpg','jada.jpg','jalo.jpg','jaol.jpg','jeca.jpg','jela.jpg','jeli.jpg','jenl.jpg','jera.jpg','jgh.jpg','jiha.jpg','jipe.jpg','jm.jpg','joal.jpg','jobe.jpg','jobj.jpg','joby.jpg','joel.jpg','joen.jpg','joha.jpg','joho.jpg','jojk.jpg','joli.jpg','jolm.jpg','jolo.jpg','jolu.jpg','jonb.jpg','jono.jpg','joon.jpg','jose.jpg','josi.jpg','jost.jpg','jowi.jpg','kaan.jpg','kali.jpg','keal.jpg','keho.jpg','kn.jpg','kran.jpg','krli.jpg','krsi.jpg','laer.jpg','lajo.jpg','lero.jpg','liha.jpg','liho.jpg','lisu.jpg','liwi.jpg','ll.jpg','lohj.jpg','lola.jpg','maan.jpg','maav.jpg','mabe.jpg','mabj.jpg','mach.jpg','mafr.jpg','magl.jpg','magnus.jpg','magu.jpg','maha.jpg','majo.jpg','mako.jpg','mali.jpg','mami.jpg','many.jpg','marc.jpg','mare.jpg','mart.jpg','marten.jpg','masa.jpg','masj.jpg','mats.jpg','mawe.jpg','mawi.jpg','me.jpg','mfri.jpg','miha.jpg','mipa.jpg','mire.jpg','mist.jpg','miwi.jpg','moha.jpg','motr.jpg','nila.jpg','nima.jpg','nisk.jpg','olsu.jpg','olsv.jpg','osca.jpg','oser.jpg','pala.jpg','pali.jpg','pape.jpg','peal.jpg','peli.jpg','pemo.jpg','perg.jpg','peso.jpg','phek.jpg','pm.jpg','pn.jpg','pobe.jpg','raha.jpg','roku.jpg','rolu.jpg','rove.jpg','saev.jpg','sefa.jpg','siau.jpg','siha.jpg','sm.jpg','soek.jpg','steko.jpg','stju.jpg','stla.jpg','stpe.jpg','tejo.jpg','than.jpg','thomas.jpg','tobr.jpg','tocl.jpg','toja.jpg','tolu.jpg','trin.jpg','ulak.jpg','ulf.jpg','ulli.jpg','vevu.jpg','vipa.jpg','wiol.jpg','ylfr.jpg'];
+  var people = ['Andreas_Brudin.jpg','Anna_Otto.jpg','PEROold.jpg','a-jansson.jpg','anbl.jpg','anbr.jpg','anda.jpg','anders.jpg','andl.jpg','anek.jpg','anfr.jpg','ange.jpg','anhe.jpg','anho.jpg','anka.jpg','anlu.jpg','anma.jpg','anoh.jpg','anot.jpg','anpe.jpg','anso.jpg','ansv.jpg','ante.jpg','anth.jpg','anwe.jpg','anwo.jpg','arsi.jpg','arsy.jpg','arta.jpg','bern.jpg','bjho.jpg','bjro.jpg','bosj.jpg','cale.jpg','calle.jpg','caoz.jpg','chda.jpg','chen.jpg','chhi.jpg','chle.jpg','chmo.jpg','chwi.jpg','cosa.jpg','dabo.jpg','dada.jpg','daer.jpg','daja.jpg','dalu.jpg','dana.jpg','dape.jpg','dast.jpg','davi.jpg','davo.jpg','djhe.jpg','edwi.jpg','er.jpg','ergu.jpg','erik.jpg','erlu.jpg','erol.jpg','ersk.jpg','eva.jpg','ey.jpg','fesp.jpg','fibo.jpg','frda.jpg','fredrik.jpg','frel.jpg','frjo.jpg','frlo.jpg','frme.jpg','guso.jpg','haca.jpg','hada.jpg','hala.jpg','hata.jpg','heed.jpg','hehe_melvin.jpeg','henu.jpg','heol.jpg','hesv.jpg','hhan.jpg','hjmo.jpg','ho.jpg','hoch.jpg','hs.jpg','inga.jpg','jada.jpg','jalo.jpg','jaol.jpg','jeca.jpg','jela.jpg','jeli.jpg','jenl.jpg','jera.jpg','jgh.jpg','jiha.jpg','jipe.jpg','jm.jpg','joal.jpg','jobe.jpg','jobj.jpg','joby.jpg','joel.jpg','joen.jpg','joha.jpg','joho.jpg','jojk.jpg','joli.jpg','jolm.jpg','jolo.jpg','jolu.jpg','jonb.jpg','jono.jpg','joon.jpg','jose.jpg','josi.jpg','jost.jpg','jowi.jpg','kaan.jpg','kali.jpg','keal.jpg','keho.jpg','kn.jpg','kran.jpg','krli.jpg','krsi.jpg','laer.jpg','lajo.jpg','lero.jpg','liha.jpg','liho.jpg','lisu.jpg','liwi.jpg','ll.jpg','lohj.jpg','lola.jpg','maan.jpg','maav.jpg','mabe.jpg','mabj.jpg','mach.jpg','mafr.jpg','magl.jpg','magnus.jpg','magu.jpg','maha.jpg','majo.jpg','mako.jpg','mali.jpg','mami.jpg','many.jpg','marc.jpg','mare.jpg','mart.jpg','marten.jpg','masa.jpg','masj.jpg','mats.jpg','mawe.jpg','mawi.jpg','me.jpg','mfri.jpg','miha.jpg','mipa.jpg','mire.jpg','mist.jpg','miwi.jpg','moha.jpg','motr.jpg','nila.jpg','nima.jpg','nisk.jpg','olsu.jpg','olsv.jpg','osca.jpg','oser.jpg','pala.jpg','pali.jpg','pape.jpg','peal.jpg','peli.jpg','pemo.jpg','perg.jpg','peso.jpg','phek.jpg','pm.jpg','pn.jpg','pobe.jpg','raha.jpg','roku.jpg','rolu.jpg','rove.jpg','saev.jpg','sefa.jpg','siau.jpg','siha.jpg','sm.jpg','soek.jpg','steko.jpg','stju.jpg','stla.jpg','stpe.jpg','tejo.jpg','than.jpg','thomas.jpg','tobr.jpg','tocl.jpg','toja.jpg','tolu.jpg','trin.jpg','ulak.jpg','ulf.jpg','ulli.jpg','vevu.jpg','vipa.jpg','wiol.jpg','ylfr.jpg'];
 	var scene = new Scene($('#container'), {
 		fps: 60,
 		controls: false,
@@ -23,7 +23,7 @@ jQuery(function($) {
 	 */
 
 	var socket = new io.Socket();
-	socket.connect();
+	//socket.connect();
 
 	socket.on('connect', function() {
 		console.log('connected');
@@ -133,12 +133,56 @@ jQuery(function($) {
 	false);
 
 	document.addEventListener('mouseup', function() {
-		document.removeEventListener('mousemove', moveCamera);
+		document.removeEventListener('mousemove', moveCamera, false);
 		scene.resetCamera();
 	},
 	false);
 
+	$('#props').keyup(function(e) {
+		if (e.keyCode === 13) {
+			$('#selectedPerson').remove();
+			var el = $(e.target);
+			$('#propsList').append('<li>' + el.val() + '</li>');
+			el.val('');
+		}
+		return false;
+	});
+	
+	$('#whodat').click(function(e) {
+		var selected;
+		var i;
+		var max = 20;
+		
+		var p = function() {
+				var person = people[Math.round(Math.random() * (people.length - 1))] + "";
+			
+				var passing = new Passing("images/people/" + person, {
+					duration: 4000,
+					onImageLoad: function(img) {
+						var height = img.height;
+						passing.scale(400 / img.height);
+					}
+				});
+				passing.add(scene);
+				passing.scale(1);
+				
+				if (Math.random() > 0.7 || (i === (max - 1))) { 
+					selected = "images/people/" + person;
+				}
+		}
+		for (i = 0, n = max; i < n; i++) {
+			setTimeout(p, i * 1000);
+    }
 
+		var displayPic = function() {
+			var image = '<img id="selectedPerson" src="' + selected + '" style="position: absolute; top: 150px; left: 40%; border: 1px solid;"/>';
+			$('body').append(image);
+		}
+
+		setTimeout(displayPic, (i + 2)*1000);
+
+		$('#propsList').empty();
+	});
 
 	function moveCamera(event) {
 		mouseX = event.clientX - mouseStartX;
@@ -147,5 +191,5 @@ jQuery(function($) {
 	}
 
 	// Start initial anim
-	$('#backdrop').attr('src', '/images/backdrop4.jpg');
+	//$('#backdrop').attr('src', '/images/backdrop4.jpg');
 });

@@ -193,8 +193,8 @@
     }.bind(this);
     this.image.src = image_src;
 
-    this.width  = options.width  || 300;
-    this.height = options.height || 300;
+    //this.width  = options.width  || 300;
+    //this.height = options.height || 300;
   };
 
   Sprite.prototype = new SceneObject();
