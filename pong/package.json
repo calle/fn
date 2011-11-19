@@ -1,0 +1,10 @@
+{ "name"    : "fnnl-pong"
+, "version" : "1.0.0"
+, "author"  : "Calle Wester"
+, "dependencies" :
+  { "express"     : "~2.4"
+  , "socket.io"   : "~0.8"
+  , "browserify"  : "~1.7"
+  , "node-server" : "~1.0"
+  }
+}

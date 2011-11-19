@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8" />
+	
+	<!-- Set the viewport width to device width for mobile -->
+	<meta name="viewport" content="width=device-width" />
+	
+	<title>Pong by fnnl</title>
+
+	<!-- Included CSS Files -->
+	<link rel="stylesheet" href="stylesheets/foundation.css">
+	<link rel="stylesheet" href="stylesheets/app.css">
+
+	<!--[if lt IE 9]>
+		<link rel="stylesheet" href="stylesheets/ie.css">
+	<![endif]-->
+
+	
+	<!-- IE Fix for HTML5 Tags -->
+	<!--[if lt IE 9]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+</head>
+<body>
+
+	<!-- container -->
+	<div class="container">
+		
+		<div class="row">
+			<div class="twelve columns">
+				<h1>Pong</h1>
+
+        <div id="game" class="hide">
+      		<div class="row">
+      			<div class="eleven columns">
+      			  <div id="score">
+      			    <h2 class="score">Score: </h2>
+      			  </div>
+      			</div>
+      		</div>
+      		<div class="row">
+      			<div class="eleven columns">
+      			  <div id="board"></div>
+      			</div>
+      			<div class="one columns">
+      			  <div id="players"></div>
+      			</div>
+      		</div>
+        </div>
+
+        <div id="signup" class="reveal-modal">
+          <h2>Start the game</h2>
+          <p class="lead">Enter your details to start playing</p>
+
+          <form class="nice">
+            <label for="name">Name</label>
+            <input class="input-text large" type="text" name="name", value=""></input>
+            <small class="error"></small>
+            <input class="nice radius blue button" type="submit" value="Start!"></input>
+          </form>
+
+        </div>
+
+			</div>
+		</div>
+		
+	</div>
+	<!-- container -->
+
+	<!-- Included JS Files -->
+	<script src="javascripts/vendor/underscore.js"></script>
+	<script src="javascripts/vendor/foundation.js"></script>
+	<script src="javascripts/vendor/jquery.color.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+  <script src="browserify.js"></script>
+	<script src="javascripts/renderer.js"></script>
+	<script src="javascripts/app.js"></script>
+	
+</body>
+</html>

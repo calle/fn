@@ -1,0 +1,36 @@
+body {
+  background: black;
+}
+
+h1, h2, h3, #game {
+  color: #00b83d;
+}
+
+#signup h2 {
+  color: #181818;
+}
+
+#board {
+  height: 600px;
+  background: #111;
+}
+
+#board .player {
+  position: absolute;
+  background: #17dd66;
+  border: 1px solid #00b83d;
+}
+
+#board .player.self {
+  border: 1px solid red;
+}
+
+#board .player .name {
+  position: absolute;
+}
+
+#board .ball {
+  position: absolute;
+  background: #17dd66;
+  border: 1px solid #00b83d;
+}
