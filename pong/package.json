@@ -7,4 +7,9 @@
   , "browserify"  : "~1.7"
   , "node-server" : "~1.0"
   }
+, "devDependencies" : 
+  { "mocha"  : "*"
+  , "should" : "*"
+  , "socket.io-client" : "0.8.7"
+  }
 }

@@ -1,36 +1,165 @@
+
 body {
   background: black;
+  font-family: "Courier";
 }
 
 h1, h2, h3, #game {
   color: #00b83d;
 }
 
+h2 {
+  font-size: 1.5em;
+}
+
 #signup h2 {
   color: #181818;
 }
 
+#fps {
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+#score {
+  font-size: 2em;
+  margin: 1em 0;
+}
+
+#game .board .wall {
+  height: 3px;
+  background: #00b83d;
+}
+
 #board {
+  position: relative;
   height: 600px;
-  background: #111;
+}
+
+#board .net {
+  height: 100%;
+  width: 3px;
+  background: #00b83d;
+  margin: 0 auto;
 }
 
 #board .player {
   position: absolute;
   background: #17dd66;
-  border: 1px solid #00b83d;
-}
-
-#board .player.self {
-  border: 1px solid red;
 }
 
 #board .player .name {
   position: absolute;
 }
 
+#board .player.self .name {
+  color: #b83d00;
+}
+
 #board .ball {
   position: absolute;
   background: #17dd66;
+}
+#board .ball.dead {
+  background: red;
+}
+
+#game .actions {
+  margin: 1em 0;
+}
+
+#chat .messages {
+  height: 12em;
+  overflow: auto;
+  margin-top: 1em;
+  border-top: 1px dashed #777;
+}
+#chat .message {
+  margin-bottom: 1px;
+}
+#chat .message .info {
+  color: #777;
+}
+#chat .message .name {
+  color: #17dd66;
+}
+#chat .message .message {
+  font-size: 1.1em;
+}
+
+#chat_form input {
+}
+
+/**
+    Notify
+    Positions the notify element in top right corner. 
+**/
+#notify {
+  position: fixed;
+  right: 5px;
+  top: 5px;
+  width: 250px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.2);
+}
+#notify article {
+  padding: 5px;
   border: 1px solid #00b83d;
+  background: transparent;
+}
+#notify article:first-child {
+}
+#notify article:last-child {
+}
+#notify article h2 {
+  margin: 0 0 5px;
+  font-size: 1.0em;
+  font-weight: normal;
+  text-transform: capitalize;  
+  color: #00b83d;
+}
+#notify article h1 {
+  margin: 0;
+  font-size: 1.0em;
+  color: #dddddd;
+}
+#notify article p {
+  padding: 0px 0 0;
+}
+#notify article.error h2 {
+  color: #FF0000;
+}
+#notify article.info h2 {
+}
+
+/**
+ * Webkit scrollbars
+ */
+::-webkit-scrollbar {
+ width: 8px;
+ height: 6px;
+}
+::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {
+ display: block;
+ height: 10px;
+ display: none;
+}
+::-webkit-scrollbar-button:vertical:increment {
+ background-color: transparent;
+ display: none;
+}
+::-webkit-scrollbar-track-piece {
+ background-color: rgba(0, 0, 0, 0.3);
+ -webkit-border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:vertical {
+ height: 50px;
+ background-color: #CECECE;
+ -webkit-border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:horizontal {
+ width: 50px;
+ background-color: #CECECE;
+ -webkit-border-radius: 5px;
 }

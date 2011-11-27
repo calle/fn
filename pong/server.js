@@ -43,6 +43,18 @@ require('node-server').server(function(config) {
 
   var io = require('socket.io').listen(app);
 
+  io.enable('browser client minification');  // send minified client
+  io.enable('browser client etag');          // apply etag caching logic based on version number
+  io.enable('browser client gzip');          // gzip the file
+  io.set('log level', 1);                    // reduce logging
+  io.set('transports', [                     // enable all transports (optional if you want flashsocket)
+      'websocket'
+    , 'flashsocket'
+    , 'htmlfile'
+    , 'xhr-polling'
+    , 'jsonp-polling'
+  ]);
+
   /**
    * browserify
    */
@@ -53,145 +65,183 @@ require('node-server').server(function(config) {
    * Server code
    */
 
-  global._   = require('./public/javascripts/vendor/underscore');
-  var Game   = require('./lib/game')
-    , Player = require('./lib/player')
-    , Ball   = require('./lib/ball');
+  // Need to pollute global namespace with underscore and Box2d
+  var vm      = require('vm')
+    , context = vm.createContext({});
+  [ './public/javascripts/vendor/underscore'
+  // , './public/javascripts/vendor/Box2dWeb-2.1.a.3.js'
+  ].forEach(function (filename) {
+    vm.runInContext(fs.readFileSync(require.resolve(filename), 'utf-8'), context, filename);
+  });
+  global._     = context._;
+  global.Box2D = context.Box2D;
+
+  var Game = require('./lib/game')
+    , messages = [];
 
   var game_attributes = {
-    width  : 100
-  , height : 100
-  };
-  var player_attributes = {
-    x      : game_attributes.width - 1
-  , y      : 45
-  , width  : 1
-  , height : 10
-  , speed  : 20
+    size      : { width: 10, height: 6 }
+  , time_step : 1/30
   };
   var ball_attributes = {
-    x      : 10
-  , y      : 20
-  , width  : 1
-  , height : 1
-  , speed  : 10
+    position : { x: 2, y: 5 }
+  , size     : { width: 0.1, height: 0.1 }
+  , speed    : 1
+  };
+  var player_attributes = {
+    position : { x: game_attributes.size.width - 0.1, y: 0 }
+  , size     : { width: 0.3, height: 0.3 }
+  , speed    : 2
+  , movement : { friction: 0.9, force: 3 }
+  };
+  var enemy_attributes = {
+    position : { x: 0, y: 0 }
+  , size     : { width: player_attributes.size.width, height: 2 } // game_attributes.size.height }
+  , bursts   : player_attributes.bursts
   };
 
   // Create game and initial enemy
   var game = new Game(game_attributes);
-  game.addPlayer('enemy', {
-    x      : 0
-  , y      : 0
-  , width  : player_attributes.width
-  , height : game_attributes.height
-  , speed  : player_attributes.speed
-  });
+  // var enemy = game.addPlayer('enemy', enemy_attributes);
 
   var addBall = function() {
     var ball = game.addBall(ball_attributes);
     ball.once('dead', function() {
-      setTimeout(function() {
-        game.removeBall(ball.id);
-        addBall();
-      }, 3000);
+      game.removeBall(ball.id);
+      setTimeout(addBall, 3000);
     });
   };
 
-  // Trigger update of game 30 times / second
+  // addBall();
+
+  var ticks = 0, start = Date.now();
+
+  // Trigger update of game according to time_step
   setInterval(function() {
     game.tick();
-  }, 1000 / 30);
+    ticks++;
+  }, game_attributes.time_step * 1000);
 
-  // Handle client connection
+  // setInterval(function() {
+  //   console.log('tps = %s', (ticks / (Date.now() - start) * 1000).toFixed(2));
+  // }, 1000);
+
+  //
+  // Handle SocketIO connections
+  //
   io.sockets.on('connection', function(socket) {
+    var player = null, leave_game;
 
-    // Connected clients can send 'game state' and 'join game'
+    //
+    // Messages applicable for all connected clients
+    //
 
-    socket.on('game state', function(cb) {
-      cb(null, game.getState());
+    socket.on('get game state', function() {
+      socket.emit('game state', game.getState());
     });
 
-    socket.on('join game', function(name, cb) {
+    // Handle `join game`
+    socket.on('join game', function(name) {
+      if (player) {
+        return socket.emit('join failed', 'already joined game');
+      }
 
-      socket.has('player', function(err, exists) {
-        if (err) return cb(new Error('Internal error: ' + err.message));
+      // Make sure name is valid
+      var nameExists = game.getPlayers().some(function(player) {
+        return player.get('name') === name;
+      });
+      nameExists = false; // TODO Remove this debug code
+      if (nameExists) {
+        return socket.emit('join failed', 'name exists');
+      }
 
-        if (exists) {
-          return cb(new Error('already logged in'));
-        }
+      // Set a random position in game for player
+      player_attributes.position.x =
+        Math.random() * (game_attributes.size.width - player_attributes.size.width);
+      player_attributes.position.y = 
+        Math.random() * (game_attributes.size.height - player_attributes.size.height);
 
-        var players    = game.getPlayers()
-          , nameExists = players.some(function(player) {
-              return player.get('name') === name;
-            });
+      // Add player to game
+      player = game.addPlayer(name, player_attributes);
 
-        // TODO: Disallow duplicate names
-        nameExists = false;
-
-        if (nameExists) {
-          return cb(new Error('name exists'));
-        }
-
-        // Add player
-        var player = game.addPlayer(name, player_attributes);
-
-        // Add ball if this is first player and no balls exists
-        if (game.getPlayers().length === 2 && game.getBalls().length === 0) {
-          addBall();
-        }
-
-        // Save player to socket
-        socket.set('player', player, function (err) {
-          if (err) return cb(new Error('Internal error: ' + err.message));
-
-          // Listen for messages from this client
-          socket.on('move', function(direction) {
-            socket.get('player', function(err, player) {
-              if (player) {
-                // Start moving
-                player.move(direction);
-                // Broadcast player move
-                io.sockets.emit('move player', player.id, player.getPosition(), direction);
-              }
-            });
-          });
-
-          socket.on('stop', function(direction) {
-            socket.get('player', function(err, player) {
-              if (player) {
-                // Stop moving
-                player.stop();
-                // Broadcast player stop and position
-                io.sockets.emit('stop player', player.id, player.getPosition());
-              }
-            });
-          });
-        
-          // Broadcast ball states every third second
-          socket.set('ball states interval', setInterval(function() {
-            io.sockets.emit('object states', game.getObjectStates(Ball.TYPE));
-          }, 3000));
-
-          // Invoke callback with player
-          cb(null, player.id);
-        });
-
+      // Listen for events on player
+      player.on('still', function() {
+        // Broadcast player still
+        io.sockets.emit('still player', player.id, player.getState());
       });
 
+      // // Send ball states every third second
+      // socket.set('ball states interval', setInterval(function() {
+      //   socket.emit('ball states', game.getBallStates());
+      // }, 3000));
+
+      // Emit success and player info to player
+      socket.emit('game joined', player.id);
+
+      // Add ball if there are 2 players and no balls exists
+      if (game.getPlayers().length === 2 && game.getBalls().length === 0) {
+        addBall();
+      }
     });
 
-    socket.on('disconnect', function () {
-      // Stop broadcasting ball states
-      socket.get('ball states interval', function(err, interval) {
-        if (interval) clearInterval(interval);
-      });
+    //
+    // The following messages are for joined players only
+    //
+
+    socket.on('move', function(direction) {
+      if (!player) return;
+
+      // Start moving
+      player.move(direction);
+      // Broadcast player move
+      io.sockets.emit('move player', player.id, player.getState(), direction);
+    });
+
+    socket.on('stop', function(direction) {
+      if (!player) return;
+
+      // Stop player
+      player.stop();
+      // Broadcast player stop
+      io.sockets.emit('stop player', player.id, player.getState());
+    });
+
+    socket.on('chat message', function(content) {
+      if (!player) return;
+
+      var message = {
+        player  : player.id
+      , name    : player.get('name')
+      , time    : Date.now()
+      , content : content
+      };
+      messages.push(message);
+
+      io.sockets.emit('chat message', message);
+    });
+
+    socket.on('leave game', leave_game = function() {
+      if (!player) return;
+
+      // Remove listeners from player
+      player.removeAllListeners('still');
+
       // Remove player from game
-      socket.get('player', function(err, player) {
-        if (player) {
-          game.removePlayer(player.id);
-          socket.del('player');
-        }
-      });
+      game.removePlayer(player.id);
+
+      // Clear player
+      player = undefined;
+
+      // Emit response
+      socket.emit('game left');
+    });
+
+    // Handle disconnect
+    socket.on('disconnect', leave_game);
+
+    // Finally, emit last 10 chat messages
+    messages.slice(-10).forEach(function(message) {
+      socket.emit('chat message', message);
     });
 
   });
@@ -206,10 +256,17 @@ require('node-server').server(function(config) {
     io.sockets.emit('remove object', object.id);
   });
 
-  game.on('ball dead', function(ball, edge, score) {
-    io.sockets.emit('ball dead', ball.id, edge, score);
+  game.on('dead ball', function(ball, edge, score) {
+    io.sockets.emit('dead ball', ball.id, edge, ball.getPosition(), score);
   });
 
+  game.on('score updated', function(score) {
+    io.sockets.emit('score updated', score);
+  });
+
+  game.on('objects collided', function(o1, o2) {
+    io.sockets.emit('objects collided', o1.id, o1.getState(), o2.id, o2.getState());
+  });
 
   /**
    * Start listening
