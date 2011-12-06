@@ -25,7 +25,11 @@
   <div class="container">
     <div class="row">
       <div class="twelve columns">
-        <h1>Pong</h1>
+        <div class="header">
+          <h1>f()=Pong</h1>
+          <span class="tagline">&mdash; a multidimensional massive online multiplayer Pong by fnnl</span>
+        </div>
+        <div id="notify"></div>
         <div id="game" class="hide">
           <div class="row score">
             <div class="eleven columns centered">
@@ -45,7 +49,12 @@
           </div>
           <div class="row actions">
             <div class="eleven columns centered">
-              <a id="join_game" class="nice radius white button right" href="#">join game</a>
+              <div id="legend" class="left">
+                <div class="item self"><div class="icon"></div>you</div>
+                <div class="item player"><div class="icon"></div>other players</div>
+                <div class="item ball"><div class="icon"></div>balls</div>
+              </div>
+              <a id="join_game" class="nice radius blue button right" href="#">join game</a>
               <a id="leave_game" class="nice radius red button right" href="#">leave game</a>
             </div>
           </div>
@@ -55,7 +64,8 @@
               <div id="chat">
                 <ul class="messages"></ul>
                 <form id="chat_form" class="nice">
-                  <input class="input-text large" type="text" name="message" placeholder="Your message"></input>
+                  <input class="input-text large" type="text" name="message" placeholder="Enter chat message"></input>
+                  <a href="#" class="send nice radius black button">send</a>
                 </form>
               </div>
             </div>
@@ -83,5 +93,6 @@
   <script src="browserify.js"></script>
   <script src="javascripts/renderer.js"></script>
   <script src="javascripts/app.js"></script>
+  
 </body>
 </html>

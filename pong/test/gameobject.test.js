@@ -6,7 +6,7 @@ var GameObject = require('../lib/gameobject')
 describe('GameObject', function(){
   describe('_movingTowards()', function(){
     var create = function(p, v) {
-      return new GameObject(0, 'test', { 
+      return new GameObject(0, 'test', {
         position : p
       , velocity : v
       });
@@ -110,19 +110,21 @@ describe('GameObject', function(){
 
   });
 
-  describe('_collideWith()', function() {
-    var counter = 0, create = function(p, v, weight) {
-      return new GameObject(counter+=1, 'test', { 
-        position : p
-      , velocity : v
-      , weight   : weight
-      });
-    };
+  describe('_performCollision()', function() {
+    var counter = 0
+      , create = function(p, v, size, weight) {
+          return new GameObject(counter+=1, 'test', {
+            position : p
+          , velocity : v
+          , size     : { width:size.w, height:size.h }
+          , weight   : weight
+          });
+        };
 
     it('should change x velocity in horizontal bounce', function() {
-      var o1 = create({ x:1, y:1 }, { x:1, y:0 }, 10)
-        , o2 = create({ x:2, y:1 }, { x:-1, y:0 }, 1);
-      o1._collideWith(o2);
+      var o1 = create({ x:1, y:1 }, { x:1,  y:0 }, { w:1, h: 1}, 10)
+        , o2 = create({ x:2, y:1 }, { x:-1, y:0 }, { w:1, h: 1}, 1);
+      o1._performCollision(o2);
 
       var v1 = o1.getVelocity()
         , v2 = o2.getVelocity();
@@ -146,20 +148,17 @@ describe('GameObject', function(){
       weighted_diff1.toFixed(5).should.equal(weighted_diff2.toFixed(5));
     });
 
-    it('should change work when one object is still', function() {
-      var o1 = create({ x:1, y:1 }, { x:0, y:0  }, 10)
-        , o2 = create({ x:1, y:2 }, { x:0, y:-1 }, 1);
+    it('should work when one object is still', function() {
+      var o1 = create({ x:1, y:1 }, { x:0, y:0  }, { w:1, h: 1}, 10)
+        , o2 = create({ x:1, y:2 }, { x:0, y:-1 }, { w:1, h: 1}, 1);
 
-      console.log();
-      console.log(o1.getVelocity(), o2.getVelocity());
-      o1._collideWith(o2);
-      console.log(o1.getVelocity(), o2.getVelocity());
+      o1._performCollision(o2);
 
       var v1 = o1.getVelocity()
         , v2 = o2.getVelocity();
 
-      v1.x.should.equal(0);
-      v2.x.should.equal(0);
+      v1.x.should.be.below(1e-10);
+      v2.x.should.be.below(1e-10);
 
       v1.y.should.be.below(0);
       v2.y.should.be.above(-1);
@@ -167,5 +166,30 @@ describe('GameObject', function(){
       // Move away from each other
       (v2.y - v1.y).should.be.above(0);
     });
+
+    it('should prevent object from overlapping', function() {
+      var o1 = create({ x:1, y:6 }, { x:1,  y:1 }, { w:4, h:4 }, 10)
+        , o2 = create({ x:5, y:7 }, { x:-1, y:0 }, { w:2, h:2 }, 1)
+        , o3 = create({ x:4, y:8 }, { x:-1, y:0 }, { w:4, h:4 }, 1);
+
+      // Should not move non-overlapping objects
+      debugger
+      o1._performCollision(o2);
+      o1.getPosition().should.eql({ x:1, y:6 });
+      o2.getPosition().should.eql({ x:5, y:7 });
+
+      // Reset velocity of o1
+      o1.setVelocity({ x:1, y:1 });
+
+      // Should move overlapping objects to prevent overlapping
+      o1._performCollision(o3);
+      var p1 = o1.getPosition()
+        , p2 = o3.getPosition();
+      p1.x.should.be.below(1);
+      p1.y.should.be.below(6);
+      p2.x.should.be.above(4);
+      p2.y.should.be.above(8);
+    });
+
   });
 });

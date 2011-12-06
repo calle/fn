@@ -1,0 +1,9 @@
+# TODO
+[X] remove localhost code from app.js
+[X] Update collision detection and response with code from Mårten
+[X] Velocity and Acceleration arrows should be shorter and less dense
+[X] canvas should be optional
+[X] grep 'console' *
+
+
+# Done

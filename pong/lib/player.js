@@ -15,18 +15,13 @@ Player.TYPE = 'Player';
 GameObject.extend(Player);
 
 Player.prototype.move = function(direction) {
-  // console.log('Player["%s"].move(%s)', this.get('name'), JSON.stringify(direction));
-
   var v = new Vector(direction);
 
   // Normalize over speed
   this.setVelocity(v.scalarMulti(this.get('speed') / v.norm()));
-
-  // console.log('Player["%s"] moved: %s', this.get('name'), JSON.stringify(this.getVelocity())); 
 };
 
 Player.prototype.stop = function() {
-  // console.log('Player["%s"].stop()', this.get('name'));
   this.setVelocity({ x: 0, y: 0 });
   this.emit('stopped', this, this.getPosition());
 };

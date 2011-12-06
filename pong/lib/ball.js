@@ -26,7 +26,6 @@ GameObject.extend(Ball);
 
 Ball.prototype.die = function(edge) {
   if (!this.get('dead')) {
-    // console.log('Ball.dead at %s', edge);
     this.setVelocity({ x:0, y: 0 });
     this.set('dead', edge);
     this.emit('dead', this, edge);
@@ -65,13 +64,11 @@ Ball.prototype._updateObject = function(position, velocity, duration, game) {
   if (geom.bottom > board.bottom) {
     // Bounce on bottom wall
     velocity.y = -velocity.y;
-    // Assert ball is on correct side of wall
-    position.y = Math.min(board.bottom - geom.height, position.y + velocity.y * duration);    
+    position.y = board.bottom - geom.height;
   } else if (geom.top < board.top) {
     // Bounce on top wall
     velocity.y = -velocity.y;
-    // Assert ball is on correct side of wall
-    position.y = Math.max(board.top, position.y + velocity.y * duration);
+    position.y = board.top;
   } else if (geom.left <= board.left) {
     // Die on left wall
     this.die('left');

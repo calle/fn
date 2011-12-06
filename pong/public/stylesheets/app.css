@@ -1,25 +1,34 @@
+/*
+ * http://colorschemedesigner.com/#2Y41TsFLOw0w0
+ */
 
 body {
   background: black;
   font-family: "Courier";
+  color: #17DD67;
 }
 
-h1, h2, h3, #game {
-  color: #00b83d;
+h1, h2, h3 {
+  color: #17DD67;
 }
 
 h2 {
   font-size: 1.5em;
 }
 
-#signup h2 {
-  color: #181818;
+.header h1 {
+  display: inline;
+  margin-right: 0.5em;
+}
+.header .tagline {
+  font-style: italic;
 }
 
-#fps {
-  position: fixed;
-  left: 0;
-  top: 0;
+#signup {
+  color: #555;
+}
+#signup h2 {
+  color: #181818;
 }
 
 #score {
@@ -28,104 +37,183 @@ h2 {
 }
 
 #game .board .wall {
-  height: 3px;
-  background: #00b83d;
+  height: 21px;
+/*  background: #36A663; */
+  background: url('../images/wall.png') repeat-x 0 0;
+}
+#game #top_wall {
+  margin-bottom: -5px;
+  /*  
+  border-bottom: 1px solid #17DD67;
+  border-top: 1px solid #07903F;
+  */
+}
+#game #bottom_wall {
+  margin-top: -5px;
+  /*
+  border-top: 1px solid #17DD67;
+  border-bottom: 1px solid #07903F;
+  */
 }
 
 #board {
   position: relative;
   height: 600px;
+
+  -webkit-transition: background-color .2s ease-in-out;
+	-moz-transition: background-color .2s ease-in-out;
+	-o-transition: background-color .2s ease-in-out; 	
 }
 
-#board .net {
-  height: 100%;
-  width: 3px;
-  background: #00b83d;
-  margin: 0 auto;
+#board.lost {
+  background-color: #A62709;
 }
 
 #board .player {
   position: absolute;
-  background: #17dd66;
-}
+  background-color: #17dd66;
+  border: 1px solid #17dd66;
 
+  -webkit-transition: background-color .15s ease-out;
+	-moz-transition: background-color .15s ease-in-out;
+	-o-transition: background-color .15s ease-in-out; 	
+}
+#board .player.updated {
+}
+#board .player.colliding {
+  background-color: #00b83d;
+}
 #board .player .name {
   position: absolute;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.8);
 }
-
+#board .player.self {
+  background-color: #FF931B;
+  border-color: #FF931B;
+}
+#board .player.colliding.self {
+  background-color: #A65C09;
+}
 #board .player.self .name {
-  color: #b83d00;
+  color: #FF931B;
 }
 
 #board .ball {
   position: absolute;
-  background: #17dd66;
+  background-color: #1E9CD2;
+  border: 1px solid #1E9CD2;
+
+  -webkit-transition: background-color .2s ease-out, border-color .2s ease-out;
+	-moz-transition: background-color .2s ease-in-out, border-color .2s ease-in-out;
+	-o-transition: background-color .2s ease-in-out, border-color .2s ease-in-out;
 }
 #board .ball.dead {
-  background: red;
+  background-color: #FF461B;
+  border-color: #A62709; 
 }
 
 #game .actions {
-  margin: 1em 0;
+  margin: 2em 0 0.5em 0;
 }
 
+#legend .item {
+  float: left;
+  margin-left:  1em;
+}
+#legend .item .icon {
+  float: left;
+  width: 8px;
+  height: 8px;
+  margin: 0.5em 4px;
+}
+#legend .self .icon {
+  background-color: #FF931B;
+}
+#legend .player .icon {
+  background-color: #17dd66;
+}
+#legend .ball .icon {
+  background-color: #1E9CD2;
+}
+
+.chat {
+  margin: 2em 0;
+}
+.chat h2 {
+  margin-bottom: 2px;
+}
 #chat .messages {
   height: 12em;
   overflow: auto;
-  margin-top: 1em;
   border-top: 1px dashed #777;
 }
 #chat .message {
   margin-bottom: 1px;
 }
 #chat .message .info {
-  color: #777;
+  color: #999;
 }
 #chat .message .name {
-  color: #17dd66;
 }
-#chat .message .message {
-  font-size: 1.1em;
+#chat .message .content {
 }
 
 #chat_form input {
+  width: 80%;
+  display: inline;
+  background-color: black;
+  color: #17DD67;
 }
 
 /**
-    Notify
-    Positions the notify element in top right corner. 
-**/
+ * Button color adjustments
+ */
+
+/* Colors ---------- */
+.blue.button			{ background-color: #1E9CD2; }
+.red.button				{ background-color: #FF461B; }
+	
+/* Nice Colors ---------- */
+.nice.blue.button		{ border: 1px solid #397F9E; }
+.nice.red.button		{ border: 1px solid #BF573F; }
+
+/* Hovers ---------- */
+.blue.button:hover		{ background-color: #0A6289; }
+.red.button:hover 		{ background-color: #A62709; }
+
+/**
+ * Notify
+ */
 #notify {
   position: fixed;
-  right: 5px;
   top: 5px;
-  width: 250px;
+  left: 25%;
+  width: 50%;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.6);
 }
 #notify article {
-  padding: 5px;
-  border: 1px solid #00b83d;
+  padding: 1em 2em;
+  border: 1px solid #333;
   background: transparent;
-}
-#notify article:first-child {
-}
-#notify article:last-child {
+  overflow: auto;
 }
 #notify article h2 {
-  margin: 0 0 5px;
+  float: left;
+  margin: 0 1em;
   font-size: 1.0em;
   font-weight: normal;
   text-transform: capitalize;  
-  color: #00b83d;
 }
 #notify article h1 {
+  float: left;
   margin: 0;
   font-size: 1.0em;
+  font-weight: normal;
   color: #dddddd;
 }
 #notify article p {
-  padding: 0px 0 0;
+  padding: 0;
 }
 #notify article.error h2 {
   color: #FF0000;

@@ -80,7 +80,7 @@ var connect_client = function(hostname, debug) {
     })
     .on('game left', function() {
       if (debug) console.log('Client[%d]: Left game', clientId);
-      playerId = undefined;
+      playerId = null;
       delay(timespans.join, function() {
         socket.emit('join game', 'Sim_' + clientId + '_' + ++joinCount);
       });

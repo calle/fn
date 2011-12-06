@@ -86,33 +86,38 @@ require('node-server').server(function(config) {
   var ball_attributes = {
     position : { x: 2, y: 5 }
   , size     : { width: 0.1, height: 0.1 }
+  , weight   : 1
   , speed    : 1
   };
   var player_attributes = {
     position : { x: game_attributes.size.width - 0.1, y: 0 }
   , size     : { width: 0.3, height: 0.3 }
+  , weight   : 25
   , speed    : 2
   , movement : { friction: 0.9, force: 3 }
-  };
-  var enemy_attributes = {
-    position : { x: 0, y: 0 }
-  , size     : { width: player_attributes.size.width, height: 2 } // game_attributes.size.height }
-  , bursts   : player_attributes.bursts
   };
 
   // Create game and initial enemy
   var game = new Game(game_attributes);
-  // var enemy = game.addPlayer('enemy', enemy_attributes);
 
   var addBall = function() {
     var ball = game.addBall(ball_attributes);
     ball.once('dead', function() {
-      game.removeBall(ball.id);
+      setTimeout(function() {
+        game.removeBall(ball.id);
+      }, 1500);
       setTimeout(addBall, 3000);
     });
   };
 
-  // addBall();
+  var removeBall = function() {
+    var balls = game.getBalls();
+    var ball  = balls[Math.floor(Math.random() * balls.length)];
+    if (ball) {
+      game.removeBall(ball.id);
+      ball.removeAllListeners('dead');
+    }
+  };
 
   var ticks = 0, start = Date.now();
 
@@ -158,7 +163,7 @@ require('node-server').server(function(config) {
       // Set a random position in game for player
       player_attributes.position.x =
         Math.random() * (game_attributes.size.width - player_attributes.size.width);
-      player_attributes.position.y = 
+      player_attributes.position.y =
         Math.random() * (game_attributes.size.height - player_attributes.size.height);
 
       // Add player to game
@@ -178,8 +183,8 @@ require('node-server').server(function(config) {
       // Emit success and player info to player
       socket.emit('game joined', player.id);
 
-      // Add ball if there are 2 players and no balls exists
-      if (game.getPlayers().length === 2 && game.getBalls().length === 0) {
+      // Make sure there are enough balls
+      while (game.getPlayers().length >= (game.getBalls().length + 1) * 2) {
         addBall();
       }
     });
@@ -232,6 +237,11 @@ require('node-server').server(function(config) {
       // Clear player
       player = undefined;
 
+      // Remove excess balls
+      while (game.getPlayers().length < game.getBalls().length * 2) {
+        removeBall();
+      }
+
       // Emit response
       socket.emit('game left');
     });
@@ -273,4 +283,21 @@ require('node-server').server(function(config) {
    */
   app.listen(config['--port'] || 3000);
   console.log("Server listening on port %d", app.address().port);
+
+  /**
+   * Start admin repl
+   */
+  var repl = require('net').createServer(function (socket) {
+    var context = require('repl').start("pong> ", socket).context;
+    context.app = app;
+    context.io = io;
+    context.game = game;
+    context.addBall = addBall;
+    context.removeBall = removeBall;
+    context.ball_attributes = ball_attributes;
+    context.player_attributes = player_attributes;
+  });
+  repl.listen(config['--admin-port'] || 5000, '127.0.0.1');
+  console.log("Admin repl listening on port %d", repl.address().port);
+
 });

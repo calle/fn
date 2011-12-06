@@ -30,7 +30,7 @@ Game.prototype = new EventEmitter();
 
 //
 // Simple game properties
-// 
+//
 
 Game.prototype.getObjects = function() {
   return _.values(this.objects);
@@ -50,8 +50,8 @@ Game.prototype.getScore = function() {
 
 Game.prototype.getState = function() {
   return {
-    objects      : _.reduce(this.objects, function(result, object) { 
-                     result[object.id] = object.getState(); 
+    objects      : _.reduce(this.objects, function(result, object) {
+                     result[object.id] = object.getState();
                      return result;
                    }, {})
   , nextObjectId : this.nextObjectId
@@ -69,9 +69,6 @@ Game.prototype.updateState = function(state) {
   var add    = _.difference(newIds, currentIds)
     , update = _.intersection(currentIds, newIds)
     , remove = _.difference(currentIds, newIds);
-
-  // console.log('Game.updateState(add=%s, update=%s, remove=%s)', 
-  //   JSON.stringify(add), JSON.stringify(update), JSON.stringify(remove));
 
   // Add new
   _.each(add, function(id) {
@@ -108,8 +105,8 @@ Game.prototype.updateState = function(state) {
 };
 
 Game.prototype.resetGameState = function() {
-  _.each(this.objects, function(object, id) {
-    this.removeObject(id);
+  _.each(this.objects, function(object) {
+    this.removeObject(object.id);
   }, this);
   this.nextObjectId = 0;
   this.score = 0;
@@ -123,7 +120,7 @@ Game.prototype.updateObjectStates = function(states) {
     if (state.id in this.objects) {
       this.objects[state.id].updateState(state);
     }
-  }, this);  
+  }, this);
 };
 
 //
@@ -155,7 +152,7 @@ Game.prototype.removeObject = function(id) {
     , method = 'remove' + object.type;
 
   if (!(method in this)) return false;
-  
+
   return this[method](id);
 };
 
@@ -180,7 +177,6 @@ Game.prototype.addPlayer = function(name, attributes) {
 };
 
 Game.prototype.removePlayer = function(id) {
-  // console.log('Game.removePlayer(%s)', id);
   var player = this._removeObjectOfType(id, Player.TYPE);
   if (player) {
     this.emit('remove player', player);
@@ -205,7 +201,6 @@ Game.prototype.addBall = function(attributes) {
 };
 
 Game.prototype.removeBall = function(id) {
-  // console.log('Game.removeBall(%s)', id);
   var ball = this._removeObjectOfType(id, Ball.TYPE);
   if (ball) {
     ball.removeListener('dead', this._ballDead);
@@ -223,11 +218,9 @@ Game.prototype.getBallStates = function(type) {
 //
 
 Game.prototype.tick = function() {
-  var self = this, i, j;
+  var self = this, time, i, j;
 
-  while (this.nextUpdate < Date.now()) {
-    // console.log('Step once using time: %s', this.time_step / 1000);
-    var time = Date.now();
+  while (this.nextUpdate < (time = Date.now())) {
 
     // Update each object
     _.each(this.objects, function(object) {
@@ -237,13 +230,9 @@ Game.prototype.tick = function() {
     // Check for collisions
     //  - http://fanitis.com/2011/03/15/collision-detector-performance-trick-1/
     var by_x = _.sortBy(this.objects, function(o) { return o.getPosition().x; });
-    
-    // console.log('checkCollisions for %d objects: %s', by_x.length
-    //   , _.map(by_x, function(o) { return o.type + "[" + o.id + "]"; }));
-    
+
     for (i=0; i<by_x.length - 1; i++) {
       for (j=i+1; j < by_x.length && by_x[j].getGeometry().left <= by_x[i].getGeometry().right; j++) {
-        // console.log('checkCollisionWithObject(%d - %d)', i, j);
         if (by_x[i].checkCollisionWithObject(by_x[j])) {
           this.emit('objects collided', by_x[i], by_x[j]);
         }
@@ -252,15 +241,21 @@ Game.prototype.tick = function() {
 
     this.updates += 1;
     this.nextUpdate += this.time_step * 1000;
+  }
 
-    // TODO: Add score for every 10 seconds with a live ball
-    if (this.updates % Math.round(10 / this.time_step) === 0) {
-      if (this._getObjectsOfType(Ball.TYPE).length > 0) {
+  // Update score using balls
+  var before = this.score;
+  _.each(this.getBalls(), function(ball) {
+    if (!ball.scoreAt) {
+      ball.scoreAt = time + 10000;
+    } else {
+      if (time > ball.scoreAt && !ball.get('dead')) {
         this.score += 1;
-        this.emit('score updated', this.score);
+        ball.scoreAt = time + 10000;
       }
     }
-  }
+  }, this);
+  if (before != this.core) this.emit('score updated', this.score);
 
   // Update fps
   var elapsed = Date.now() - this.startTime;
@@ -314,8 +309,6 @@ Game.prototype._removeObjectOfType = function(id, type) {
 };
 
 Game.prototype._addPlayer = function(player) {
-  // console.log('Game.addPlayer(%s, "%s")', player.id, player.get('name'));
-
   // Add player to list of objects and emit
   this._addObject(player);
   this.emit('add player', player);
@@ -324,8 +317,6 @@ Game.prototype._addPlayer = function(player) {
 };
 
 Game.prototype._addBall = function(ball) {
-  // console.log('Game.addBall(%s)', ball.id);
-
   // Add ball to list of objects
   this._addObject(ball);
 

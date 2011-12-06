@@ -103,10 +103,6 @@ Vector.prototype.angle = function( ){
 
 // The angel in rad
 Vector.prototype.angleRad = function( ){
-  // if (this.x === 0) {
-  //   console.log('Vector.angleRad: special case for x === 0');
-  //   return this.y > 0 ? Math.PI / 2 : 0;
-  // }
 	return Math.atan( this.y / this.x );
 }
 

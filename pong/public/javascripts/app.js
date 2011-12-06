@@ -5,13 +5,13 @@ $(document).ready(function() {
 
   var Game         = require('/game')
     , game         = new Game({})
-    , renderer     = new Renderer($('#game'), game)
+    , renderer     = new Renderer($('#game'), game, { arrows:true })
     , selfId       = null
     , tickloop     = null;
 
   var socket = io.connect()
     .on('connect', function() {
-      $.notify.info('Connected to server');
+      notify('info', 'Connected to server');
 
       // Load initial state
       socket.emit('get game state');
@@ -24,23 +24,23 @@ $(document).ready(function() {
         tickloop = function() {
           if (tickloop) requestAnimFrame(tickloop, $('#game'));
           game.tick();
+          renderer.gameTicked();
         };
         tickloop();
       }
 
       updateUI(false);
-
-      // socket.emit('join game', 'Calle');      
     })
     .on('connect_failed', function() {
       $('#signup_action').attr('disabled',true).val('Could not connect');
+      notify('error', 'Failed to connect to server...');
     })
     .on('disconnect', function() {
       tickloop = null;
       renderer.hide();
       game.resetGameState();
       $('#signup_action').attr('disabled',true);
-      $.notify.info('Disconnected from server');
+      notify('info', 'Disconnected from server');
     })
     // Handle join/leave of game
     .on('game joined', function(id) {
@@ -146,12 +146,16 @@ $(document).ready(function() {
   // UI code
   //
 
-  Notify($("<section id=notify />").appendTo("body"));
-
   var updateUI = function(joined) {
+    $('#legend')[joined ? 'show' : 'hide']();
     $('#join_game')[joined ? 'hide' : 'show']();
     $('#leave_game')[joined ? 'show' : 'hide']();
     $('#chat_form')[joined ? 'show' : 'hide']();
+  };
+
+  Notify($("#notify"));
+  var notify = function(type, message) {
+    $.notify[type](message);
   };
 
   $('#join_game').click(function(event) {
@@ -160,7 +164,6 @@ $(document).ready(function() {
     $('#signup')
       .find('.error').hide().end()
       .reveal({
-        closeOnBackgroundClick : false
       })
       .find('input[name="name"]').focus();
   });
@@ -184,13 +187,20 @@ $(document).ready(function() {
     socket.emit('join game', name);
   });
 
-  $('#chat').find('input[name="message"]').keydown(function(event) {
-    if (event.keyCode === 13) { // Enter
-      event.preventDefault();
-      socket.emit('chat message', $(this).val());
-      $(this).val('');
-    }
-  });
+  $('#chat').
+    find('input[name="message"]').keydown(function(event) {
+      if (event.keyCode === 13) { // Enter
+        event.preventDefault();
+        socket.emit('chat message', $(this).val());
+        $(this).val('');
+      }
+    }).end().
+    find('.send').click(function(ev) {
+      ev.preventDefault();
+      var input = $('input[name="message"]', '#chat');
+      socket.emit('chat message', input.val());
+      input.val('');
+    }).end();
 
   var moving = false
     , keys   = {};
@@ -231,22 +241,25 @@ $(document).ready(function() {
     };
   });
 
-  $('#game #board').click(function() {
+  $('#game #board').bind('dblclick', function(ev) {
+    ev.preventDefault();
+    // Move player towards mouse position
+    movePlayerToMouse($(this), ev);
+  }).bind('click', function(ev) {
+    ev.preventDefault();
+    // Stop moving on single click
     if (moving) {
       socket.emit('stop');
       moving = false;
     }
-  }).bind('dblclick', function(ev) {
-    // Move player towards mouse position
-    movePlayerToMouse($(this), ev);
-  }).bind('mousedown touchstart', function(ev) {
-    // Move player towards mouse position
+  }).bind('touchstart', function(ev) {
+    // Move player towards touch position
     movePlayerToMouse($(this), ev);
     // Start listening for move events
-    $(this).bind('mousemove', mouseMoveEventHandler);
-  }).bind('mouseup touchend touchcancel touchleave', function() {
+    $(this).bind('touchmove', mouseMoveEventHandler);
+  }).bind('touchend touchcancel touchleave', function() {
     // Stop listening for move events
-    $(this).unbind('mousemove', mouseMoveEventHandler);
+    $(this).unbind('touchmove', mouseMoveEventHandler);
     if (moving) {
       socket.emit('stop');
       moving = false;
