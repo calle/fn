@@ -1,22 +1,25 @@
 def moveCards(l:List[Int]) : List[Int] = {
-	var list = l :: 12;
-	return list;
+	12 :: l
 }
 
 def readInput():List[Int] = {
-	var l:List[Int] = Nil;
-	while (true) {
+
+	var keepRunning = true;
+	/*
+	while (keepRunning) {
 		try{
-			var c = readInt;
-			l = c :: l;
+			var c = readInt();
+			yield c
+			// l = c :: l;
 			//println(c);
 		}
 		catch{
-			case e: Exception =>
-				return l;
+			case e: Exception => {keepRunning = false}
 		}
-	}
-	return Nil;
+	}*/
+	
+	l = while(keepRunning) yield 1;
+	return l
 }
 
 var a = 17;
