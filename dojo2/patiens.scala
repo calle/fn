@@ -1,15 +1,10 @@
-def sortList(l:List[Int]) : List[Int] = {
-	return l
-}
-
 def compressList(l:List[Int]) : List[Int] = {
 	for(i <- l; if i != 0) yield i;
 }
 
-def moveCards(k:List[Int]) : List[Int] = {
-	val l = compressList(k)
+def moveCards(l:List[Int]) : List[Int] = {
 	val j = for(i <- l) yield i-1
-	l.size :: j
+	(compressList(l.size :: j)).sort(_>_)
 }
 
 def readInput():List[Int] = {
@@ -26,14 +21,16 @@ def readInput():List[Int] = {
 	l;
 }
 
-var l = readInput();
+//var l = readInput();
 
 
 
-l = compressList(l);
-println(l);
+//l = compressList(l);
+//println(l);
 
-l = moveCards(l);
-println(l);
+//l = moveCards(l);
+//println(l);
 
-assert(moveCards(List(2,1)) == List(2,1))
+println(moveCards(List(2,1)))
+println(1, moveCards(List(2,1)) == List(2,1))
+println(2, moveCards(List(1,2,3)) == List(3,2,1))
