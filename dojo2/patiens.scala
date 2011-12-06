@@ -4,6 +4,8 @@ def moveCards(l:List[Int]) : List[Int] = {
 
 def readInput():List[Int] = {
 
+	println("How many?")
+	var n = readInt;
 	var keepRunning = true;
 	/*
 	while (keepRunning) {
@@ -18,8 +20,13 @@ def readInput():List[Int] = {
 		}
 	}*/
 	
-	l = while(keepRunning) yield 1;
-	return l
+	var i = 0;
+	
+	for(i=0; i<n; i++){
+		
+	} yield i;
+//	l = while(keepRunning) yield 1;
+//	return l
 }
 
 var a = 17;
