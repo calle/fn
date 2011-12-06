@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8" />
+  <!-- Set the viewport width to device width for mobile -->
+  <meta name="viewport" content="width=device-width" />
+  <title>Pong by fnnl</title>
+  <!-- Included CSS Files -->
+  <link rel="stylesheet" href="stylesheets/foundation.css">
+  <link rel="stylesheet" href="stylesheets/app.css">
+  <!--[if lt IE 9]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+  <![endif]-->
+  <!-- IE Fix for HTML5 Tags -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <!-- container -->
+  <div class="container">
+    <div class="row">
+      <div class="twelve columns">
+        <div class="header">
+          <h1>f()=Pong</h1>
+          <span class="tagline">&mdash; a multidimensional massive online multiplayer Pong by fnnl</span>
+        </div>
+        <div id="notify"></div>
+        <div id="game" class="hide">
+          <div class="row score">
+            <div class="eleven columns centered">
+              <div id="score">
+                <span class="score">
+                  Score: <span class="value">0</span>
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div class="row board">
+            <div class="eleven columns centered">
+              <div id="top_wall" class="wall"></div>
+              <div id="board"></div>
+              <div id="bottom_wall" class="wall"></div>
+            </div>
+          </div>
+          <div class="row actions">
+            <div class="eleven columns centered">
+              <form id="mouse_control" class="nice left">
+                <label for="control_player_1">
+                  <input type="radio" name="object" id="control_player_1" value="player1" />
+                  Player 1
+                </label>
+                <label for="control_player_2">
+                  <input type="radio" name="object" id="control_player_2" value="player2" />
+                    Player 2
+                  </label>
+                <label for="control_ball">
+                  <input type="radio" name="object" id="control_ball" value="ball" />
+                  Ball
+                </label>
+                <label for="action_position">
+                  <input type="radio" name="action" id="action_position" value="position" />
+                  Posision
+                </label>
+                <label for="action_velocity">
+                  <input type="radio" name="action" id="action_velocity" value="velocity" />
+                  Velocity
+                </label>
+                <label for="action_acceleration">
+                  <input type="radio" name="action" id="action_acceleration" value="acceleration" />
+                  Acceleration
+                </label>
+              </form>
+              <a href="#" class="tick right nice radius blue button">tick</a>
+              <div class="right">
+                <pre id="object_info"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="signup" class="reveal-modal">
+          <h2>Join the game</h2>
+          <p class="lead">Enter your name to start playing</p>
+          <form class="nice">
+            <input class="input-text large" type="text" name="name" value="" placeholder="Name"></input>
+            <small id="signup_error" class="error"></small>
+            <input id="signup_action" class="nice radius black button" type="submit" value="Join"></input>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- container -->
+  <!-- Included JS Files -->
+  <script src="javascripts/vendor/underscore.js"></script>
+  <script src="javascripts/vendor/foundation.js"></script>
+  <script src="javascripts/vendor/jquery.color.js"></script>
+  <script src="javascripts/vendor/jquery.notify.js"></script>
+  <script src="socket.io/socket.io.js"></script>
+  <script src="browserify.js"></script>
+  <script src="javascripts/renderer.js"></script>
+  <script src="javascripts/simulator.js"></script>
+  
+</body>
+</html>

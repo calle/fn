@@ -196,7 +196,7 @@ GameObject.prototype._overlapsObject = function(other) {
   //   , p2 = other.getPosition()
   //   , s2 = other.getSize();
   //
-  // // Move posisions to center of objects
+  // // Move positions to center of objects
   // p1 = new Vector({ x: p1.x + s1.width / 2, y: p1.y + s1.height / 2 });
   // p2 = new Vector({ x: p2.x + s2.width / 2, y: p2.y + s2.height / 2 });
   //
