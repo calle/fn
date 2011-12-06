@@ -248,12 +248,15 @@ GameObject.prototype._performCollision = function(other) {
   var py = p1.y - p2.y;
   var vx = v1.x - v2.x;
   var vy = v1.y - v2.y;
-  var R  = s1.width + s2.width; // Assume width == height of both objects
+  var R  = (s1.width + s2.width) / 2; // Assume width == height of both objects
 
   // Find the exact time of the collision
   var p = - (2 * (px*vx + py*vy)/(vx*vx + vy*vy) );
   var q = (px*px + py*py - R*R)/(vx*vx + vy*vy);
   var tao = - p/2 + Math.sqrt( (p*p/4) - q);
+  if (isNaN(tao) || tao < 0){
+    tao = 0;
+  }
 
   // Update placements with the true position at collision
   p1 = p1.sub(v1.scalarMulti(tao)); // p1 = p1 - tao * v1
@@ -261,7 +264,7 @@ GameObject.prototype._performCollision = function(other) {
 
   // Calculate distance and angle between objects
   var d   = p2.sub(p1)
-    , phi = d.angleRad();
+    , phi = -d.angleRad();
 
   // Rotate basis phi degrees using the matrix:
   //  [cos(phi) -sin(phi); sin(phi)  cos(phi)] * [v.x, v.y]'
