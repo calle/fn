@@ -21,24 +21,21 @@ def readInput():List[Int] = {
 	l;
 }
 
-def bulgaric_patiens(){
-	//var l = readInput();
-	
-	//while(changed){
-//		moveCards
-//	}
+def bulgaricPatiens(l: List[Int]) : Boolean = {	
+	var lastStep:List[Int] = Nil
+	for (i <- Range(0,25)) {
+		lastStep = l
+		var newL = moveCards(l)
+		if(newL == lastStep){
+			return true
+		}
+	}
+	return false
 }
 
-var l = List(1,2,3);
-println(l);
-for (i <- Range(0,25)) {
-	moveCards(l);
-}
-println(l);
-
-println(moveCards(List(0, -1, 1, 2,3)))
 println(1, moveCards(List(2,1)) == List(2,1))
 println(2, moveCards(List(1,2,3)) == List(3,2,1))
 println(3, moveCards(List(0,-1,1,2,3)) == List(5,2,1))
-
+println("Should be true", bulgaricPatiens(List(3,2,1)))
+println("Should be false", bulgaricPatiens(List(3,2)))
 
