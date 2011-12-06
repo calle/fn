@@ -1,4 +1,5 @@
-var GameObject = require('./gameobject');
+var GameObject = require('./gameobject')
+  , Vector     = require('./vector');
 
 /**
  * Ball has the following attributes (in addition to GameObject's)
@@ -46,7 +47,17 @@ Ball.prototype.updateState = function(state) {
 
 Ball.prototype.setVelocity = function(velocity) {
   if (this.get('dead')) return;
-  GameObject.prototype.setVelocity.apply(this, arguments);
+
+  var maxSpeed = this.get('maxSpeed');
+  if (maxSpeed) {
+    // Make sure velocity is never greater than max_speed
+    var v = new Vector(velocity)
+    if (v.norm() > maxSpeed) {
+      velocity = v.scalarMulti(maxSpeed / v.norm());
+    }
+  }
+
+  GameObject.prototype.setVelocity.call(this, velocity);
 };
 
 Ball.prototype._validCollisionTarget = function(other) {

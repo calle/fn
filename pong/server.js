@@ -88,6 +88,7 @@ require('node-server').server(function(config) {
   , size     : { width: 0.1, height: 0.1 }
   , weight   : 1
   , speed    : 1
+  , maxSpeed : 2
   };
   var player_attributes = {
     position : { x: game_attributes.size.width - 0.1, y: 0 }
@@ -292,6 +293,7 @@ require('node-server').server(function(config) {
     context.app = app;
     context.io = io;
     context.game = game;
+    context.messages = messages;
     context.addBall = addBall;
     context.removeBall = removeBall;
     context.ball_attributes = ball_attributes;
