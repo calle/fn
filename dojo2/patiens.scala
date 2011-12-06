@@ -1,13 +1,13 @@
-def readInput(){
+def readInput():List[Int] = {
+	var l:List[Int] = Nil;
 	while (true){
 		try{
 			var c = readInt;
-			println(c)
+			c :: l;
 		}
 		catch{
 			case e: Exception =>
-				print("exception");
-				return;
+				return l;
 		}
 	}
 }
@@ -15,4 +15,5 @@ def readInput(){
 var a = 17;
 var b = 19;
 println(a+b);
-readInput()
+var l = readInput();
+println(l);
