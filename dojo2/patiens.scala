@@ -7,6 +7,15 @@ def moveCards(l:List[Int]) : List[Int] = {
 	(compressList(l.size :: j)).sortWith(_>_)
 }
 
+def bulgaricPatiens(l: List[Int]) : Boolean = {	
+	for (i <- Range(0,25)) {
+		if(l == moveCards(l)){
+			return true
+		}
+	}
+	return false
+}
+
 def readInput():List[Int] = {
 	var l:List[Int] = Nil;
 	var keepRunning = true;
@@ -19,18 +28,6 @@ def readInput():List[Int] = {
 		}
 	}
 	l;
-}
-
-def bulgaricPatiens(l: List[Int]) : Boolean = {	
-	var lastStep:List[Int] = Nil
-	for (i <- Range(0,25)) {
-		lastStep = l
-		var newL = moveCards(l)
-		if(newL == lastStep){
-			return true
-		}
-	}
-	return false
 }
 
 println(1, moveCards(List(2,1)) == List(2,1))
