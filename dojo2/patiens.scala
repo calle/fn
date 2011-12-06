@@ -25,19 +25,16 @@ def bulgaric_patiens(){
 	//var l = readInput();
 	
 	//while(changed){
-		moveCards
-	}
+//		moveCards
+//	}
 }
 
-//var l = readInput();
-
-
-
-//l = compressList(l);
-//println(l);
-
-//l = moveCards(l);
-//println(l);
+var l = List(1,2,3);
+println(l);
+for (i <- Range(0,25)) {
+	moveCards(l);
+}
+println(l);
 
 println(moveCards(List(0, -1, 1, 2,3)))
 println(1, moveCards(List(2,1)) == List(2,1))
