@@ -1,3 +1,7 @@
+(ns dojo3.test.core
+  (:use [dojo3.core])
+  (:use [clojure.test]))
+
 (require '[clj-http.client :as client])
 
 (def products (list 123 234 212 225))
@@ -10,3 +14,10 @@
 (println (map buildUrl products))
 
 (do (map println *command-line-args*))
+
+(println "hej")
+
+(println (client/get "http://www.systembolaget.se/"))
+
+(deftest dojo3 
+  (is false false))
